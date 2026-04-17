@@ -1,0 +1,24 @@
+[project]
+name = "monotype-translation-crew"
+version = "0.1.0"
+description = "Monotype UI string translation crew using CrewAI"
+authors = [{ name = "Sankalp Khandelwal", email = "you@example.com" }]
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "crewai[tools]>=0.175.0,<1.0.0",
+    "openpyxl>=3.1.0",
+    "fastapi>=0.115.0,<1.0.0",
+    "uvicorn[standard]>=0.30.0,<1.0.0",
+    "python-multipart>=0.0.20",
+]
+
+[project.scripts]
+translate = "monotype_translation_crew.main:run"
+serve     = "monotype_translation_crew.main:serve"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "crew"

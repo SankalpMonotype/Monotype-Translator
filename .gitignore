@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+outputs/
+uploads/
+inputs/*.xlsx
+inputs/*_translated.xlsx
+*.log
+.DS_Store
