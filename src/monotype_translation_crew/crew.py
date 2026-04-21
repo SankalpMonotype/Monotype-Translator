@@ -15,6 +15,8 @@ from .tools import (
     write_reviewed_translations_to_excel,
     read_brand_context_cache,
     save_brand_context_cache,
+    read_docx_for_translation,
+    write_translations_to_docx,
 )
 
 
@@ -126,3 +128,140 @@ class MonotypeTranslationCrew:
             process=Process.sequential,
             verbose=True,
         )
+
+
+# ---------------------------------------------------------------------------
+# Docx Translation Crew — translates Word documents into selected languages
+# ---------------------------------------------------------------------------
+
+class DocxTranslationCrew:
+    """Translates Word documents (.docx) into one or more target languages.
+
+    Intentionally does NOT use @CrewBase — loads config files via Path(__file__)
+    so discovery never depends on the working directory.
+    """
+
+    def __init__(self):
+        import yaml
+        from pathlib import Path
+        _cfg = Path(__file__).parent / "config"
+        self._agents_cfg = yaml.safe_load((_cfg / "agents.yaml").read_text())
+        self._tasks_cfg  = yaml.safe_load((_cfg / "docx_tasks.yaml").read_text())
+        os.makedirs(os.path.join(os.getcwd(), "outputs"), exist_ok=True)
+
+    def crew(self) -> Crew:
+        brand_analyst = Agent(
+            config=self._agents_cfg["brand_analyst"],
+            verbose=True,
+            tools=[
+                read_brand_context_cache,
+                read_brand_guidelines,
+                ScrapeWebsiteTool(website_url="https://www.myfonts.com/"),
+                ScrapeWebsiteTool(website_url="https://www.myfonts.com/collections/"),
+                save_brand_context_cache,
+            ],
+            allow_delegation=False,
+        )
+        translator = Agent(
+            config=self._agents_cfg["translator"],
+            verbose=True,
+            tools=[read_docx_for_translation],
+            allow_delegation=False,
+        )
+        reviewer = Agent(
+            config=self._agents_cfg["translation_reviewer"],
+            verbose=True,
+            allow_delegation=False,
+        )
+        prod_manager = Agent(
+            config=self._agents_cfg["production_manager"],
+            verbose=True,
+            tools=[write_translations_to_docx],
+            allow_delegation=False,
+        )
+
+        brand_task = Task(
+            description=self._tasks_cfg["brand_context_task"]["description"],
+            expected_output=self._tasks_cfg["brand_context_task"]["expected_output"],
+            agent=brand_analyst,
+        )
+        trans_task = Task(
+            description=self._tasks_cfg["docx_translation_task"]["description"],
+            expected_output=self._tasks_cfg["docx_translation_task"]["expected_output"],
+            agent=translator,
+            context=[brand_task],
+        )
+        review_task = Task(
+            description=self._tasks_cfg["docx_review_task"]["description"],
+            expected_output=self._tasks_cfg["docx_review_task"]["expected_output"],
+            agent=reviewer,
+            context=[brand_task, trans_task],
+            output_file=os.path.join("outputs", "reviewed_docx_translations.json"),
+        )
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        prod_task = Task(
+            description=self._tasks_cfg["docx_production_task"]["description"],
+            expected_output=self._tasks_cfg["docx_production_task"]["expected_output"],
+            agent=prod_manager,
+            context=[review_task],
+            output_file=os.path.join("outputs", f"docx_report-{timestamp}.md"),
+        )
+
+        return Crew(
+            agents=[brand_analyst, translator, reviewer, prod_manager],
+            tasks=[brand_task, trans_task, review_task, prod_task],
+            process=Process.sequential,
+            verbose=True,
+        )
+
+    # ------------------------------------------------------------------
+    # Batch-mode helpers (called by api._run_docx_job_batched)
+    # ------------------------------------------------------------------
+
+    def _run_brand_context_only(self, knowledge_dir: str):
+        """Run just the brand_analyst task so the brand context cache is populated."""
+        brand_analyst = Agent(
+            config=self._agents_cfg["brand_analyst"],
+            verbose=True,
+            tools=[
+                read_brand_context_cache,
+                read_brand_guidelines,
+                ScrapeWebsiteTool(website_url="https://www.myfonts.com/"),
+                ScrapeWebsiteTool(website_url="https://www.myfonts.com/collections/"),
+                save_brand_context_cache,
+            ],
+            allow_delegation=False,
+        )
+        brand_task = Task(
+            description=self._tasks_cfg["brand_context_task"]["description"],
+            expected_output=self._tasks_cfg["brand_context_task"]["expected_output"],
+            agent=brand_analyst,
+        )
+        return Crew(
+            agents=[brand_analyst],
+            tasks=[brand_task],
+            process=Process.sequential,
+            verbose=True,
+        ).kickoff(inputs={"knowledge_dir": knowledge_dir})
+
+    def _run_production_only(self, docx_path: str):
+        """Run just the production_manager task to write docx files from the merged JSON."""
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        prod_manager = Agent(
+            config=self._agents_cfg["production_manager"],
+            verbose=True,
+            tools=[write_translations_to_docx],
+            allow_delegation=False,
+        )
+        prod_task = Task(
+            description=self._tasks_cfg["docx_production_task"]["description"],
+            expected_output=self._tasks_cfg["docx_production_task"]["expected_output"],
+            agent=prod_manager,
+            output_file=os.path.join("outputs", f"docx_report-{timestamp}.md"),
+        )
+        return Crew(
+            agents=[prod_manager],
+            tasks=[prod_task],
+            process=Process.sequential,
+            verbose=True,
+        ).kickoff(inputs={"docx_path": docx_path})

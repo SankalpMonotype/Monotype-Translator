@@ -1671,6 +1671,7 @@ dependencies = [
     { name = "crewai", extra = ["tools"] },
     { name = "fastapi" },
     { name = "openpyxl" },
+    { name = "python-docx" },
     { name = "python-multipart" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -1680,6 +1681,7 @@ requires-dist = [
     { name = "crewai", extras = ["tools"], specifier = ">=0.175.0,<1.0.0" },
     { name = "fastapi", specifier = ">=0.115.0,<1.0.0" },
     { name = "openpyxl", specifier = ">=3.1.0" },
+    { name = "python-docx", specifier = ">=1.1.0" },
     { name = "python-multipart", specifier = ">=0.0.20" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30.0,<1.0.0" },
 ]

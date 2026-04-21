@@ -7,6 +7,12 @@ from .excel_tools import (
     read_brand_context_cache,
     save_brand_context_cache,
 )
+from .docx_tools import (
+    read_docx_for_translation,
+    write_translations_to_docx,
+    write_translations_to_docx_impl,
+    extract_segments,
+)
 
 __all__ = [
     "read_reviewed_translations",
@@ -16,4 +22,8 @@ __all__ = [
     "read_brand_guidelines",
     "read_brand_context_cache",
     "save_brand_context_cache",
+    "read_docx_for_translation",
+    "write_translations_to_docx",
+    "write_translations_to_docx_impl",
+    "extract_segments",
 ]

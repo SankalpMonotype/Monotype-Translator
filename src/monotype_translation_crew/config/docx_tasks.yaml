@@ -1,0 +1,125 @@
+brand_context_task:
+  description: >
+    Step 1: Call the read_brand_context_cache tool with knowledge_dir="{knowledge_dir}".
+    - If it returns non-empty content: output that content directly as your final result.
+      Do NOT call any other tools. The cache is valid because the knowledge files are unchanged.
+    - If it returns an empty string: the cache is missing or stale. Proceed to Step 2.
+
+    Step 2: Call the read_brand_guidelines tool with knowledge_dir set to "{knowledge_dir}".
+    Read all files in that directory (brand_guidelines.md and glossary.md at minimum).
+
+    Step 3: Use the ScrapeWebsiteTool to fetch content from the following Monotype web
+    properties for additional product context and font terminology:
+    - https://www.myfonts.com/ — font discovery platform; note product categories,
+      featured collections, and any UI copy that reveals naming conventions.
+    - https://www.myfonts.com/collections/ — browse font collections for terminology
+      around styles, moods, and font categories used on the platform.
+
+    Step 4: Synthesise ALL gathered content into a structured brand context document
+    with these sections:
+
+    1. TONE OF VOICE: Key adjectives describing Monotype's communication style and
+       tones to avoid.
+    2. UNTRANSLATABLE TERMS: An exhaustive list of product names, feature names, and
+       brand terms that must remain in English in all translations (e.g. "Monotype AI",
+       "Font Manager", "Mosaic", "MyFonts", "Fonts.com", "WhatTheFont"). Supplement
+       with any additional product/feature names observed on MyFonts.com.
+    3. PLACEHOLDER RULES: Explain that runtime variable tokens — those using a single
+       pair of curly braces around a variable name, or a double pair of curly braces
+       around a variable name — must be copied character-for-character into every
+       translation. Do not translate, move, or reformat them.
+    4. PER-LANGUAGE NOTES: Formality level, register, and writing system choices for
+       French, German, pt-BR, Japanese, and es-419.
+    5. GLOSSARY: Key typography and product terminology with approved translations per
+       language. Supplement the knowledge-file glossary with any additional font category
+       or UI terms discovered on MyFonts.com.
+
+    Step 5: Call the save_brand_context_cache tool with:
+    - content = the full brand context document you just synthesised
+    - knowledge_dir = "{knowledge_dir}"
+    This saves the document so future runs can skip Steps 2-4 entirely.
+
+    This document will be used by the translator and reviewer as their primary reference.
+  expected_output: >
+    A structured markdown document with the five sections above, grounded in the knowledge
+    files and Monotype web properties. Do not invent guidelines — only surface what the
+    sources say. If a section has no coverage, write "No specific guidance found — apply
+    general professional localisation standards."
+  agent: brand_analyst
+
+docx_translation_task:
+  description: >
+    Step 1: Call the read_docx_for_translation tool with docx_path="{docx_path}".
+    This returns a JSON with "segments" — an array of text blocks extracted from
+    the document (body paragraphs and table cells), each with a segment_id and text.
+
+    Step 2: Using the brand context document from brand_context_task as your primary
+    reference, translate every segment into these target languages: {target_languages}
+
+    These segments are complete sentences and paragraphs from customer communications
+    or marketing documents — NOT short UI strings. Translate the full meaning faithfully.
+
+    RULES:
+    - Preserve Monotype brand/product names in English (Monotype Fonts, MyFonts, etc.)
+    - French: formal "vous". German: formal "Sie". Japanese: 丁寧語 polite register.
+      pt-BR: "você". es-419: "usted" for formal customer communications.
+    - Maintain document flow — each segment may relate to surrounding segments.
+    - Do NOT truncate, summarise, or rephrase beyond natural localisation needs.
+    - Brazilian Portuguese (not European). Latin American Spanish (not Spain).
+
+    Output ONLY a valid JSON array. Each element must have this exact structure:
+    {"segment_id": <integer>, "english": "<original text>", "<lang_code>": "<translation>"}
+    Include one key per target language (e.g. "fr", "de", "pt_BR", "ja", "es_419").
+    Output raw JSON only — no markdown fences, no preamble, no extra text.
+  expected_output: >
+    A valid JSON array of segment translation objects. Raw JSON only.
+  agent: translator
+  context:
+    - brand_context_task
+
+docx_review_task:
+  description: >
+    Review every entry in the docx translation JSON array from docx_translation_task
+    against the brand context from brand_context_task.
+
+    For each segment and each language, check:
+    [ ] Accuracy: does the translation faithfully convey the English meaning?
+    [ ] Brand voice: does the tone match Monotype's professional communication style?
+    [ ] Brand terms: are product names kept in English?
+    [ ] Natural fluency: would a native speaker find this natural in a formal communication?
+    [ ] Register: French vous / German Sie / Japanese 丁寧語 / pt-BR você / es-419 usted
+
+    Correct any errors in-place. For uncertain items, add a "reviewer_note" field.
+    Return the complete corrected JSON array. Raw JSON only — no markdown, no preamble.
+  expected_output: >
+    Corrected JSON array with same schema (segment_id, english, per-language keys)
+    plus optional reviewer_note fields. Raw JSON only.
+  agent: translation_reviewer
+  context:
+    - brand_context_task
+    - docx_translation_task
+
+docx_production_task:
+  description: >
+    Step 1: Call the write_translations_to_docx tool with:
+    - docx_path = "{docx_path}"
+
+    This tool reads the reviewed_docx_translations.json file internally, creates one
+    translated .docx file per language, and bundles them into a .zip file.
+
+    Step 2: Confirm the tool returned success=true. If it returned an error, report
+    it clearly and stop.
+
+    Step 3: Write a final production summary containing:
+    - Zip file path
+    - Languages written
+    - Segment counts per language
+    - Any reviewer_note items flagged
+    - Release recommendation: "READY FOR RELEASE" if no reviewer_notes,
+      otherwise "REVIEW FLAGGED SEGMENTS BEFORE RELEASE"
+  expected_output: >
+    A plain-text production summary with zip path, languages written, segment counts,
+    flagged items, and release recommendation.
+  agent: production_manager
+  context:
+    - docx_review_task

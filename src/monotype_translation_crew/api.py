@@ -583,7 +583,7 @@ _HTML = r"""<!DOCTYPE html>
     <div style="background:var(--ink); border-radius:16px; padding:20px 24px; display:flex;
          align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px;">
       <div>
-        <p style="font-size:13px; font-weight:600; color:white; margin-bottom:4px;">All translations · Excel</p>
+        <p id="dl-format-label" style="font-size:13px; font-weight:600; color:white; margin-bottom:4px;">All translations · Excel</p>
         <p id="dl-filename" style="font-size:11px; color:rgba(255,255,255,.4);"></p>
       </div>
       <button id="download-btn"
@@ -699,6 +699,7 @@ const INSIGHTS = [
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let selectedFile   = null;
+let selectedFileType = 'xlsx';
 let selectedLangs  = new Set(['fr','de','pt','ja','es']);
 let selectedTone   = 'neutral';
 let optimizeLen    = true;
@@ -764,6 +765,7 @@ async function handleFile(file) {
   if (!/\.(xlsx|pdf|docx|doc)$/i.test(file.name)) { alert('Please upload an .xlsx, .pdf, or .docx file.'); return; }
   if (file.size > 10*1024*1024) { alert('File must be smaller than 10 MB.'); return; }
   selectedFile = file;
+  selectedFileType = /\.(docx|doc)$/i.test(file.name) ? 'docx' : 'xlsx';
   $('file-name').textContent = file.name;
   $('file-size').textContent = fmtBytes(file.size);
   hideEl('string-count-pill'); hideEl('drop-zone');
@@ -956,8 +958,12 @@ async function pollStatus() {
 // ── Results ───────────────────────────────────────────────────────────────────
 function showResults(data) {
   const n = data.review_data ? data.review_data.length : '?';
-  $('result-summary').textContent = n + ' string' + (n!==1?'s':'') + ' · ' + selectedLangs.size + ' language' + (selectedLangs.size !== 1 ? 's' : '');
-  $('dl-filename').textContent = (selectedFile ? selectedFile.name.replace(/\.\w+$/, '') : 'file') + '_translated.xlsx';
+  const isDocx = (data.file_type === 'docx') || selectedFileType === 'docx';
+  const unit = isDocx ? 'segment' : 'string';
+  $('result-summary').textContent = n + ' ' + unit + (n!==1?'s':'') + ' · ' + selectedLangs.size + ' language' + (selectedLangs.size !== 1 ? 's' : '');
+  const baseName = selectedFile ? selectedFile.name.replace(/\.\w+$/, '') : 'file';
+  $('dl-filename').textContent = baseName + (isDocx ? '_translated.zip' : '_translated.xlsx');
+  $('dl-format-label').textContent = 'All translations · ' + (isDocx ? 'Zip' : 'Excel');
 
   $('lang-pills').innerHTML = LANG_CONFIG.filter(l => selectedLangs.has(l.id)).map(l =>
     `<div style="display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;
@@ -1112,36 +1118,56 @@ async def start_translation(
     raw_path  = Path("uploads") / safe_name
     raw_path.write_bytes(contents)
 
-    # Convert PDF / DOCX → xlsx so the crew can process it
-    if ext != ".xlsx":
-        xlsx_path = raw_path.with_suffix(".xlsx")
-        try:
-            _convert_to_xlsx(raw_path, xlsx_path)
-        except Exception as exc:
-            raise HTTPException(status_code=422, detail=f"Could not parse file: {exc}")
-        work_path = xlsx_path
-    else:
-        work_path = raw_path
-
-    expected_output = Path("outputs") / f"{work_path.stem}_translated.xlsx"
-
-    JOBS[job_id] = {
-        "status": "pending",
-        "input_file": fname,
-        "upload_path": str(work_path),
-        "output_path": str(expected_output),
-        "created_at": datetime.now().isoformat(),
-        "cancel_requested": False,
-        "tone": tone,
-        "languages": languages,
-        "optimize_length": optimize_length.lower() == "true",
-        "error": None,
-        "review_data": None,
-        "report": None,
-    }
-
     loop = asyncio.get_running_loop()
-    loop.run_in_executor(_executor, _run_job, job_id, str(work_path))
+
+    if ext in (".docx", ".doc"):
+        # Native docx pipeline — preserves document structure, outputs a zip
+        expected_output = Path("outputs") / f"{raw_path.stem}_translated.zip"
+        JOBS[job_id] = {
+            "status": "pending",
+            "file_type": "docx",
+            "input_file": fname,
+            "upload_path": str(raw_path),
+            "output_path": str(expected_output),
+            "created_at": datetime.now().isoformat(),
+            "cancel_requested": False,
+            "tone": tone,
+            "languages": languages,
+            "optimize_length": optimize_length.lower() == "true",
+            "error": None,
+            "review_data": None,
+            "report": None,
+        }
+        loop.run_in_executor(_executor, _run_docx_job, job_id, str(raw_path), languages)
+    else:
+        # Excel / PDF pipeline — convert if needed, output translated xlsx
+        if ext != ".xlsx":
+            xlsx_path = raw_path.with_suffix(".xlsx")
+            try:
+                _convert_to_xlsx(raw_path, xlsx_path)
+            except Exception as exc:
+                raise HTTPException(status_code=422, detail=f"Could not parse file: {exc}")
+            work_path = xlsx_path
+        else:
+            work_path = raw_path
+
+        expected_output = Path("outputs") / f"{work_path.stem}_translated.xlsx"
+        JOBS[job_id] = {
+            "status": "pending",
+            "file_type": "xlsx",
+            "input_file": fname,
+            "upload_path": str(work_path),
+            "output_path": str(expected_output),
+            "created_at": datetime.now().isoformat(),
+            "cancel_requested": False,
+            "tone": tone,
+            "languages": languages,
+            "optimize_length": optimize_length.lower() == "true",
+            "error": None,
+            "review_data": None,
+            "report": None,
+        }
+        loop.run_in_executor(_executor, _run_job, job_id, str(work_path))
 
     return JSONResponse({"job_id": job_id, "status": "pending"})
 
@@ -1155,6 +1181,7 @@ async def get_status(job_id: str):
     return JSONResponse({
         "job_id": job_id,
         "status": job["status"],
+        "file_type": job.get("file_type", "xlsx"),
         "input_file": job["input_file"],
         "created_at": job["created_at"],
         "error": job["error"],
@@ -1189,10 +1216,16 @@ async def download(job_id: str):
     if not output_path.exists():
         raise HTTPException(status_code=404, detail="Output file not found on disk.")
 
-    download_name = f"{Path(job['input_file']).stem}_translated.xlsx"
+    input_stem = Path(job["input_file"]).stem
+    if job.get("file_type") == "docx":
+        return FileResponse(
+            path=str(output_path),
+            filename=f"{input_stem}_translated.zip",
+            media_type="application/zip",
+        )
     return FileResponse(
         path=str(output_path),
-        filename=download_name,
+        filename=f"{input_stem}_translated.xlsx",
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
@@ -1200,6 +1233,221 @@ async def download(job_id: str):
 # ---------------------------------------------------------------------------
 # Background job runner
 # ---------------------------------------------------------------------------
+
+_DOCX_BATCH_SIZE = 10  # segments per direct-LLM translation call for large documents
+
+_LANG_RULES = {
+    "fr":     "French — formal 'vous' register",
+    "de":     "German — formal 'Sie' register",
+    "pt_BR":  "Brazilian Portuguese — 'você' register",
+    "ja":     "Japanese — 丁寧語 polite register",
+    "es_419": "Latin American Spanish — 'usted' for formal customer communications",
+}
+
+
+def _extract_json_array(text: str) -> str:
+    """Extract the first JSON array from text, skipping any preamble/postamble."""
+    text = text.strip()
+    start = text.find("[")
+    if start == -1:
+        return text  # let json.loads raise a clear error
+    text = text[start:]
+    # Remove trailing markdown fence if present
+    fence_pos = text.rfind("```")
+    if fence_pos != -1:
+        text = text[:fence_pos].rstrip()
+    return text.strip()
+
+
+def _translate_segment_batch(
+    segments: list[dict],
+    target_languages: list[str],
+    brand_context: str,
+) -> list[dict]:
+    """Translate one batch of segments via direct Anthropic API call.
+
+    Bypasses CrewAI agents to avoid output-token truncation on large documents.
+    """
+    import litellm
+    import os as _os
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    model = (
+        _os.environ.get("MODEL")
+        or _os.environ.get("ANTHROPIC_MODEL")
+        or _os.environ.get("OPENAI_MODEL_NAME")
+        or "openai/gpt-4.1-2025-04-14"
+    )
+
+    lang_rules = "\n".join(
+        f"  - {_LANG_RULES.get(lc, lc)}" for lc in target_languages
+    )
+    lang_example = ", ".join(
+        f'"{lc}": "<{_LANG_RULES.get(lc, lc).split("—")[0].strip()} translation>"'
+        for lc in target_languages
+    )
+    segs_json = json.dumps(segments, ensure_ascii=False, indent=2)
+
+    prompt = f"""You are translating customer-facing document segments for Monotype.
+
+LANGUAGE REGISTER RULES:
+{lang_rules}
+
+KEY BRAND RULES:
+- Preserve ALL product names in English: Monotype, MyFonts, Font Manager, Mosaic, Fonts.com, WhatTheFont, Monotype Fonts, etc.
+- These are complete sentences from customer communications — translate faithfully, do NOT summarise.
+- Placeholder tokens in {{single}} or {{{{double}}}} braces must be copied verbatim.
+
+BRAND CONTEXT SUMMARY:
+{brand_context[:2500]}
+
+SEGMENTS TO TRANSLATE (you MUST output ALL {len(segments)} of them):
+{segs_json}
+
+TARGET LANGUAGE CODES: {target_languages}
+
+Output ONLY a valid JSON array. Each element MUST follow this exact structure:
+{{"segment_id": <int>, "english": "<original text>", {lang_example}}}
+
+Include ONLY the requested language keys. Raw JSON only — no markdown fences, no preamble."""
+
+    response = litellm.completion(
+        model=model,
+        max_tokens=8192,
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    usage = getattr(response, "usage", None)
+    if usage:
+        print(
+            f"[DocxBatch] tokens — prompt: {usage.prompt_tokens}, "
+            f"completion: {usage.completion_tokens}, "
+            f"total: {usage.total_tokens}"
+        )
+
+    raw = _extract_json_array(response.choices[0].message.content)
+    result = json.loads(raw)
+    # Attach usage so the caller can accumulate totals
+    return result, usage
+
+
+def _run_docx_job_batched(
+    job_id: str,
+    docx_path: str,
+    segments: list[dict],
+    target_languages: list[str],
+) -> None:
+    """Translate a large docx in batches, then write translated docx files directly."""
+    from .crew import DocxTranslationCrew
+    from .tools.docx_tools import write_translations_to_docx_impl
+
+    # Step 1: Ensure brand context is cached
+    brand_cache = Path("outputs/brand_context_cache.md")
+    if brand_cache.exists():
+        brand_context = brand_cache.read_text(encoding="utf-8")
+    else:
+        DocxTranslationCrew()._run_brand_context_only("knowledge")
+        brand_context = brand_cache.read_text(encoding="utf-8") if brand_cache.exists() else ""
+
+    # Step 2: Translate in batches
+    all_translations: list[dict] = []
+    batches = [segments[i:i + _DOCX_BATCH_SIZE] for i in range(0, len(segments), _DOCX_BATCH_SIZE)]
+    batch_errors: list[str] = []
+    total_prompt_tokens = 0
+    total_completion_tokens = 0
+
+    for idx, batch in enumerate(batches, 1):
+        print(f"[DocxBatch] Translating batch {idx}/{len(batches)} ({len(batch)} segments)")
+        try:
+            batch_result, usage = _translate_segment_batch(batch, target_languages, brand_context)
+            all_translations.extend(batch_result)
+            if usage:
+                total_prompt_tokens += usage.prompt_tokens or 0
+                total_completion_tokens += usage.completion_tokens or 0
+            print(f"[DocxBatch] Batch {idx} OK — {len(batch_result)} entries")
+        except Exception as exc:
+            err_msg = f"Batch {idx}/{len(batches)} {type(exc).__name__}: {exc}"
+            print(f"[DocxBatch] FAILED: {err_msg}")
+            batch_errors.append(err_msg)
+            JOBS[job_id]["error"] = "; ".join(batch_errors)
+            for seg in batch:
+                entry: dict = {"segment_id": seg["segment_id"], "english": seg.get("text", "")}
+                for lang in target_languages:
+                    entry[lang] = seg.get("text", "")
+                all_translations.append(entry)
+
+    print(
+        f"[DocxBatch] TOTAL tokens — prompt: {total_prompt_tokens}, "
+        f"completion: {total_completion_tokens}, "
+        f"total: {total_prompt_tokens + total_completion_tokens}"
+    )
+    JOBS[job_id]["token_usage"] = {
+        "prompt_tokens": total_prompt_tokens,
+        "completion_tokens": total_completion_tokens,
+        "total_tokens": total_prompt_tokens + total_completion_tokens,
+    }
+
+    # Step 3: Write merged translations JSON
+    review_path = Path("outputs/reviewed_docx_translations.json")
+    review_path.write_text(
+        json.dumps(all_translations, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"[DocxBatch] Wrote {len(all_translations)} entries to reviewed_docx_translations.json")
+
+    # Step 4: Write translated docx files + zip directly (no AI agent needed)
+    result = write_translations_to_docx_impl(docx_path)
+    if not result.get("success"):
+        raise RuntimeError(f"write_translations_to_docx_impl failed: {result.get('error')}")
+
+
+def _run_docx_job(job_id: str, docx_path: str, languages: str) -> None:
+    """Run the docx translation pipeline in a background thread."""
+    JOBS[job_id]["status"] = "running"
+    try:
+        from .crew import DocxTranslationCrew
+        from .tools.docx_tools import extract_segments
+
+        _lang_normalise = {"pt": "pt_BR", "es": "es_419"}
+        target_languages = [
+            _lang_normalise.get(l.strip(), l.strip())
+            for l in languages.split(",") if l.strip()
+        ]
+
+        segments = extract_segments(docx_path)
+
+        if len(segments) > _DOCX_BATCH_SIZE:
+            # Large document — batch translation to avoid output-token truncation
+            _run_docx_job_batched(job_id, docx_path, segments, target_languages)
+        else:
+            DocxTranslationCrew().crew().kickoff(inputs={
+                "docx_path": docx_path,
+                "knowledge_dir": "knowledge",
+                "target_languages": target_languages,
+            })
+
+        # Locate the zip produced by write_translations_to_docx
+        stem = Path(docx_path).stem
+        zip_path = Path("outputs") / f"{stem}_translated.zip"
+        if zip_path.exists():
+            JOBS[job_id]["output_path"] = str(zip_path)
+
+        # Capture review data
+        review_path = Path("outputs/reviewed_docx_translations.json")
+        if review_path.exists():
+            try:
+                JOBS[job_id]["review_data"] = json.loads(review_path.read_text())
+            except Exception:
+                pass
+
+        if not JOBS[job_id].get("cancel_requested"):
+            JOBS[job_id]["status"] = "complete"
+
+    except Exception as exc:
+        if not JOBS[job_id].get("cancel_requested"):
+            JOBS[job_id]["status"] = "failed"
+            JOBS[job_id]["error"] = str(exc)
+
 
 def _run_job(job_id: str, excel_path: str) -> None:
     """Run the full CrewAI pipeline in a background thread."""
