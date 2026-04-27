@@ -19,11 +19,11 @@ COLUMN_ALIASES: dict[str, list[str]] = {
     "de":     ["german", "de", "deutsch"],
     "pt_BR":  ["portuguese", "pt", "pt-br", "pt_br", "português", "portugues"],
     "ja":     ["japanese", "ja", "jp", "日本語"],
-    "es_419": ["spanish", "es", "es-419", "es_419", "español", "espanol"],
+    "es_ES":  ["spanish", "es", "es-es", "es_es", "es-419", "es_ES", "español", "espanol"],
     "en":     ["english", "en", "source", "original", "string", "text"],
 }
 
-TARGET_LANGS = ["fr", "de", "pt_BR", "ja", "es_419"]
+TARGET_LANGS = ["fr", "de", "pt_BR", "ja", "es_ES"]
 
 
 def _normalise_translation(text: str, lang: str) -> str:
@@ -64,7 +64,7 @@ def _detect_header_row(ws) -> int:
 
 def _build_column_map(header_cells) -> dict[str, int]:
     """
-    Returns a dict mapping canonical language keys (fr, de, pt_BR, ja, es_419, en)
+    Returns a dict mapping canonical language keys (fr, de, pt_BR, ja, es_ES, en)
     to 0-based column indices.
     """
     col_map: dict[str, int] = {}
@@ -150,12 +150,20 @@ def write_reviewed_translations_to_excel(excel_path: str) -> str:
         col_map = _build_column_map(header_cells)
         col_1based = {lang: idx + 1 for lang, idx in col_map.items()}
 
+        # Detect which languages are present in the JSON (skip meta keys)
+        _meta_keys = {"row_index", "english", "reviewer_note"}
+        active_langs = [
+            k for entry in entries for k in entry
+            if k not in _meta_keys
+        ]
+        active_langs = list(dict.fromkeys(active_langs))  # deduplicate, preserve order
+
         next_col = ws.max_column + 1
-        for lang in TARGET_LANGS:
+        for lang in active_langs:
             if lang not in col_1based:
                 lang_labels = {
                     "fr": "French", "de": "German",
-                    "pt_BR": "Portuguese", "ja": "Japanese", "es_419": "Spanish"
+                    "pt_BR": "Portuguese", "ja": "Japanese", "es_ES": "Spanish"
                 }
                 ws.cell(row=header_row_idx, column=next_col, value=lang_labels.get(lang, lang))
                 col_1based[lang] = next_col
@@ -173,7 +181,7 @@ def write_reviewed_translations_to_excel(excel_path: str) -> str:
                 continue
 
             wrote_any = False
-            for lang in TARGET_LANGS:
+            for lang in active_langs:
                 text = entry.get(lang, "")
                 if not text or str(text).strip() == "":
                     continue
@@ -237,7 +245,7 @@ def read_reviewed_translations() -> str:
 def read_excel_for_translation(excel_path: str) -> str:
     """
     Reads the Monotype translation Excel file and returns all rows that have English
-    content but are missing one or more language translations (fr, de, pt_BR, ja, es_419).
+    content but are missing one or more language translations (fr, de, pt_BR, ja, es_ES).
 
     Args:
         excel_path: Absolute or relative path to the main .xlsx file to translate.
@@ -246,7 +254,7 @@ def read_excel_for_translation(excel_path: str) -> str:
         A JSON string with keys:
         - excel_path
         - header_row (1-based row number of the header)
-        - column_map (maps "en", "fr", "de", "pt_BR", "ja", "es_419" to Excel column letters)
+        - column_map (maps "en", "fr", "de", "pt_BR", "ja", "es_ES" to Excel column letters)
         - rows_to_translate (array of row objects needing translation)
         - total_rows_scanned
         - rows_needing_translation
@@ -366,7 +374,7 @@ def write_translations_to_excel(excel_path: str, translations_json: str) -> str:
         excel_path: Path to the source .xlsx file.
         translations_json: A JSON array string. Each element must have:
             - "row_index": int (1-based Excel row number)
-            - "fr", "de", "pt_BR", "ja", "es_419": translated strings
+            - "fr", "de", "pt_BR", "ja", "es_ES": translated strings
 
     Returns:
         A JSON string with keys: success, output_path, rows_written,
@@ -406,14 +414,22 @@ def write_translations_to_excel(excel_path: str, translations_json: str) -> str:
         # col_map values are 0-based; openpyxl needs 1-based
         col_1based = {lang: idx + 1 for lang, idx in col_map.items()}
 
+        # Detect which languages are present in the JSON (skip meta keys)
+        _meta_keys = {"row_index", "english", "reviewer_note"}
+        active_langs = [
+            k for entry in entries for k in entry
+            if k not in _meta_keys
+        ]
+        active_langs = list(dict.fromkeys(active_langs))  # deduplicate, preserve order
+
         # If language columns don't exist yet, add them
         next_col = ws.max_column + 1
-        for lang in TARGET_LANGS:
+        for lang in active_langs:
             if lang not in col_1based:
                 # Write header for missing language
                 lang_labels = {
                     "fr": "French", "de": "German",
-                    "pt_BR": "Portuguese", "ja": "Japanese", "es_419": "Spanish"
+                    "pt_BR": "Portuguese", "ja": "Japanese", "es_ES": "Spanish"
                 }
                 ws.cell(row=header_row_idx, column=next_col, value=lang_labels.get(lang, lang))
                 col_1based[lang] = next_col
@@ -431,7 +447,7 @@ def write_translations_to_excel(excel_path: str, translations_json: str) -> str:
                 continue
 
             wrote_any = False
-            for lang in TARGET_LANGS:
+            for lang in active_langs:
                 text = entry.get(lang, "")
                 if not text or str(text).strip() == "":
                     continue

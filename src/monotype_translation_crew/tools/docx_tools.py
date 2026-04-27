@@ -57,7 +57,7 @@ def extract_segments(docx_path: str) -> list[dict]:
 
 LANG_LABELS = {
     "fr": "French", "de": "German",
-    "pt_BR": "Portuguese (Brazil)", "ja": "Japanese", "es_419": "Spanish (Latin America)",
+    "pt_BR": "Portuguese (Brazil)", "ja": "Japanese", "es_ES": "Spanish (Spain)",
 }
 
 

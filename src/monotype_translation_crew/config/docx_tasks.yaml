@@ -29,7 +29,7 @@ brand_context_task:
        around a variable name — must be copied character-for-character into every
        translation. Do not translate, move, or reformat them.
     4. PER-LANGUAGE NOTES: Formality level, register, and writing system choices for
-       French, German, pt-BR, Japanese, and es-419.
+       French, German, pt-BR, Japanese, and es-ES.
     5. GLOSSARY: Key typography and product terminology with approved translations per
        language. Supplement the knowledge-file glossary with any additional font category
        or UI terms discovered on MyFonts.com.
@@ -62,14 +62,14 @@ docx_translation_task:
     RULES:
     - Preserve Monotype brand/product names in English (Monotype Fonts, MyFonts, etc.)
     - French: formal "vous". German: formal "Sie". Japanese: 丁寧語 polite register.
-      pt-BR: "você". es-419: "usted" for formal customer communications.
+      pt-BR: "você". es-ES: "tú" throughout, informal and conversational tone.
     - Maintain document flow — each segment may relate to surrounding segments.
     - Do NOT truncate, summarise, or rephrase beyond natural localisation needs.
-    - Brazilian Portuguese (not European). Latin American Spanish (not Spain).
+    - Brazilian Portuguese (not European). Spain Spanish / Castilian (not Latin American).
 
     Output ONLY a valid JSON array. Each element must have this exact structure:
     {"segment_id": <integer>, "english": "<original text>", "<lang_code>": "<translation>"}
-    Include one key per target language (e.g. "fr", "de", "pt_BR", "ja", "es_419").
+    Include one key per target language (e.g. "fr", "de", "pt_BR", "ja", "es_ES").
     Output raw JSON only — no markdown fences, no preamble, no extra text.
   expected_output: >
     A valid JSON array of segment translation objects. Raw JSON only.
@@ -86,8 +86,8 @@ docx_review_task:
     [ ] Accuracy: does the translation faithfully convey the English meaning?
     [ ] Brand voice: does the tone match Monotype's professional communication style?
     [ ] Brand terms: are product names kept in English?
-    [ ] Natural fluency: would a native speaker find this natural in a formal communication?
-    [ ] Register: French vous / German Sie / Japanese 丁寧語 / pt-BR você / es-419 usted
+    [ ] Natural fluency: would a native speaker find this natural?
+    [ ] Register: French vous / German Sie / Japanese 丁寧語 / pt-BR você / es-ES tú (informal, conversational)
 
     Correct any errors in-place. For uncertain items, add a "reviewer_note" field.
     Return the complete corrected JSON array. Raw JSON only — no markdown, no preamble.

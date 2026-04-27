@@ -112,14 +112,14 @@ in translated copy where the target language allows.
 | Language             | Tagline                             |
 |----------------------|-------------------------------------|
 | English              | Home to the world's type.           |
-| Spanish (es-419)     | La tipografía del mundo.            |
+| Spanish (es-ES)      | La tipografía del mundo.            |
 | Brazilian Portuguese | A casa da tipografia mundial.       |
 
 ### Secondary Tagline — used when introducing Monotype to new markets
 | Language             | Tagline                             |
 |----------------------|-------------------------------------|
 | English              | Typography matters.                 |
-| Spanish (es-419)     | La tipografía importa.              |
+| Spanish (es-ES)      | La tipografía importa.              |
 | Brazilian Portuguese | Tipografia importa.                 |
 
 > French and German localised taglines are not published in v2.2 — do not invent them.
@@ -217,11 +217,11 @@ These contain a code identifier (no spaces). Copy character-for-character into e
 **Case 2 — Link-anchor label tokens (human-readable multi-word text in single braces): translate the label, preserve the braces.**
 These are hyperlink anchors where the text inside is visible to the user and must be localised.
 
-| English token    | French                       | German                  | pt-BR             | Japanese    | es-419           |
+| English token    | French                       | German                  | pt-BR             | Japanese    | es-ES            |
 |------------------|------------------------------|-------------------------|-------------------|-------------|------------------|
 | `{Terms of Use}` | `{Conditions d'utilisation}` | `{Nutzungsbedingungen}` | `{Termos de Uso}` | `{利用規約}` | `{Terms of Use}` |
 
-Note: es-419 keeps `{Terms of Use}` in English (brand-approved).
+Note: es-ES keeps `{Terms of Use}` in English (brand-approved).
 
 **Example:**
 - English: `{count} fonts available`
@@ -382,38 +382,101 @@ counter 人: `{{user.count}} 人のユーザー`. Never omit 人.
 | Days (count noun)                   | 日数                                           | 日                                         |
 | suggestion (Select suggestion)      | 提案を選択                                     | 候補を選択                                 |
 
-### Spanish — Latin American (es-419)
-- Use **Latin American Spanish**. Avoid Spain-specific vocabulary and vosotros forms.
+### Spanish — Spain (es-ES)
+- Use **Spain Spanish (Castilian)**. Avoid Latin American-specific vocabulary.
+- **Tone**: informal and conversational — warm, approachable, and direct. Avoid stiff or corporate phrasing.
 - Use **"tú"** throughout all UI copy — product, conversational, and marketing contexts.
-  This is the consistent register across Monotype's Latin American products. Only use
-  "usted" in strictly legal or formal contractual text.
-- Avoid country-specific slang; aim for neutral Latin American register.
+  Only use "usted" in strictly legal or formal contractual text.
 - Technical English terms are commonly used in design contexts: "download", "upload",
   "dashboard", "widget" are generally acceptable without translation.
 - Keep "AI Search" as a product name — do not translate to "búsqueda AI" or similar.
   Use: "La función AI Search" when a noun phrase is needed.
-- Date format: DD/MM/YYYY. Currency: local currency per market (avoid assuming USD or MXN).
+- Date format: DD/MM/YYYY.
 - Official tagline: "La tipografía del mundo." / "La tipografía importa."
+- Use **"añadir"** for "add" — not "agregar".
+- Use **"fuente"** (feminine) for font/typeface; **"familia de fuentes"** for font family.
+  Gender agreement required: "fuente añadida", "fuente eliminada" (feminine adjectives).
+- Use **"recursos"** for assets (not "activos").
+- Use **"espacio de trabajo"** for workspace (two words, always).
+- Use **"ajustes"** for settings (NOT "configuración"); "configuración" is reserved for setup/configuration.
+- Use **"coste"** for cost (NOT "costo" — Spain Spanish).
+- Error messages: use **"No se ha podido [verb]"** pattern — e.g. "No se ha podido cargar la fuente."
+- "There is some issue / There's a problem with X" → reframe as **"No se puede [verb] X"** — do NOT translate literally as "Hay un problema en X".
+- Success messages: use **"[X] se ha [verb]do correctamente"** — e.g. "Equipo creado correctamente."
+- "No X detected / found so far" → **"No se ha detectado ningún X"** (singular + ningún, reflexive passive) — NOT "No se han detectado X hasta ahora".
+- "X already sent / done" → **"Ya se ha [verb]do la X"** (full reflexive passive sentence) — NOT bare participle like "X enviada".
+- "Yay!" → **"¡Bien!"** — NOT "¡Genial!", "¡Yupi!", or "¡Increíble!".
+- "Checking for X..." status messages → **"Buscando X..."** — NOT "Comprobando X...".
+- "Retry" imperative → **"Inténtalo de nuevo"** — NOT "Vuelve a intentarlo".
+- "Try editing your search query" → **"Prueba a modificar la búsqueda"** — NOT "Intenta editar tu consulta de búsqueda". Use bare "búsqueda", drop "consulta de".
+- Spell out "&" as **"y"** — do not use the ampersand symbol in Spanish copy.
 
-**Approved term choices (es-419):**
-| English                     | Use                                       | Avoid                       |
-|-----------------------------|-------------------------------------------|-----------------------------|
-| Enter (imperative)          | Introduce                                 | Ingrese                     |
-| Separate … by comma         | Separa … con coma (,)                     | Separe … por comas          |
-| Monospaced                  | Monoespaciada (feminine, agrees with fuente) | Monoespaciado             |
-| Get similar fonts           | Obtener fuentes similares                 | Ver fuentes similares       |
-| Reporting days              | Plazo del informe                         | Días de reporte             |
-| Label                       | Etiqueta                                  | —                           |
-| Users to be invited         | Usuarios que invitar                      | Usuarios a invitar          |
-| sans-serif (adjective)      | sans serif (no hyphen in Spanish)         | sans-serif                  |
-| Sync & Downloads            | Sincronizaciones y descargas              | Sincronización y descargas  |
-| Font Philosopher says...    | El filósofo de las fuentes dice...        | —                           |
-| Are you sure? (confirmation)| ¿Seguro que quieres X?                   | ¿Está seguro de X? / ¿Está seguro de que quiere X? |
-| You are about to X          | Estás a punto de X                        | Está a punto de X           |
-| Once deactivated, …         | Si los desactivas, … ¿Seguro que quieres desactivar? | Una vez desactivado …¿Está seguro? |
-| Imperative verbs (tú)       | Revisa, Busca, Prueba, Desactiva, Activa, Elimina, Separa, Introduce, Escoge, Pregúntame, Comprueba | Revise, Busque, Pruebe, Desactive, Active, Elimine, Separe, Introduzca, Elija, Pregúnteme, Compruebe |
-| Possessive pronoun          | tu / tus                                  | su / sus                    |
-| 2nd person state verbs      | estás / tienes / quieres                  | está / tiene / quiere       |
+**Approved term choices (es-ES):**
+| English                       | Use                                              | Avoid                                      |
+|-------------------------------|--------------------------------------------------|--------------------------------------------|
+| Enter (imperative)            | Introduce                                        | Ingresa / Ingrese                          |
+| Separate … by comma           | Separa … con coma (,)                            | Separe … por comas                         |
+| Monospaced                    | Monoespaciada (feminine, agrees with fuente)     | Monoespaciado                              |
+| Get similar fonts             | Obtener fuentes similares                        | Ver fuentes similares                      |
+| Reporting days                | Plazo del informe                                | Días de reporte                            |
+| Label                         | Etiqueta                                         | —                                          |
+| Users to be invited           | Usuarios que invitar                             | Usuarios a invitar                         |
+| sans-serif (adjective)        | sans serif (no hyphen in Spanish)                | sans-serif                                 |
+| Sync & Downloads              | Sincronizaciones y descargas                     | Sincronización y descargas                 |
+| Font Philosopher says...      | El filósofo de las fuentes dice...               | —                                          |
+| Are you sure? (confirmation)  | ¿Seguro que quieres X?                           | ¿Está seguro de X?                         |
+| You are about to X            | Estás a punto de X                               | Está a punto de X                          |
+| Once deactivated, …           | Si los desactivas, … ¿Seguro que quieres desactivar? | Una vez desactivado… ¿Está seguro?     |
+| Imperative verbs (tú)         | Revisa, Busca, Prueba, Desactiva, Activa, Elimina, Separa, Introduce, Selecciona, Comprueba | Revise, Busque, Pruebe, Desactive, Elimine, Introduzca, Compruebe |
+| Possessive pronoun            | tu / tus                                         | su / sus                                   |
+| 2nd person state verbs        | estás / tienes / quieres                         | está / tiene / quiere                      |
+| Failed to X                   | No se ha podido X                                | No se pudo X / Ha fallado X               |
+| X created/updated successfully| X se ha creado/actualizado correctamente         | X creado con éxito                         |
+| Add (action)                  | Añadir                                           | Agregar                                    |
+| Assets                        | Recursos                                         | Activos                                    |
+| Workspace                     | Espacio de trabajo                               | Área de trabajo                            |
+| Web Projects                  | Proyectos web                                    | Proyectos de web                           |
+| Production font(s)            | Fuente(s) de producción                          | Fuentes de producción activas              |
+| Font family                   | Familia de fuentes                               | Familia tipográfica                        |
+| Font styles                   | Estilos de fuente                                | Estilos tipográficos                       |
+| Small caps                    | Versalitas                                       | Mayúsculas pequeñas                        |
+| Swash characters              | Caracteres floreados                             | —                                          |
+| Contextual alternates         | Alternativas contextuales                        | —                                          |
+| Clear font cache              | Borrar la caché de fuentes                       | Limpiar caché                              |
+| Settings (noun)               | Ajustes                                          | Configuración                              |
+| Cost                          | Coste                                            | Costo                                      |
+| Typeface                      | Tipo de letra                                    | Tipografía (ambiguous)                     |
+| Toggle (on/off)               | Activar/Desactivar                               | —                                          |
+| Plugin / Add-on               | Complemento                                      | Plugin (as noun)                           |
+| Snackbar / Toast              | Mensaje informativo                              | —                                          |
+| Onboarding                    | Incorporación                                    | —                                          |
+| Upload (verb)                 | Subir                                            | Cargar (only for load/fetch)               |
+| Hide                          | Retirar                                          | Ocultar                                    |
+| Manage (action)               | Gestionar                                        | Administrar (reserved for admin roles)     |
+| Checkbox                      | Casilla                                          | Casilla de verificación                    |
+| Breadcrumb                    | Migas de pan                                     | —                                          |
+| Skip                          | Saltar                                           | Omitir                                     |
+| Enter (keyboard key)          | Intro                                            | Enter / Entrar                             |
+| EULA                          | CLUF                                             | EULA (in Spanish prose)                    |
+| GDPR                          | RGPD                                             | GDPR (in Spanish prose)                    |
+| x-height                      | Ojo medio                                        | Alto de x / Altura de x                    |
+| Admin dashboard               | Panel de administración                          | Tablero de administración                  |
+| Account settings              | Ajustes de la cuenta                             | Configuración de la cuenta                 |
+| Delete                        | Eliminar                                         | Borrar (use for cache/clear only)          |
+| Reset                         | Restablecer                                      | Reiniciar                                  |
+| Save                          | Guardar                                          | —                                          |
+| Discard / Dismiss             | Descartar                                        | —                                          |
+| Role                          | Rol                                              | Papel (ambiguous)                          |
+| Yay! (exclamation)            | ¡Bien!                                           | ¡Genial! / ¡Yupi! / ¡Increíble!           |
+| Checking for X... (status)    | Buscando X...                                    | Comprobando X...                           |
+| There is some issue in X      | No se puede X (reframe as inability)             | Hay un problema en X (literal)             |
+| Try editing your search query | Prueba a modificar la búsqueda                   | Intenta editar tu consulta de búsqueda     |
+| Search query (in instructions)| búsqueda (drop "consulta de")                    | consulta de búsqueda                       |
+| No X detected so far          | No se ha detectado ningún X (singular + ningún)  | No se han detectado X hasta ahora          |
+| As soon as they're available  | en cuanto se produzca alguno, se mostrará aquí   | tan pronto como estén disponibles          |
+| X already sent                | Ya se ha enviado la X (full reflexive passive)   | X enviada (bare participle)                |
+| Please retry in one hour      | Inténtalo de nuevo en una hora                   | Vuelve a intentarlo en una hora            |
+| Retry (imperative)            | Inténtalo de nuevo                               | Vuelve a intentarlo                        |
 
 ---
 

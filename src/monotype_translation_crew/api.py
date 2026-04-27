@@ -26,7 +26,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 # File-format converters  (PDF / DOCX → translation-ready .xlsx)
 # ---------------------------------------------------------------------------
 
-_XLSX_HEADERS = ["English", "French", "German", "Portuguese (pt-BR)", "Japanese", "Spanish (es-419)"]
+_XLSX_HEADERS = ["English", "French", "German", "Portuguese (pt-BR)", "Japanese", "Spanish (es-ES)"]
 
 
 def _write_strings_xlsx(strings: list[str], xlsx_path: str) -> None:
@@ -296,7 +296,6 @@ _HTML = r"""<!DOCTYPE html>
       </div>
       <span style="font-size:14px; font-weight:600; color:var(--ink); letter-spacing:-.01em;">Monotype</span>
     </div>
-    <span style="font-size:11px; color:var(--subtle); letter-spacing:.08em; text-transform:uppercase;">Translation Crew</span>
   </div>
 </header>
 
@@ -654,7 +653,7 @@ _HTML = r"""<!DOCTYPE html>
 // ── Data ──────────────────────────────────────────────────────────────────────
 const LANG_LABELS = {
   en:'English', fr:'French', de:'German',
-  pt_BR:'Portuguese (pt-BR)', ja:'Japanese', es_419:'Spanish (es-419)'
+  pt_BR:'Portuguese (pt-BR)', ja:'Japanese', es_ES:'Spanish (es-ES)'
 };
 
 const LANG_CONFIG = [
@@ -673,7 +672,7 @@ const PIPELINE_STAGES = [
   { id:'de',      label:'Structuring German grammar',            desc:'Handling compound nouns, formal register and UI string length', est:120 },
   { id:'pt',      label:'Adapting for Brazilian Portuguese',     desc:'Applying pt-BR orthography, vocabulary and article gender',     est:170 },
   { id:'ja',      label:'Rendering Japanese scripts',            desc:'Balancing Kanji, Katakana and natural particle selection',      est:220 },
-  { id:'es',      label:'Localising for Latin American Spanish', desc:'Targeting es-419 register, vocabulary and cultural context',    est:270 },
+  { id:'es',      label:'Localising for Spain Spanish', desc:'Targeting es-ES (Castilian) register, vocabulary and cultural context',    est:270 },
   { id:'review',  label:'Reviewing all 5 languages',             desc:'Cross-checking glossary adherence, tone and brand consistency', est:320 },
   { id:'report',  label:'Writing production report',             desc:'Summarising translation decisions and flagging edge cases',     est:430 },
 ];
@@ -689,8 +688,8 @@ const INSIGHTS = [
     body:'Brazilian (pt-BR) and European Portuguese diverge in vocabulary, verb forms, and orthography. Many product terms differ entirely between the two variants.' },
   { title:'は vs が — the particle problem',
     body:'In Japanese, は marks the topic and が marks the subject with emphasis. Getting this wrong does not break meaning, but reads as unnatural to any native speaker.' },
-  { title:'es-419 is not Spain Spanish',
-    body:'"Ordenador" (Spain) becomes "computadora" in Mexico. es-419 targets Latin America — vocabulary diverges substantially from Castilian Spanish.' },
+  { title:'es-ES is Castilian Spanish',
+    body:'Using Spain Spanish (Castilian). Vocabulary and register are aligned with Spain — distinct from Latin American Spanish (es-419).' },
   { title:'Brand voice travels across languages',
     body:'Good localisation recreates emotional register, not just vocabulary. A premium product must sound premium in Tokyo and Berlin — which requires cultural adaptation, not literal translation.' },
   { title:"Monotype's 150,000-font library",
@@ -1167,7 +1166,7 @@ async def start_translation(
             "review_data": None,
             "report": None,
         }
-        loop.run_in_executor(_executor, _run_job, job_id, str(work_path))
+        loop.run_in_executor(_executor, _run_job, job_id, str(work_path), languages)
 
     return JSONResponse({"job_id": job_id, "status": "pending"})
 
@@ -1241,7 +1240,7 @@ _LANG_RULES = {
     "de":     "German — formal 'Sie' register",
     "pt_BR":  "Brazilian Portuguese — 'você' register",
     "ja":     "Japanese — 丁寧語 polite register",
-    "es_419": "Latin American Spanish — 'usted' for formal customer communications",
+    "es_ES": "Spain Spanish (Castilian) — 'tú' register throughout UI; 'usted' only in legal/contractual text",
 }
 
 
@@ -1408,7 +1407,7 @@ def _run_docx_job(job_id: str, docx_path: str, languages: str) -> None:
         from .crew import DocxTranslationCrew
         from .tools.docx_tools import extract_segments
 
-        _lang_normalise = {"pt": "pt_BR", "es": "es_419"}
+        _lang_normalise = {"pt": "pt_BR", "es": "es_ES"}
         target_languages = [
             _lang_normalise.get(l.strip(), l.strip())
             for l in languages.split(",") if l.strip()
@@ -1449,15 +1448,22 @@ def _run_docx_job(job_id: str, docx_path: str, languages: str) -> None:
             JOBS[job_id]["error"] = str(exc)
 
 
-def _run_job(job_id: str, excel_path: str) -> None:
+def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") -> None:
     """Run the full CrewAI pipeline in a background thread."""
     JOBS[job_id]["status"] = "running"
     try:
         from .crew import MonotypeTranslationCrew  # import here to keep startup fast
 
+        _lang_normalise = {"pt": "pt_BR", "es": "es_ES"}
+        target_languages = [
+            _lang_normalise.get(l.strip(), l.strip())
+            for l in languages.split(",") if l.strip()
+        ]
+
         MonotypeTranslationCrew().crew().kickoff(inputs={
             "excel_path": excel_path,
             "knowledge_dir": "knowledge",
+            "target_languages": target_languages,
         })
 
         # Snapshot review data immediately (shared file; capture before another job runs)

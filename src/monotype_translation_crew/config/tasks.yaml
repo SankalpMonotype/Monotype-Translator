@@ -29,7 +29,7 @@ brand_context_task:
        around a variable name — must be copied character-for-character into every
        translation. Do not translate, move, or reformat them.
     4. PER-LANGUAGE NOTES: Formality level, register, and writing system choices for
-       French, German, pt-BR, Japanese, and es-419.
+       French, German, pt-BR, Japanese, and es-ES.
     5. GLOSSARY: Key typography and product terminology with approved translations per
        language. Supplement the knowledge-file glossary with any additional font category
        or UI terms discovered on MyFonts.com.
@@ -55,8 +55,8 @@ translation_task:
     translations) and "column_map" (showing which Excel columns map to each language).
 
     Step 2: Using the brand context document from the brand_context_task as your
-    primary reference, translate every row in "rows_to_translate" into all five
-    target languages simultaneously.
+    primary reference, translate every row in "rows_to_translate" into these
+    target languages: {target_languages}
 
     CRITICAL RULES — violation of these will break production:
     - Preserve ALL placeholder tokens verbatim: single-brace tokens with identifier names,
@@ -69,14 +69,14 @@ translation_task:
         German  → write the token as: brace + Nutzungsbedingungen + brace
         pt-BR   → write the token as: brace + Termos de Uso + brace
         Japanese → write the token as: brace + 利用規約 + brace
-        es-419  → keep the token unchanged as: brace + Terms of Use + brace (brand-approved)
+        es-ES  → keep the token unchanged as: brace + Terms of Use + brace (brand-approved)
     - Japanese ONLY: when any count variable (e.g. "{{user.count}}") refers to users, always
       add the counter 人 with a space — write "{{user.count}} 人のユーザー" (space before 人),
       never "{{user.count}}人のユーザー" (no space) or "{{user.count}} ユーザー" (no 人).
     - Monotype product names listed in the brand context as untranslatable MUST remain
       in English in every language.
     - German: use formal "Sie". French: use formal "vous". Japanese: use 丁寧語 (polite
-      register). pt-BR: use "você". es-419: use "tú" for sentence-level copy — NEVER usted.
+      register). pt-BR: use "você". es-ES: use "tú" throughout, informal and conversational tone — NEVER usted (except strictly legal/contractual text).
     - German dialog patterns — FOUR DISTINCT FORMS (apply based on English string type):
       (1) "You are about to X" notification → "Sie sind dabei, X zu [infinitive]."
           e.g. "Sie sind dabei, {{user.count}} Benutzer zu deaktivieren." — NEVER Möchten Sie for this.
@@ -102,20 +102,20 @@ translation_task:
       e.g. "Une fois désactivé, cet utilisateur ne pourra plus accéder au système. Êtes-vous sûr de
       vouloir désactiver l'utilisateur ?"
     - French typography: use a regular space (U+0020) — not a non-breaking space — before ?, !, :, ;
-    - es-419 INFINITIVE vs IMPERATIVE (critical distinction):
+    - es-ES INFINITIVE vs IMPERATIVE (critical distinction):
       Standalone button labels and "Sí, X" confirmation buttons → INFINITIVE:
       Activar/Desactivar/Revocar/Seleccionar/Eliminar/Obtener/Configurar/Separar/Introducir/Buscar.
       e.g. "Activar todos los usuarios", "Sí, desactivar {{user.count}} usuarios.", "Sí, eliminar y transferir".
       tú imperative forms (Activa, Desactiva, Revoca, Busca) → ONLY for sentence-level copy addressing user.
-      es-419 pronouns: tu/tus — NEVER su/sus. State verbs: estás/tienes/quieres — NEVER está/tiene/quiere.
-      es-419 confirmations: "¿Seguro que quieres X?" — NEVER "¿Está seguro de X?".
+      es-ES pronouns: tu/tus — NEVER su/sus. State verbs: estás/tienes/quieres — NEVER está/tiene/quiere.
+      es-ES confirmations: "¿Seguro que quieres X?" — NEVER "¿Está seguro de X?".
       "You are about to X" → "Estás a punto de X" — NEVER "Está a punto de X".
-      es-419 personal 'a': use only before singular definite human nouns: "desactivar a un usuario",
+      es-ES personal 'a': use only before singular definite human nouns: "desactivar a un usuario",
       "desactivar a este usuario", "Si desactivas a este usuario". NEVER before count variables or "todos":
       "desactivar {{user.count}} usuarios" (no 'a'), "activar {{user.count}} usuarios" (no 'a'),
       "Activar todos los usuarios" (no 'a'), "desactivar los {{user.count}} usuarios" (no 'a').
-      es-419 "Once deactivated" → "Si los desactivas, no podrán acceder al sistema." (NOT "Una vez desactivados").
-      es-419 "Once activated" → "Si los activas, podrán acceder al sistema." (NOT "Una vez activados").
+      es-ES "Once deactivated" → "Si los desactivas, no podrán acceder al sistema." (NOT "Una vez desactivados").
+      es-ES "Once activated" → "Si los activas, podrán acceder al sistema." (NOT "Una vez activados").
       Singular: "Si desactivas a este usuario, no podrá acceder al sistema."
       e.g. Full pattern: "Si los desactivas, no podrán acceder al sistema. ¿Seguro que quieres desactivar
       los {{user.count}} usuarios?"
@@ -205,12 +205,12 @@ translation_task:
       "Auto" stays as "Auto" (do NOT translate to "Automático").
       "Sincronização e Downloads" — capital D in Downloads.
       "No X yet" short status labels: use just "Nenhuma X Y" without "ainda". e.g. "No fonts rejected yet" → "Nenhuma fonte rejeitada" (NOT "Nenhuma fonte rejeitada ainda").
-    - es-419: "Auto" stays as "Auto" (do NOT translate to "Automático").
+    - es-ES: "Auto" stays as "Auto" (do NOT translate to "Automático").
       "[X] will appear here for you to take action" → "para que actúes como corresponda".
       e.g. "las fuentes aparecerán aquí para que actúes como corresponda."
-    - pt-BR and es-419: the abbreviation "AI" in general UI text → "IA".
+    - pt-BR and es-ES: the abbreviation "AI" in general UI text → "IA".
       e.g. "AI mode" → "Modo IA", "Try out AI mode" → "Experimente o modo IA" (pt-BR) /
-      "Prueba el modo IA" (es-419), "Meet AI mode" → "Conheça o modo IA" / "Descubre el modo IA".
+      "Prueba el modo IA" (es-ES), "Meet AI mode" → "Conheça o modo IA" / "Descubre el modo IA".
     - "AI Search" product name — localisation by language (CRITICAL):
       UI button labels and standalone headings: keep as "AI Search" in all languages.
       When "AI Search" is the SUBJECT or OBJECT in a full sentence, localise as follows:
@@ -222,31 +222,30 @@ translation_task:
                   e.g. "Überprüfen Sie wichtige Informationen, da die KI-Suche Fehler machen kann."
         Japanese: "AI検索"
                   e.g. "AI検索はミスをすることがあるので、重要な情報はご自身でご確認ください。"
-        es-419:   "La función AI Search" (keep product name, add "La función" prefix)
+        es-ES:   "La función AI Search" (keep product name, add "La función" prefix)
                   e.g. "La función AI Search puede cometer errores, comprueba la información importante."
         pt-BR:    "A função AI Search" (keep product name, add "A função" prefix)
                   e.g. "A função AI Search pode cometer erros, verifique as informações importantes."
-    - es-419: use "todavía" for "yet" — NEVER "aún".
+    - es-ES: use "todavía" for "yet" — NEVER "aún".
       e.g. "No hay fuentes aprobadas todavía", "No hay fuentes rechazadas todavía".
-    - Brazilian Portuguese (not European Portuguese). Latin American Spanish (not Spain).
+    - Brazilian Portuguese (not European Portuguese). Spain Spanish / Castilian (not Latin American).
     - For short UI labels (1-3 words), prioritise brevity and naturalness over literal fidelity.
 
     Output ONLY a valid JSON array. Each element must have exactly this structure:
     {
       "row_index": <integer — the exact row_index value from the tool output>,
       "english": "<the English string copied verbatim>",
-      "fr": "<French translation>",
-      "de": "<German translation>",
-      "pt_BR": "<Brazilian Portuguese translation>",
-      "ja": "<Japanese translation>",
-      "es_419": "<Latin American Spanish translation>"
+      "<lang_code>": "<translation for that language>"
     }
+    Include one key per target language from {target_languages} (e.g. "fr", "de", "pt_BR", "ja", "es_ES").
+    Only include keys for the requested languages — do NOT add languages not in {target_languages}.
 
     Output the raw JSON array only. No markdown code fences. No preamble text.
     No trailing commentary. The array must be parseable by Python's json.loads().
   expected_output: >
-    A valid JSON array of translation objects with keys: row_index, english, fr, de,
-    pt_BR, ja, es_419. Raw JSON only — no markdown, no preamble, no extra text.
+    A valid JSON array of translation objects with keys: row_index, english, plus one key
+    per requested language. Raw JSON only — no markdown, no preamble, no extra text.
+
   agent: translator
   context:
     - brand_context_task
@@ -256,7 +255,7 @@ review_task:
     You will receive the brand context document (from brand_context_task) and the
     translation JSON array (from translation_task) via context.
 
-    Review every entry in the array against this checklist for all five languages:
+    Review every entry in the array against this checklist for each translated language:
     [ ] Accuracy: Does the translation faithfully convey the English meaning?
     [ ] Brand voice: Does the tone match Monotype's guidelines?
     [ ] Placeholder integrity: Are ALL single-brace and double-brace variable tokens
@@ -268,14 +267,14 @@ review_task:
           German   → brace + Nutzungsbedingungen + brace
           pt-BR    → brace + Termos de Uso + brace
           Japanese → brace + 利用規約 + brace
-          es-419   → brace + Terms of Use + brace (unchanged — brand-approved)
+          es-ES   → brace + Terms of Use + brace (unchanged — brand-approved)
         If you see brace + Conditions d'utilisation + brace in the French output, that is
         CORRECT — do NOT revert it to brace + Terms of Use + brace. Same for the other
-        localised forms. Only the es-419 output keeps brace + Terms of Use + brace.
+        localised forms. Only the es-ES output keeps brace + Terms of Use + brace.
     [ ] Untranslatable terms: Are product names kept in English?
     [ ] Natural fluency: Would a native speaker find this natural in a UI context?
     [ ] Brevity: Are short UI labels appropriately compact?
-    [ ] es-419 register: Check sentence-level copy uses tú forms (estás, tienes, quieres,
+    [ ] es-ES register: Check sentence-level copy uses tú forms (estás, tienes, quieres,
         tu, tus). REJECT usted forms (Revise, Busque, Pruebe, su, sus, está, tiene, quiere).
         IMPORTANT: standalone button labels and "Sí, X" confirmation buttons correctly use
         INFINITIVE (Activar, Desactivar, Revocar, Seleccionar) — do NOT change those to tú imperatives.
@@ -285,7 +284,7 @@ review_task:
         the variable and 人. Correct to add the space if missing.
     [ ] AI Search sentence localisation: when "AI Search" appears as subject/object in a SENTENCE
         (not a standalone label), verify: FR uses "La recherche IA", DE uses "die KI-Suche",
-        JA uses "AI検索", es-419 uses "La función AI Search", pt-BR uses "A función AI Search".
+        JA uses "AI検索", es-ES uses "La función AI Search", pt-BR uses "A función AI Search".
         Correct any language that kept "AI Search" in sentence context.
     [ ] Japanese は vs が particle: in negative/empty-state sentences, verify は is used not が.
         e.g. "非アクティブユーザーはいません" (correct). Fix if が is used.
@@ -302,7 +301,7 @@ review_task:
     field to that object explaining the concern (name the specific language).
 
     Return the complete corrected JSON array. Use exactly the same schema as the input
-    (row_index, english, fr, de, pt_BR, ja, es_419) plus optional reviewer_note.
+    (row_index, english, plus one key per translated language) plus optional reviewer_note.
     Output the raw JSON array only — no markdown, no preamble, no extra text.
   expected_output: >
     A valid JSON array with the same structure as the translator's output, corrections
@@ -325,7 +324,7 @@ production_task:
     Step 3: Write a final production summary containing:
     - Output file path (the _translated.xlsx file created by the write tool)
     - Total rows written
-    - Per-language counts (fr, de, pt_BR, ja, es_419)
+    - Per-language counts (fr, de, pt_BR, ja, es_ES)
     - List of any row_index values that carried a reviewer_note (flagged strings)
     - Release recommendation: "READY FOR RELEASE" if no reviewer_notes were present,
       otherwise "REVIEW FLAGGED STRINGS BEFORE RELEASE"
@@ -338,87 +337,3 @@ production_task:
   context:
     - review_task
 
-# ---------------------------------------------------------------------------
-# DOCX translation tasks (used by DocxTranslationCrew)
-# ---------------------------------------------------------------------------
-
-docx_translation_task:
-  description: >
-    Step 1: Call the read_docx_for_translation tool with docx_path="{docx_path}".
-    This returns a JSON with "segments" — an array of text blocks extracted from
-    the document (body paragraphs and table cells), each with a segment_id and text.
-
-    Step 2: Using the brand context document from brand_context_task as your primary
-    reference, translate every segment into these target languages: {target_languages}
-
-    These segments are complete sentences and paragraphs from customer communications
-    or marketing documents — NOT short UI strings. Translate the full meaning faithfully.
-
-    RULES:
-    - Preserve Monotype brand/product names in English (Monotype Fonts, MyFonts, etc.)
-    - French: formal "vous". German: formal "Sie". Japanese: 丁寧語 polite register.
-      pt-BR: "você". es-419: "usted" for formal customer communications.
-    - Maintain document flow — each segment may relate to surrounding segments.
-    - Do NOT truncate, summarise, or rephrase beyond natural localisation needs.
-    - Brazilian Portuguese (not European). Latin American Spanish (not Spain).
-
-    Output ONLY a valid JSON array. Each element must have this exact structure:
-    {
-      "segment_id": <integer — exact value from the tool output>,
-      "english": "<original text copied verbatim>",
-      "<lang_code>": "<translation>"
-    }
-    Include one key per target language (e.g. "fr", "de", "pt_BR", "ja", "es_419").
-    Output raw JSON only — no markdown fences, no preamble, no extra text.
-  expected_output: >
-    A valid JSON array of segment translation objects. Raw JSON only.
-  agent: translator
-  context:
-    - brand_context_task
-
-docx_review_task:
-  description: >
-    Review every entry in the docx translation JSON array from docx_translation_task
-    against the brand context from brand_context_task.
-
-    For each segment and each language, check:
-    [ ] Accuracy: does the translation faithfully convey the English meaning?
-    [ ] Brand voice: does the tone match Monotype's professional communication style?
-    [ ] Brand terms: are product names kept in English?
-    [ ] Natural fluency: would a native speaker find this natural in a formal communication?
-    [ ] Register: French vous / German Sie / Japanese 丁寧語 / pt-BR você / es-419 usted
-
-    Correct any errors in-place. For uncertain items, add a "reviewer_note" field.
-    Return the complete corrected JSON array. Raw JSON only — no markdown, no preamble.
-  expected_output: >
-    Corrected JSON array with same schema (segment_id, english, per-language keys)
-    plus optional reviewer_note fields. Raw JSON only.
-  agent: translation_reviewer
-  context:
-    - brand_context_task
-    - docx_translation_task
-
-docx_production_task:
-  description: >
-    Step 1: Call the write_translations_to_docx tool with:
-    - docx_path = "{docx_path}"
-
-    This tool reads the reviewed_docx_translations.json file internally, creates one
-    translated .docx file per language, and bundles them into a .zip file.
-
-    Step 2: Confirm the tool returned success=true. If it returned an error, report
-    it clearly and stop.
-
-    Step 3: Write a final production summary containing:
-    - Zip file path
-    - Languages written
-    - Segment counts per language
-    - Any reviewer_note items flagged
-    - Release recommendation: "READY FOR RELEASE" if no reviewer_notes,
-      otherwise "REVIEW FLAGGED SEGMENTS BEFORE RELEASE"
-  expected_output: >
-    A plain-text production summary with zip path, languages written, segment counts,
-    flagged items, and release recommendation.
-  agent: production_manager
-  context:
-    - docx_review_task
