@@ -314,6 +314,7 @@ counter 人: `{{user.count}} 人のユーザー`. Never omit 人.
 ### Portuguese — Brazilian (pt-BR)
 - Use **Brazilian Portuguese** exclusively (not European pt-PT).
 - Address the user with **"você"** (second person singular). Do not use "tu" or "vós".
+- **Tone: formal neutral, instructional** — no marketing fluff. Concise, active voice.
 - Date format: DD/MM/YYYY. Currency: R$ (if referenced).
 - Borrowings from English are common and acceptable in design software contexts:
   "download", "upload", "dashboard", "layout" are standard.
@@ -323,6 +324,18 @@ counter 人: `{{user.count}} 人のユーザー`. Never omit 人.
 - Spell "&" as lowercase "e" — do not use the ampersand or capitalise.
 - Confirmation dialogs: use "Após a desativação, … Tem certeza de que deseja desativar?" pattern.
 - Official tagline: "A casa da tipografia mundial." / "Tipografia importa."
+- **Monotype Fonts is feminine**: "a Monotype Fonts" — always use feminine article/pronouns.
+- **Avoid unnecessary capitalization**: do not capitalize common nouns; only proper nouns, product names, and UI labels retain capitals.
+- **UI action verbs**: prefer "Clique em", "Selecione", "Acesse", "Insira" — avoid literal English structures.
+- **Avoid false friends and literal calques**: use natural software-localization equivalents (e.g. "remover" not "deletar" for delete, "licença" not "permissão" for license).
+- **Acronyms**: expand on first occurrence if not globally recognized in pt-BR context (keep English acronym in parentheses), e.g. "EULA (Contrato de Licença de Usuário Final)".
+
+**Structural patterns (pt-BR):**
+- "Click **Settings**" → "Clique em **Configurações**" (not "Clique **Configurações**")
+- "typeface" (design object) → "família tipográfica" (not "fonte" — fonte = individual font file)
+- "font" (individual file/weight) → "fonte"
+- "x-height" → "altura de X" (not "altura-x")
+- "End User License Agreement / EULA" → "EULA (Contrato de Licença de Usuário Final)"
 
 **Approved term choices (pt-BR):**
 | English                         | Use                                        | Avoid                              |
@@ -341,6 +354,35 @@ counter 人: `{{user.count}} 人のユーザー`. Never omit 人.
 | Enter email address             | Inserir e-mail                             | Digite o endereço de e-mail        |
 | the conversation (possessive)   | nossa conversa                             | a conversa                         |
 | AI Search product name          | A função AI Search                         | A Busca por IA / A Pesquisa de IA  |
+| Typeface                        | família tipográfica                        | tipo de letra / fonte              |
+| Font                            | fonte                                      | tipografia                         |
+| Weight                          | peso                                       | espessura                          |
+| Style (font style)              | estilo                                     | modo                               |
+| Bold                            | negrito                                    | bold                               |
+| Italic                          | itálico                                    | italic                             |
+| Condensed                       | condensado                                 | comprimido                         |
+| Extended                        | estendido                                  | expandido                          |
+| Serif                           | serifa                                     | serif                              |
+| Slab serif                      | serifa retangular                          | slab serif                         |
+| Glyph                           | glifo                                      | glyph                              |
+| Ligature                        | ligadura                                   | ligature                           |
+| Small caps                      | versalete                                  | caixa pequena                      |
+| Uppercase                       | maiúscula                                  | caixa alta                         |
+| Lowercase                       | minúscula                                  | caixa baixa                        |
+| Kerning                         | kerning                                    | espaçamento entre letras           |
+| Leading                         | entrelinha                                 | espaçamento entre linhas           |
+| Tracking                        | entreletra                                 | tracking                           |
+| Alignment                       | alinhamento                                | alinhação                          |
+| Justified                       | justificado                                | alinhado em bloco                  |
+| x-height                        | altura de X                                | altura-x / ojo medio               |
+| License                         | licença                                    | permissão / autorização            |
+| Seat                            | licença individual                         | assento / lugar                    |
+| Admin                           | administrador                              | admin                              |
+| Organization                    | organização                                | empresa                            |
+| Monotype Library                | Biblioteca da Monotype                     | Biblioteca Monotype                |
+| Script (font style)             | Script ou Conectada                        | cursiva                            |
+| Blackletter                     | letra gótica                               | blackletter                        |
+| Optical size                    | tamanho óptico                             | tamanho visual                     |
 
 ### Japanese (ja-JP)
 - Use **polite speech level (丁寧語 / teineigo)** throughout: ～です, ～ます forms.
