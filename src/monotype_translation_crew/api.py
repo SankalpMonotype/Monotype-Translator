@@ -1464,7 +1464,7 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             "excel_path": excel_path,
             "knowledge_dir": "knowledge",
             "target_languages": target_languages,
-            "tone": tone,
+            "tone": JOBS[job_id].get("tone", "informal"),
         })
 
         # Snapshot review data immediately (shared file; capture before another job runs)
