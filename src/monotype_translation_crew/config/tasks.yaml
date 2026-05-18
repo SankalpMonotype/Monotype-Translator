@@ -75,8 +75,11 @@ translation_task:
       never "{{user.count}}人のユーザー" (no space) or "{{user.count}} ユーザー" (no 人).
     - Monotype product names listed in the brand context as untranslatable MUST remain
       in English in every language.
+    - Global tone setting: {tone}. Apply across all languages where register allows.
     - German: use formal "Sie". French: use formal "vous". Japanese: use 丁寧語 (polite
-      register). pt-BR: use "você". es-ES: use "tú" throughout, informal and conversational tone — NEVER usted (except strictly legal/contractual text).
+      register). pt-BR: use "você". es-ES: use "tú" throughout, informal and conversational
+      tone — NEVER usted (except strictly legal/contractual text). When tone is "informal",
+      prefer shorter, more direct phrasing in all languages.
     - German dialog patterns — FOUR DISTINCT FORMS (apply based on English string type):
       (1) "You are about to X" notification → "Sie sind dabei, X zu [infinitive]."
           e.g. "Sie sind dabei, {{user.count}} Benutzer zu deaktivieren." — NEVER Möchten Sie for this.

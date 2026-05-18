@@ -527,7 +527,7 @@ _HTML = r"""<!DOCTYPE html>
       <div id="lang-de" class="lang-card"><span class="lang-flag">🇩🇪</span><span class="lang-abbr">DE</span><div class="lang-dot"></div></div>
       <div id="lang-pt" class="lang-card"><span class="lang-flag">🇧🇷</span><span class="lang-abbr">PT</span><div class="lang-dot"></div></div>
       <div id="lang-ja" class="lang-card"><span class="lang-flag">🇯🇵</span><span class="lang-abbr">JA</span><div class="lang-dot"></div></div>
-      <div id="lang-es" class="lang-card"><span class="lang-flag">🇲🇽</span><span class="lang-abbr">ES</span><div class="lang-dot"></div></div>
+      <div id="lang-es" class="lang-card"><span class="lang-flag">🇪🇸</span><span class="lang-abbr">ES</span><div class="lang-dot"></div></div>
     </div>
 
     <!-- Insight card -->
@@ -661,7 +661,7 @@ const LANG_CONFIG = [
   { id:'de', flag:'🇩🇪', name:'German',     abbr:'DE' },
   { id:'pt', flag:'🇧🇷', name:'Portuguese', abbr:'PT' },
   { id:'ja', flag:'🇯🇵', name:'Japanese',   abbr:'JA' },
-  { id:'es', flag:'🇲🇽', name:'Spanish',    abbr:'ES' },
+  { id:'es', flag:'🇪🇸', name:'Spanish (es-ES)', abbr:'ES' },
 ];
 
 const PIPELINE_STAGES = [
@@ -700,7 +700,7 @@ const INSIGHTS = [
 let selectedFile   = null;
 let selectedFileType = 'xlsx';
 let selectedLangs  = new Set(['fr','de','pt','ja','es']);
-let selectedTone   = 'neutral';
+let selectedTone   = 'informal';
 let optimizeLen    = true;
 let stringCount    = null;
 let currentJobId   = null;
@@ -1033,7 +1033,7 @@ function resetUI() {
   currentJobId = null; selectedFile = null; startedAt = null;
   allRows = []; insightIdx = 0; stringCount = null;
   selectedLangs = new Set(['fr','de','pt','ja','es']);
-  selectedTone  = 'neutral';
+  selectedTone  = 'informal';
   optimizeLen   = true;
   $('file-input').value = '';
   const si = $('search-input'); if (si) si.value = '';
@@ -1098,7 +1098,7 @@ async def preview_file(file: UploadFile = File(...)):
 @app.post("/api/translate")
 async def start_translation(
     file: UploadFile = File(...),
-    tone: str = Form("neutral"),
+    tone: str = Form("informal"),
     languages: str = Form("fr,de,pt,ja,es"),
     optimize_length: str = Form("true"),
 ):
@@ -1464,6 +1464,7 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             "excel_path": excel_path,
             "knowledge_dir": "knowledge",
             "target_languages": target_languages,
+            "tone": tone,
         })
 
         # Snapshot review data immediately (shared file; capture before another job runs)
