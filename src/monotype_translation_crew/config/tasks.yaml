@@ -211,6 +211,20 @@ translation_task:
     - es-ES: "Auto" stays as "Auto" (do NOT translate to "Automático").
       "[X] will appear here for you to take action" → "para que actúes como corresponda".
       e.g. "las fuentes aparecerán aquí para que actúes como corresponda."
+      es-ES "Add" (action verb) → ALWAYS "Añadir" — NEVER "Agregar" (Latin American).
+      e.g. "Añadir fuentes", "Añadir dominio", "Añadir usuario".
+      es-ES "workspace" → "área de trabajo" — NEVER "espacio de trabajo".
+      es-ES "features" (OpenType, UI features) → "características" — NOT "funciones".
+      e.g. "Include OpenType features" → "Incluir características de OpenType".
+      es-ES "specific" / "exact" (in UI copy qualifying a noun) → "concreto/a" — NOT "específico/a".
+      e.g. "Enter specific characters" → "Introducir caracteres concretos".
+      e.g. "Select specific languages" → "Selecciona los idiomas concretos que se admitirán".
+      es-ES "Common characters" (UI label) → "Caracteres habituales" — NOT "comunes".
+      es-ES "Embed code" (noun label) → "Código de incrustación" — NOT "Código incrustado".
+      es-ES "No users found to export" → "No se han encontrado usuarios que exportar" (relative clause form).
+      es-ES "Failed to export data. Retry" → "No se han podido exportar los datos. Reintentar".
+      es-ES "Retry" (standalone button) → "Reintentar" — NOT "Inténtalo de nuevo".
+      es-ES "revoke invite" (status label, past action) → "Invitación revocada" (past participle noun phrase).
     - pt-BR and es-ES: the abbreviation "AI" in general UI text → "IA".
       e.g. "AI mode" → "Modo IA", "Try out AI mode" → "Experimente o modo IA" (pt-BR) /
       "Prueba el modo IA" (es-ES), "Meet AI mode" → "Conheça o modo IA" / "Descubre el modo IA".

@@ -8,7 +8,7 @@ listed terms without brand team approval.
 
 ## Core Typography Terms
 
-| English                  | French                       | German                        | Portuguese (pt-BR)              | Japanese               | Spanish (es-419)            |
+| English                  | French                       | German                        | Portuguese (pt-BR)              | Japanese               | Spanish (es-ES)             |
 |--------------------------|------------------------------|-------------------------------|---------------------------------|------------------------|-----------------------------|
 | Font                     | Police / police de caractères| Schrift / Font                | Fonte                           | フォント                | Fuente                      |
 | Typeface                 | Famille de polices           | Schriftfamilie                | Família tipográfica             | 書体                   | Familia tipográfica         |
@@ -31,7 +31,7 @@ listed terms without brand team approval.
 
 ## Product & Platform Terms
 
-| English                  | French                       | German                        | Portuguese (pt-BR)              | Japanese               | Spanish (es-419)            |
+| English                  | French                       | German                        | Portuguese (pt-BR)              | Japanese               | Spanish (es-ES)             |
 |--------------------------|------------------------------|-------------------------------|---------------------------------|------------------------|-----------------------------|
 | Font collection          | Collection de polices        | Schriftsammlung               | Coleção de fontes               | フォントコレクション    | Colección de fuentes        |
 | Font library             | Bibliothèque de polices      | Schriftbibliothek             | Biblioteca de fontes            | フォントライブラリ      | Biblioteca de fuentes       |
@@ -40,7 +40,7 @@ listed terms without brand team approval.
 | Licence agreement        | Contrat de licence           | Lizenzvertrag                 | Contrato de licença             | ライセンス契約          | Acuerdo de licencia         |
 | Brand                    | Marque                       | Marke                         | Marca                           | ブランド                | Marca                       |
 | Project                  | Projet                       | Projekt                       | Projeto                         | プロジェクト            | Proyecto                    |
-| Workspace                | Espace de travail            | Arbeitsbereich                | Área de trabalho                | ワークスペース          | Espacio de trabajo          |
+| Workspace                | Espace de travail            | Arbeitsbereich                | Área de trabalho                | ワークスペース          | Área de trabajo             |
 | Dashboard                | Tableau de bord              | Dashboard                     | Painel                          | ダッシュボード          | Panel                       |
 | Settings                 | Paramètres                   | Einstellungen                 | Configurações                   | 設定                   | Configuración               |
 | Account                  | Compte                       | Konto                         | Conta                           | アカウント              | Cuenta                      |
@@ -56,7 +56,7 @@ listed terms without brand team approval.
 
 ## UI Action Terms
 
-| English         | French                  | German                   | Portuguese (pt-BR)    | Japanese         | Spanish (es-419)       |
+| English         | French                  | German                   | Portuguese (pt-BR)    | Japanese         | Spanish (es-ES)        |
 |-----------------|-------------------------|--------------------------|-----------------------|------------------|------------------------|
 | Save            | Enregistrer             | Speichern                | Salvar                | 保存する          | Guardar                |
 | Cancel          | Annuler                 | Abbrechen                | Cancelar              | キャンセル        | Cancelar               |
@@ -64,7 +64,7 @@ listed terms without brand team approval.
 | Remove          | Retirer                 | Entfernen                | Remover               | 削除する / 外す   | Quitar                 |
 | Edit            | Modifier                | Bearbeiten               | Editar                | 編集する          | Editar                 |
 | Create          | Créer                   | Erstellen                | Criar                 | 作成する          | Crear                  |
-| Add             | Ajouter                 | Hinzufügen               | Adicionar             | 追加する          | Agregar                |
+| Add             | Ajouter                 | Hinzufügen               | Adicionar             | 追加する          | Añadir                 |
 | Search          | Rechercher              | Suchen                   | Pesquisar             | 検索する          | Buscar                 |
 | Filter          | Filtrer                 | Filtern                  | Filtrar               | フィルター        | Filtrar                |
 | Sort            | Trier                   | Sortieren                | Classificar           | 並び替える        | Ordenar                |
@@ -93,7 +93,7 @@ listed terms without brand team approval.
 
 ## Status & Feedback Terms
 
-| English         | French              | German              | Portuguese (pt-BR) | Japanese        | Spanish (es-419)    |
+| English         | French              | German              | Portuguese (pt-BR) | Japanese        | Spanish (es-ES)     |
 |-----------------|---------------------|---------------------|--------------------|-----------------|---------------------|
 | Loading         | Chargement…         | Wird geladen…       | Carregando…        | 読み込み中…      | Cargando…           |
 | Saving          | Enregistrement…     | Wird gespeichert…   | Salvando…          | 保存中…          | Guardando…          |
@@ -116,7 +116,7 @@ listed terms without brand team approval.
 
 ## Access & Permissions Terms
 
-| English                  | French                       | German                        | Portuguese (pt-BR)           | Japanese               | Spanish (es-419)            |
+| English                  | French                       | German                        | Portuguese (pt-BR)           | Japanese               | Spanish (es-ES)             |
 |--------------------------|------------------------------|-------------------------------|------------------------------|------------------------|-----------------------------|
 | Access                   | Accès                        | Zugriff                       | Acesso                       | アクセス               | Acceso                      |
 | Grant access             | Accorder l'accès             | Zugriff gewähren              | Conceder acesso              | アクセスを許可する      | Conceder acceso             |
@@ -133,7 +133,7 @@ listed terms without brand team approval.
 
 ## Time & Reporting Terms
 
-| English                  | French                          | German                        | Portuguese (pt-BR)           | Japanese               | Spanish (es-419)              |
+| English                  | French                          | German                        | Portuguese (pt-BR)           | Japanese               | Spanish (es-ES)               |
 |--------------------------|---------------------------------|-------------------------------|------------------------------|------------------------|-------------------------------|
 | Quarterly (adjective)    | Trimestriel / Trimestrielle     | Vierteljährlich               | Trimestral                   | 四半期ごとの            | Trimestral                    |
 | Quarter (noun)           | Trimestre                       | Quartal                       | Trimestre                    | 四半期                  | Trimestre                     |
@@ -150,7 +150,7 @@ listed terms without brand team approval.
 
 "AI Search" is a Monotype product name. Its form differs by language and context:
 
-| Context                              | French           | German         | Japanese | es-419                 | pt-BR                  |
+| Context                              | French           | German         | Japanese | es-ES                  | pt-BR                  |
 |--------------------------------------|------------------|----------------|----------|------------------------|------------------------|
 | Standalone UI label / button         | AI Search        | AI Search      | AI Search | AI Search             | AI Search              |
 | Subject / object in a sentence       | La recherche IA  | die KI-Suche   | AI検索    | La función AI Search   | A função AI Search     |
@@ -167,7 +167,7 @@ Examples:
 
 ## Production & Status Terms
 
-| English                       | French                            | German                            | Portuguese (pt-BR)             | Japanese                        | Spanish (es-419)              |
+| English                       | French                            | German                            | Portuguese (pt-BR)             | Japanese                        | Spanish (es-ES)               |
 |-------------------------------|-----------------------------------|-----------------------------------|--------------------------------|---------------------------------|-------------------------------|
 | Informed for production       | Prêt pour la production           | Zur Produktion vorgemerkt         | Informado para produção        | 制作に向けて通知済み            | Informado para producción     |
 | Access Key                    | Clé d'accès                       | Zugriffsschlüssel                 | Chave de acesso                | アクセスキー                    | Clave de acceso               |

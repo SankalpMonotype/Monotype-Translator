@@ -439,7 +439,7 @@ counter 人: `{{user.count}} 人のユーザー`. Never omit 人.
 - Use **"fuente"** (feminine) for font/typeface; **"familia de fuentes"** for font family.
   Gender agreement required: "fuente añadida", "fuente eliminada" (feminine adjectives).
 - Use **"recursos"** for assets (not "activos").
-- Use **"espacio de trabajo"** for workspace (two words, always).
+- Use **"área de trabajo"** for workspace — NOT "espacio de trabajo".
 - Use **"ajustes"** for settings (NOT "configuración"); "configuración" is reserved for setup/configuration.
 - Use **"coste"** for cost (NOT "costo" — Spain Spanish).
 - Error messages: use **"No se ha podido [verb]"** pattern — e.g. "No se ha podido cargar la fuente."
@@ -476,7 +476,7 @@ counter 人: `{{user.count}} 人のユーザー`. Never omit 人.
 | X created/updated successfully| X se ha creado/actualizado correctamente         | X creado con éxito                         |
 | Add (action)                  | Añadir                                           | Agregar                                    |
 | Assets                        | Recursos                                         | Activos                                    |
-| Workspace                     | Espacio de trabajo                               | Área de trabajo                            |
+| Workspace                     | Área de trabajo                                  | Espacio de trabajo                         |
 | Web Projects                  | Proyectos web                                    | Proyectos de web                           |
 | Production font(s)            | Fuente(s) de producción                          | Fuentes de producción activas              |
 | Font family                   | Familia de fuentes                               | Familia tipográfica                        |
