@@ -204,6 +204,17 @@ translation_task:
       French "total fonts activated" → "Nombre total de polices activées" (capital N).
       French "Informed for production" → "Prêt pour la production".
       French "[N] style(s) are informed to be marked for production" → "[N] style(s) sont marqués pour la production".
+    - French: "tags" is an approved Monotype term — keep as "tags" in all contexts and strings.
+      Never substitute "balises" regardless of surrounding copy.
+    - French: for any action describing read or view access in a permission or capability context,
+      use "Consulter" — never "Voir" or "Lire". "Consulter" carries the professional register
+      appropriate for permission descriptions; "Voir" and "Lire" are too casual for that register.
+    - French: "unmark" (removing a production marking from a font) → "retirer le marquage".
+      Never use "Démarquer" (ambiguous) or "démarrer" (means "start").
+    - French: when two actions are paired (approve/reject, mark/unmark, add/remove), join them
+      with "ou" — never use a slash. This applies to all such pairs in any string.
+    - French: preserve the syntactic structure of the English source — do not reorder constituents,
+      nominalise verbs, or restructure clauses. Translate the words; keep the grammar shape.
     - pt-BR: "Label" → "Marcador" (not Etiqueta/Rótulo).
       "Auto" stays as "Auto" (do NOT translate to "Automático").
       "Sincronização e Downloads" — capital D in Downloads.
@@ -245,6 +256,19 @@ translation_task:
                   e.g. "A função AI Search pode cometer erros, verifique as informações importantes."
     - es-ES: use "todavía" for "yet" — NEVER "aún".
       e.g. "No hay fuentes aprobadas todavía", "No hay fuentes rechazadas todavía".
+    - es-ES vocabulary — use Castilian Spanish terms in all contexts, never Latin American variants:
+      "settings/ajustes" not "configuración"; "subir" not "cargar" for upload;
+      "pertenencia" not "membresía"; prefer native Castilian equivalents over Anglicisms
+      (e.g. "supervisión" not "monitoreo", "informe" not "reporte").
+      When in doubt, choose the term used in Spain (Castilian) over the Latin American alternative.
+    - es-ES: "output" when referring to font production output → "producción", never "salida".
+    - es-ES: when two actions are paired (approve/reject, mark/unmark), join with "o" — never slash.
+    - es-ES grammatical voice: the informal tú register applies only to second-person copy —
+      strings where the user is the agent (what the user does, chooses, or sees).
+      Impersonal and passive constructions must stay impersonal/passive regardless of tone setting.
+      Any string describing a system state, system requirement, or system error uses impersonal SE
+      (se debe, se puede, no se ha podido, no se han encontrado) — never convert these to tú forms.
+      The tone setting does not change grammatical voice, only second-person address.
     - Brazilian Portuguese (not European Portuguese). Spain Spanish / Castilian (not Latin American).
     - For short UI labels (1-3 words), prioritise brevity and naturalness over literal fidelity.
 

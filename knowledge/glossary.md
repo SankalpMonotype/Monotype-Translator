@@ -42,7 +42,7 @@ listed terms without brand team approval.
 | Project                  | Projet                       | Projekt                       | Projeto                         | プロジェクト            | Proyecto                    |
 | Workspace                | Espace de travail            | Arbeitsbereich                | Área de trabalho                | ワークスペース          | Área de trabajo             |
 | Dashboard                | Tableau de bord              | Dashboard                     | Painel                          | ダッシュボード          | Panel                       |
-| Settings                 | Paramètres                   | Einstellungen                 | Configurações                   | 設定                   | Configuración               |
+| Settings                 | Paramètres                   | Einstellungen                 | Configurações                   | 設定                   | Ajustes                     |
 | Account                  | Compte                       | Konto                         | Conta                           | アカウント              | Cuenta                      |
 | Profile                  | Profil                       | Profil                        | Perfil                          | プロフィール            | Perfil                      |
 | Team                     | Équipe                       | Team                          | Equipe                          | チーム                  | Equipo                      |
@@ -75,7 +75,7 @@ listed terms without brand team approval.
 | Apply           | Appliquer               | Anwenden                 | Aplicar               | 適用する          | Aplicar                |
 | Confirm         | Confirmer               | Bestätigen               | Confirmar             | 確認する          | Confirmar              |
 | Select          | Sélectionner            | Auswählen                | Selecionar            | 選択する          | Seleccionar            |
-| Upload          | Télécharger (vers)      | Hochladen                | Carregar              | アップロードする   | Cargar / Subir         |
+| Upload          | Télécharger (vers)      | Hochladen                | Carregar              | アップロードする   | Subir                  |
 | Download        | Télécharger             | Herunterladen            | Baixar                | ダウンロードする   | Descargar              |
 | Activate        | Activer                 | Aktivieren               | Ativar                | 有効にする        | Activar                |
 | Deactivate      | Désactiver              | Deaktivieren             | Desativar             | 無効にする        | Desactivar             |
@@ -88,6 +88,9 @@ listed terms without brand team approval.
 | Refresh         | Actualiser              | Aktualisieren            | Atualizar             | 更新する          | Actualizar             |
 | Copy            | Copier                  | Kopieren                 | Copiar                | コピーする        | Copiar                 |
 | Paste           | Coller                  | Einfügen                 | Colar                 | 貼り付ける        | Pegar                  |
+| Unmark          | retirer le marquage     | Markierung entfernen     | desmarcar             | マークを外す       | desmarcar              |
+| Tag(s)          | tag(s) *(keep as-is)*   | Tag(s)                   | tag(s)                | タグ               | etiqueta(s)            |
+| View / Read (permission label) | Consulter  | Anzeigen / Einsehen      | Consultar             | 閲覧する           | Ver                    |
 
 ---
 
@@ -128,6 +131,7 @@ listed terms without brand team approval.
 | Guest                    | Invité                       | Gast                          | Convidado                    | ゲスト                 | Invitado                    |
 | Viewer                   | Lecteur                      | Betrachter                    | Visualizador                 | 閲覧者                 | Espectador                  |
 | Editor                   | Éditeur                      | Bearbeiter                    | Editor                       | 編集者                 | Editor                      |
+| Membership               | Appartenance                 | Mitgliedschaft                | Adesão                       | メンバーシップ         | Pertenencia                 |
 
 ---
 
