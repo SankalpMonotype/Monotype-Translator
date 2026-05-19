@@ -13,6 +13,7 @@ For single-user / small-team use this is fine.
 
 import asyncio
 import json
+import re
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
@@ -978,11 +979,15 @@ function renderTable(rows) {
   hideEl('no-matches');
 }
 
+let _searchTimer = null;
 $('search-input').addEventListener('input', e => {
-  const q = e.target.value.toLowerCase();
-  const filtered = q ? allRows.filter(r => Object.values(r).some(v => String(v??'').toLowerCase().includes(q))) : allRows;
-  renderTable(filtered);
-  filtered.length ? hideEl('no-matches') : showEl('no-matches');
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => {
+    const q = e.target.value.toLowerCase();
+    const filtered = q ? allRows.filter(r => Object.values(r).some(v => String(v??'').toLowerCase().includes(q))) : allRows;
+    renderTable(filtered);
+    filtered.length ? hideEl('no-matches') : showEl('no-matches');
+  }, 150);
 });
 
 // ── Cancel ────────────────────────────────────────────────────────────────────
@@ -1091,7 +1096,7 @@ async def start_translation(
     if len(contents) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File must be smaller than 10 MB.")
 
-    job_id    = uuid.uuid4().hex[:8]
+    job_id    = uuid.uuid4().hex
     safe_name = f"{job_id}_{fname}"
     raw_path  = Path("uploads") / safe_name
     raw_path.write_bytes(contents)
@@ -1224,13 +1229,15 @@ _LANG_RULES = {
 
 
 def _extract_json_array(text: str) -> str:
-    """Extract the first JSON array from text, skipping any preamble/postamble."""
+    """Extract the first JSON array from text, stripping LLM preamble and markdown fences."""
     text = text.strip()
+    # Strip a leading code fence before searching for '['
+    text = re.sub(r'^```+(?:json)?\s*', '', text, flags=re.IGNORECASE)
     start = text.find("[")
     if start == -1:
         return text  # let json.loads raise a clear error
     text = text[start:]
-    # Remove trailing markdown fence if present
+    # Strip trailing code fence
     fence_pos = text.rfind("```")
     if fence_pos != -1:
         text = text[:fence_pos].rstrip()
@@ -1255,7 +1262,7 @@ def _translate_segment_batch(
         _os.environ.get("MODEL")
         or _os.environ.get("ANTHROPIC_MODEL")
         or _os.environ.get("OPENAI_MODEL_NAME")
-        or "openai/gpt-4.1-2025-04-14"
+        or "anthropic/claude-sonnet-4-6"
     )
 
     lang_rules = "\n".join(

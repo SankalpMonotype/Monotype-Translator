@@ -51,11 +51,11 @@ def _normalise_translation(text: str, lang: str) -> str:
 
 def _detect_header_row(ws) -> int:
     """
-    Scan rows 1-5 to find the first row where any cell matches a known language alias.
+    Scan rows 1-10 to find the first row where any cell matches a known language alias.
     Returns the 1-based row number, or 1 as fallback.
     """
     all_aliases = {alias for aliases in COLUMN_ALIASES.values() for alias in aliases}
-    for row_idx in range(1, 6):
+    for row_idx in range(1, 11):
         row_values = [str(cell.value or "").strip().lower() for cell in ws[row_idx]]
         if any(v in all_aliases for v in row_values):
             return row_idx
@@ -79,10 +79,97 @@ def _build_column_map(header_cells) -> dict[str, int]:
 
 
 # ---------------------------------------------------------------------------
-# Tool 0: read_reviewed_translations
+# Shared constants + internal write helper (used by Tool 0b and Tool 2)
 # ---------------------------------------------------------------------------
 
 REVIEWED_TRANSLATIONS_PATH = os.path.join("outputs", "reviewed_translations.json")
+
+_LANG_HEADER_LABELS: dict[str, str] = {
+    "fr": "French", "de": "German",
+    "pt_BR": "Portuguese", "ja": "Japanese", "es_ES": "Spanish",
+}
+_META_KEYS = {"row_index", "english", "reviewer_note"}
+
+
+def _write_entries_to_excel(ws, entries: list[dict], header_row_idx: int) -> dict:
+    """Write translation entries into an already-loaded worksheet.
+
+    Adds missing language columns to the header row if needed, writes each
+    entry's translations at the row_index specified, normalises text, and
+    resets row heights so Excel auto-fits after the new content.
+
+    Returns a dict with rows_written, cells_written, skipped_rows, errors.
+    """
+    header_cells = list(ws.iter_rows(
+        min_row=header_row_idx, max_row=header_row_idx, values_only=False
+    ))[0]
+    col_map = _build_column_map(header_cells)
+    col_1based = {lang: idx + 1 for lang, idx in col_map.items()}
+
+    active_langs = list(dict.fromkeys(
+        k for entry in entries for k in entry if k not in _META_KEYS
+    ))
+
+    next_col = ws.max_column + 1
+    for lang in active_langs:
+        if lang not in col_1based:
+            ws.cell(row=header_row_idx, column=next_col,
+                    value=_LANG_HEADER_LABELS.get(lang, lang))
+            col_1based[lang] = next_col
+            next_col += 1
+
+    rows_written = 0
+    cells_written = 0
+    skipped_rows: list[dict] = []
+    errors: list[str] = []
+
+    for entry in entries:
+        row_index = entry.get("row_index")
+        if not row_index or not isinstance(row_index, int):
+            skipped_rows.append({"entry": str(entry)[:100], "reason": "missing row_index"})
+            continue
+
+        wrote_any = False
+        for lang in active_langs:
+            text = entry.get(lang, "")
+            if not text or str(text).strip() == "":
+                continue
+            col = col_1based.get(lang)
+            if col is None:
+                errors.append(f"Row {row_index}: No column for language '{lang}'")
+                continue
+            ws.cell(row=row_index, column=col,
+                    value=_normalise_translation(str(text).strip(), lang))
+            cells_written += 1
+            wrote_any = True
+
+        if wrote_any:
+            rows_written += 1
+
+    for r in range(header_row_idx + 1, ws.max_row + 1):
+        ws.row_dimensions[r].height = None
+
+    return {
+        "rows_written": rows_written,
+        "cells_written": cells_written,
+        "skipped_rows": skipped_rows,
+        "errors": errors,
+    }
+
+
+def _save_translated_excel(wb, excel_path: str) -> str:
+    """Save workbook to outputs/{stem}_translated{ext} and return the output path."""
+    p = Path(excel_path)
+    outputs_dir = Path(os.getcwd()) / "outputs"
+    outputs_dir.mkdir(exist_ok=True)
+    output_path = str(outputs_dir / f"{p.stem}_translated{p.suffix}")
+    wb.save(output_path)
+    return output_path
+
+
+# ---------------------------------------------------------------------------
+# Tool 0: read_reviewed_translations
+# ---------------------------------------------------------------------------
 
 
 # ---------------------------------------------------------------------------
@@ -109,7 +196,6 @@ def write_reviewed_translations_to_excel(excel_path: str) -> str:
     if not OPENPYXL_AVAILABLE:
         return json.dumps({"error": "openpyxl not installed. Run: pip install openpyxl"})
 
-    # Read the reviewed translations file
     json_path = REVIEWED_TRANSLATIONS_PATH
     if not os.path.isabs(json_path):
         json_path = os.path.join(os.getcwd(), json_path)
@@ -117,15 +203,11 @@ def write_reviewed_translations_to_excel(excel_path: str) -> str:
         return json.dumps({"error": f"Reviewed translations file not found: {json_path}"})
 
     try:
-        with open(json_path, "r", encoding="utf-8") as f:
-            translations_json = f.read()
+        raw = open(json_path, encoding="utf-8").read()
     except Exception as exc:
         return json.dumps({"error": f"Failed to read {json_path}: {exc}"})
 
-    # Delegate to the existing write tool logic by re-using the same implementation.
-    # We call write_translations_to_excel's underlying logic directly.
-    cleaned = translations_json.strip()
-    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"^```(?:json)?\s*", "", raw.strip(), flags=re.IGNORECASE)
     cleaned = re.sub(r"\s*```$", "", cleaned)
 
     try:
@@ -135,86 +217,16 @@ def write_reviewed_translations_to_excel(excel_path: str) -> str:
 
     if not isinstance(entries, list):
         return json.dumps({"error": "reviewed_translations.json must contain a JSON array"})
-
     if not os.path.exists(excel_path):
         return json.dumps({"error": f"File not found: {excel_path}"})
 
     try:
         wb = openpyxl.load_workbook(excel_path)
         ws = wb.active
-
-        header_row_idx = _detect_header_row(ws)
-        header_cells = list(ws.iter_rows(
-            min_row=header_row_idx, max_row=header_row_idx, values_only=False
-        ))[0]
-        col_map = _build_column_map(header_cells)
-        col_1based = {lang: idx + 1 for lang, idx in col_map.items()}
-
-        # Detect which languages are present in the JSON (skip meta keys)
-        _meta_keys = {"row_index", "english", "reviewer_note"}
-        active_langs = [
-            k for entry in entries for k in entry
-            if k not in _meta_keys
-        ]
-        active_langs = list(dict.fromkeys(active_langs))  # deduplicate, preserve order
-
-        next_col = ws.max_column + 1
-        for lang in active_langs:
-            if lang not in col_1based:
-                lang_labels = {
-                    "fr": "French", "de": "German",
-                    "pt_BR": "Portuguese", "ja": "Japanese", "es_ES": "Spanish"
-                }
-                ws.cell(row=header_row_idx, column=next_col, value=lang_labels.get(lang, lang))
-                col_1based[lang] = next_col
-                next_col += 1
-
-        rows_written = 0
-        cells_written = 0
-        skipped_rows = []
-        errors = []
-
-        for entry in entries:
-            row_index = entry.get("row_index")
-            if not row_index or not isinstance(row_index, int):
-                skipped_rows.append({"entry": str(entry)[:100], "reason": "missing row_index"})
-                continue
-
-            wrote_any = False
-            for lang in active_langs:
-                text = entry.get(lang, "")
-                if not text or str(text).strip() == "":
-                    continue
-                col = col_1based.get(lang)
-                if col is None:
-                    errors.append(f"Row {row_index}: No column for language '{lang}'")
-                    continue
-                normalised = _normalise_translation(str(text).strip(), lang)
-                ws.cell(row=row_index, column=col, value=normalised)
-                cells_written += 1
-                wrote_any = True
-
-            if wrote_any:
-                rows_written += 1
-
-        for r in range(header_row_idx + 1, ws.max_row + 1):
-            ws.row_dimensions[r].height = None
-
-        p = Path(excel_path)
-        outputs_dir = Path(os.getcwd()) / "outputs"
-        outputs_dir.mkdir(exist_ok=True)
-        output_path = str(outputs_dir / f"{p.stem}_translated{p.suffix}")
-        wb.save(output_path)
-
-        return json.dumps({
-            "success": True,
-            "output_path": output_path,
-            "rows_written": rows_written,
-            "cells_written": cells_written,
-            "skipped_rows": skipped_rows,
-            "errors": errors,
-        }, ensure_ascii=False, indent=2)
-
+        result = _write_entries_to_excel(ws, entries, _detect_header_row(ws))
+        output_path = _save_translated_excel(wb, excel_path)
+        return json.dumps({"success": True, "output_path": output_path, **result},
+                          ensure_ascii=False, indent=2)
     except Exception as exc:
         return json.dumps({"error": f"Failed to write Excel: {exc}"})
 
@@ -384,8 +396,7 @@ def write_translations_to_excel(excel_path: str, translations_json: str) -> str:
         return json.dumps({"error": "openpyxl not installed. Run: pip install openpyxl"})
 
     # Strip markdown fences that LLMs sometimes add
-    cleaned = translations_json.strip()
-    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"^```(?:json)?\s*", "", translations_json.strip(), flags=re.IGNORECASE)
     cleaned = re.sub(r"\s*```$", "", cleaned)
 
     try:
@@ -395,96 +406,16 @@ def write_translations_to_excel(excel_path: str, translations_json: str) -> str:
 
     if not isinstance(entries, list):
         return json.dumps({"error": "translations_json must be a JSON array"})
-
     if not os.path.exists(excel_path):
         return json.dumps({"error": f"File not found: {excel_path}"})
 
     try:
         wb = openpyxl.load_workbook(excel_path)
         ws = wb.active
-
-        # Detect header row and column map
-        header_row_idx = _detect_header_row(ws)
-        header_cells = list(ws.iter_rows(
-            min_row=header_row_idx, max_row=header_row_idx, values_only=False
-        ))[0]
-        col_map = _build_column_map(header_cells)
-
-        # Build 1-based column index map for openpyxl cell writing
-        # col_map values are 0-based; openpyxl needs 1-based
-        col_1based = {lang: idx + 1 for lang, idx in col_map.items()}
-
-        # Detect which languages are present in the JSON (skip meta keys)
-        _meta_keys = {"row_index", "english", "reviewer_note"}
-        active_langs = [
-            k for entry in entries for k in entry
-            if k not in _meta_keys
-        ]
-        active_langs = list(dict.fromkeys(active_langs))  # deduplicate, preserve order
-
-        # If language columns don't exist yet, add them
-        next_col = ws.max_column + 1
-        for lang in active_langs:
-            if lang not in col_1based:
-                # Write header for missing language
-                lang_labels = {
-                    "fr": "French", "de": "German",
-                    "pt_BR": "Portuguese", "ja": "Japanese", "es_ES": "Spanish"
-                }
-                ws.cell(row=header_row_idx, column=next_col, value=lang_labels.get(lang, lang))
-                col_1based[lang] = next_col
-                next_col += 1
-
-        rows_written = 0
-        cells_written = 0
-        skipped_rows = []
-        errors = []
-
-        for entry in entries:
-            row_index = entry.get("row_index")
-            if not row_index or not isinstance(row_index, int):
-                skipped_rows.append({"entry": str(entry)[:100], "reason": "missing row_index"})
-                continue
-
-            wrote_any = False
-            for lang in active_langs:
-                text = entry.get(lang, "")
-                if not text or str(text).strip() == "":
-                    continue
-                col = col_1based.get(lang)
-                if col is None:
-                    errors.append(f"Row {row_index}: No column for language '{lang}'")
-                    continue
-                normalised = _normalise_translation(str(text).strip(), lang)
-                ws.cell(row=row_index, column=col, value=normalised)
-                cells_written += 1
-                wrote_any = True
-
-            if wrote_any:
-                rows_written += 1
-
-        # Reset customHeight on all data rows so Excel auto-fits after translations are added.
-        # Without this, rows that had explicit heights set while cells were empty stay locked
-        # at the old height and truncate the wrapped translation text.
-        for r in range(header_row_idx + 1, ws.max_row + 1):
-            ws.row_dimensions[r].height = None
-
-        # Build output path: always save to outputs/ directory
-        p = Path(excel_path)
-        outputs_dir = Path(os.getcwd()) / "outputs"
-        outputs_dir.mkdir(exist_ok=True)
-        output_path = str(outputs_dir / f"{p.stem}_translated{p.suffix}")
-        wb.save(output_path)
-
-        return json.dumps({
-            "success": True,
-            "output_path": output_path,
-            "rows_written": rows_written,
-            "cells_written": cells_written,
-            "skipped_rows": skipped_rows,
-            "errors": errors,
-        }, ensure_ascii=False, indent=2)
-
+        result = _write_entries_to_excel(ws, entries, _detect_header_row(ws))
+        output_path = _save_translated_excel(wb, excel_path)
+        return json.dumps({"success": True, "output_path": output_path, **result},
+                          ensure_ascii=False, indent=2)
     except Exception as exc:
         return json.dumps({"error": f"Failed to write Excel: {exc}"})
 

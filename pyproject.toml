@@ -12,6 +12,8 @@ dependencies = [
     "uvicorn[standard]>=0.30.0,<1.0.0",
     "python-multipart>=0.0.20",
     "pdfplumber>=0.11.0",
+    "litellm>=1.0.0",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.scripts]

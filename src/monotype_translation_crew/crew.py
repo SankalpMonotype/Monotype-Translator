@@ -149,8 +149,12 @@ class DocxTranslationCrew:
         self._tasks_cfg  = yaml.safe_load((_cfg / "docx_tasks.yaml").read_text())
         os.makedirs(os.path.join(os.getcwd(), "outputs"), exist_ok=True)
 
-    def crew(self) -> Crew:
-        brand_analyst = Agent(
+    # ------------------------------------------------------------------
+    # Agent factories — single definition, reused across all crew modes
+    # ------------------------------------------------------------------
+
+    def _make_brand_analyst(self) -> Agent:
+        return Agent(
             config=self._agents_cfg["brand_analyst"],
             verbose=True,
             tools=[
@@ -162,6 +166,17 @@ class DocxTranslationCrew:
             ],
             allow_delegation=False,
         )
+
+    def _make_prod_manager(self) -> Agent:
+        return Agent(
+            config=self._agents_cfg["production_manager"],
+            verbose=True,
+            tools=[write_translations_to_docx],
+            allow_delegation=False,
+        )
+
+    def crew(self) -> Crew:
+        brand_analyst = self._make_brand_analyst()
         translator = Agent(
             config=self._agents_cfg["translator"],
             verbose=True,
@@ -173,12 +188,7 @@ class DocxTranslationCrew:
             verbose=True,
             allow_delegation=False,
         )
-        prod_manager = Agent(
-            config=self._agents_cfg["production_manager"],
-            verbose=True,
-            tools=[write_translations_to_docx],
-            allow_delegation=False,
-        )
+        prod_manager = self._make_prod_manager()
 
         brand_task = Task(
             description=self._tasks_cfg["brand_context_task"]["description"],
@@ -220,18 +230,7 @@ class DocxTranslationCrew:
 
     def _run_brand_context_only(self, knowledge_dir: str):
         """Run just the brand_analyst task so the brand context cache is populated."""
-        brand_analyst = Agent(
-            config=self._agents_cfg["brand_analyst"],
-            verbose=True,
-            tools=[
-                read_brand_context_cache,
-                read_brand_guidelines,
-                ScrapeWebsiteTool(website_url="https://www.myfonts.com/"),
-                ScrapeWebsiteTool(website_url="https://www.myfonts.com/collections/"),
-                save_brand_context_cache,
-            ],
-            allow_delegation=False,
-        )
+        brand_analyst = self._make_brand_analyst()
         brand_task = Task(
             description=self._tasks_cfg["brand_context_task"]["description"],
             expected_output=self._tasks_cfg["brand_context_task"]["expected_output"],
@@ -246,13 +245,8 @@ class DocxTranslationCrew:
 
     def _run_production_only(self, docx_path: str):
         """Run just the production_manager task to write docx files from the merged JSON."""
+        prod_manager = self._make_prod_manager()
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        prod_manager = Agent(
-            config=self._agents_cfg["production_manager"],
-            verbose=True,
-            tools=[write_translations_to_docx],
-            allow_delegation=False,
-        )
         prod_task = Task(
             description=self._tasks_cfg["docx_production_task"]["description"],
             expected_output=self._tasks_cfg["docx_production_task"]["expected_output"],
