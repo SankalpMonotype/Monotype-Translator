@@ -21,6 +21,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 # ---------------------------------------------------------------------------
 # File-format converters  (PDF / DOCX → translation-ready .xlsx)
@@ -110,6 +111,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Monotype Translation Crew", version="1.0.0", lifespan=lifespan)
+_STATIC_DIR = Path(__file__).parent / "static"
+if _STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
 
 # ---------------------------------------------------------------------------
@@ -122,186 +126,178 @@ _HTML = r"""<!DOCTYPE html>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Monotype Translation Crew</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
+    @font-face { font-family:'Helvetica Now Display'; src:url('/static/fonts/HelveticaNowMTDisp.otf') format('opentype'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face { font-family:'Helvetica Now Display'; src:url('/static/fonts/HelveticaNowMTDispMedium.otf') format('opentype'); font-weight:500; font-style:normal; font-display:swap; }
+    @font-face { font-family:'Helvetica Now Display'; src:url('/static/fonts/HelveticaNowMTDispBold.otf') format('opentype'); font-weight:700; font-style:normal; font-display:swap; }
+    @font-face { font-family:'Helvetica Now Text'; src:url('/static/fonts/HelveticaNowMTText.otf') format('opentype'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face { font-family:'Helvetica Now Text'; src:url('/static/fonts/HelveticaNowMTTextMedium.otf') format('opentype'); font-weight:500; font-style:normal; font-display:swap; }
+    @font-face { font-family:'Helvetica Now Text'; src:url('/static/fonts/HelveticaNowMTTextBold.otf') format('opentype'); font-weight:700; font-style:normal; font-display:swap; }
+
     :root {
-      --ink:    #0D0D0D;
-      --paper:  #F8F6F2;
-      --mist:   #F0EDE7;
-      --border: #E3DFD9;
-      --muted:  #73706A;
-      --subtle: #B3B0AB;
-      --green:  #16A34A;
-      --green-bg: #F0FDF4;
-      --green-bd: #86EFAC;
-    }
-    html {
-      background: linear-gradient(-45deg, #EDE9FE, #EFF6FF, #FFF7ED, #ECFDF5, #EDE9FE);
-      background-size: 400% 400%;
-      animation: gradient-bg 22s ease infinite;
-      min-height: 100vh;
-    }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: transparent; }
-    .serif { font-family: Georgia, 'Times New Roman', serif; }
+      --font-display: 'Helvetica Now Display','HelveticaNowMTDisp',Inter,Helvetica,Arial,sans-serif;
+      --font-text:    'Helvetica Now Text','HelveticaNowMTText',Inter,Helvetica,Arial,sans-serif;
+      --font-mono:    ui-monospace,'Cascadia Code','Source Code Pro',monospace;
 
-    @keyframes gradient-bg {
-      0%   { background-position: 0%   50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0%   50%; }
-    }
-    @keyframes spin      { to { transform: rotate(360deg); } }
-    @keyframes pulse-dot { 0%,100%{ opacity:1; box-shadow:0 0 0 0 rgba(13,13,13,.3); }
-                           50%    { opacity:.7; box-shadow:0 0 0 4px rgba(13,13,13,0); } }
-    @keyframes fade-up   { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes slide-up  { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes shimmer   { 0% { transform:translateX(-100%); } 100% { transform:translateX(400%); } }
-    @keyframes draw-check{ to { stroke-dashoffset: 0; } }
-    @keyframes pop       { 0% { transform:scale(.88); opacity:0; } 65%{ transform:scale(1.05); } 100%{ transform:scale(1); opacity:1; } }
-    @keyframes float1    { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(22px,-18px) scale(1.06);} }
-    @keyframes float2    { 0%,100%{transform:translate(0,0);} 33%{transform:translate(-16px,14px);} 66%{transform:translate(18px,-10px);} }
-    @keyframes float3    { 0%,100%{transform:translate(0,0) rotate(0deg);} 50%{transform:translate(10px,20px) rotate(6deg);} }
-    @keyframes text-shimmer { 0%{background-position:0% center;} 100%{background-position:200% center;} }
+      /* Antiqua — Spirits neutrals */
+      --s25:  #fcfcfd; --s50:  #f9fafb; --s100: #f3f4f6;
+      --s200: #e7eaee; --s300: #dbdfe5; --s400: #cfd5dd;
+      --s500: #c3cad4; --s600: #667488; --s700: #576579;
+      --s800: #313945; --s900: #1e242c;
 
-    .anim-fade-up  { animation: fade-up  .4s cubic-bezier(.16,1,.3,1) both; }
-    .anim-slide-up { animation: slide-up .5s cubic-bezier(.16,1,.3,1) both; }
+      /* Antiqua — Blue Duck primary */
+      --bd-50:  #f2f5fd; --bd-100: #e4e9fa; --bd-200: #c6d2f6;
+      --bd-500: #1a73e8; --bd-600: #1766cf; --bd-700: #1459b3;
 
-    /* ── Landing page orbs ── */
-    #view-upload { position:relative; z-index:0; overflow:hidden; }
-    #view-upload::before {
-      content:''; position:absolute; top:-90px; right:-70px;
-      width:320px; height:320px; border-radius:50%; pointer-events:none; z-index:-1;
-      background:radial-gradient(circle at 40% 40%, rgba(124,58,237,.11), transparent 60%);
-      animation:float1 12s ease-in-out infinite;
+      /* Antiqua — Status */
+      --green-50:  #f2f7f4; --green-200: #c6dfd0;
+      --green-500: #26a568; --green-700: #1d7f50;
+      --red-50:    #fbf1f2; --red-200:   #f1c5c6; --red-500: #dc0024;
+
+      --border: var(--s300);
+
+      /* JS-inline-style compatibility aliases */
+      --ink:      var(--s900);
+      --paper:    var(--s50);
+      --mist:     var(--bd-50);
+      --muted:    var(--s700);
+      --subtle:   var(--s600);
+      --green:    var(--green-500);
+      --green-bg: var(--green-50);
+      --green-bd: var(--green-200);
     }
-    #view-upload::after {
-      content:''; position:absolute; bottom:-50px; left:-60px;
-      width:260px; height:260px; border-radius:50%; pointer-events:none; z-index:-1;
-      background:radial-gradient(circle at 60% 60%, rgba(14,165,233,.09), transparent 60%);
-      animation:float2 16s ease-in-out infinite;
-    }
-    #continue-btn:not(:disabled) { background:linear-gradient(135deg,#7C3AED,#0EA5E9) !important; }
-    #continue-btn:not(:disabled):hover { background:linear-gradient(135deg,#6D28D9,#0284C7) !important; }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin:0; padding:0; font-family:var(--font-text); color:var(--s900); background:var(--s100); -webkit-font-smoothing:antialiased; min-height:100vh; }
+
+    /* ── Animations (functional only) ── */
+    @keyframes spin      { to { transform:rotate(360deg); } }
+    @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:.35;} }
+    @keyframes fade-up   { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+    @keyframes draw-check{ to { stroke-dashoffset:0; } }
+
+    .anim-fade-up  { animation:fade-up .18s cubic-bezier(0,0,.2,1) both; }
+    .anim-slide-up { animation:fade-up .18s cubic-bezier(0,0,.2,1) both; }
 
     /* ── Step indicator ── */
-    .step-indicator { display:flex; align-items:center; margin-bottom:40px; }
-    .si-step { display:flex; align-items:center; gap:8px; }
-    .si-dot  { width:8px; height:8px; border-radius:50%; background:var(--border); flex-shrink:0; transition:background .3s, transform .3s; }
-    .si-step.si-active .si-dot { background:var(--ink); transform:scale(1.25); }
-    .si-step.si-done   .si-dot { background:var(--muted); }
-    .si-label { font-size:11px; color:var(--subtle); letter-spacing:.04em; transition:color .3s; white-space:nowrap; }
-    .si-step.si-active .si-label { color:var(--ink); font-weight:600; }
-    .si-step.si-done   .si-label { color:var(--muted); }
-    .si-line { flex:1; height:1px; background:var(--border); margin:0 10px; min-width:16px; max-width:40px; transition:background .4s; }
+    .step-indicator { display:flex; align-items:center; margin-bottom:28px; }
+    .si-step  { display:flex; align-items:center; gap:6px; }
+    .si-dot   { width:6px; height:6px; border-radius:50%; background:var(--s300); flex-shrink:0; transition:background .2s; }
+    .si-step.si-active .si-dot { background:var(--s900); }
+    .si-step.si-done   .si-dot { background:var(--s500); }
+    .si-label { font-size:11px; color:var(--s600); white-space:nowrap; }
+    .si-step.si-active .si-label { color:var(--s900); font-weight:500; }
+    .si-step.si-done   .si-label { color:var(--s600); }
+    .si-line  { flex:1; height:1px; background:var(--border); margin:0 8px; min-width:12px; max-width:32px; }
 
     /* ── Drop zone ── */
-    #drop-zone { border:1.5px dashed var(--border); transition:border-color .2s, background .2s; }
-    #drop-zone:hover  { border-color:#7C3AED; background:var(--mist); box-shadow:0 0 0 4px rgba(124,58,237,.06); }
-    #drop-zone.active { border-color:#7C3AED !important; border-style:solid !important; background:var(--mist) !important; box-shadow:0 0 0 4px rgba(124,58,237,.08) !important; }
-    #drop-zone.active .drop-arrow { transform:translateY(-4px); }
-    .drop-arrow { transition:transform .25s cubic-bezier(.16,1,.3,1); }
-
-    /* ── Language chips (configure) ── */
-    .lang-chip {
-      display:flex; flex-direction:column; align-items:center; gap:6px;
-      padding:12px 10px; border-radius:12px; border:1.5px solid var(--border);
-      background:white; cursor:pointer; transition:all .2s; user-select:none;
-      position:relative;
+    #drop-zone {
+      border:1.5px dashed var(--s300); border-radius:16px; background:#fff;
+      padding:28px 24px; cursor:pointer; transition:border-color .15s, background .15s;
     }
-    .lang-chip:hover { border-color:var(--muted); background:var(--mist); }
-    .lang-chip.lch-on { border-color:var(--ink); background:var(--ink); }
-    .lang-chip .chip-flag  { font-size:22px; line-height:1; }
-    .lang-chip .chip-label { font-size:10px; font-weight:700; color:var(--subtle); letter-spacing:.06em; text-transform:uppercase; transition:color .2s; }
-    .lang-chip.lch-on .chip-label { color:rgba(255,255,255,.7); }
+    #drop-zone:hover  { border-color:var(--bd-500); background:var(--bd-50); }
+    #drop-zone.active { border-color:var(--bd-500)!important; border-style:solid!important; background:var(--bd-50)!important; }
+    .drop-arrow { transition:transform .2s cubic-bezier(0,0,.2,1); }
+    #drop-zone.active .drop-arrow { transform:translateY(-3px); }
+
+    /* ── Language chips ── */
+    .lang-chip {
+      display:flex; flex-direction:column; align-items:center; gap:5px;
+      padding:10px 6px; border-radius:8px; border:1.5px solid var(--s300);
+      background:#fff; cursor:pointer; transition:border-color .15s, background .15s;
+      user-select:none; position:relative;
+    }
+    .lang-chip:hover { border-color:var(--s500); background:var(--s50); }
+    .lang-chip.lch-on { border-color:var(--bd-500); background:var(--bd-50); }
+    .lang-chip .chip-flag  { font-size:18px; line-height:1; }
+    .lang-chip .chip-label { font-size:10px; font-weight:500; color:var(--s600); letter-spacing:.04em; text-transform:uppercase; }
+    .lang-chip.lch-on .chip-label { color:var(--bd-700); }
     .lang-chip .chip-check {
-      position:absolute; top:6px; right:6px;
-      width:14px; height:14px; border-radius:50%;
-      background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center;
-      opacity:0; transition:opacity .2s;
+      position:absolute; top:4px; right:4px; width:13px; height:13px; border-radius:50%;
+      background:var(--bd-500); display:flex; align-items:center; justify-content:center;
+      opacity:0; transition:opacity .15s;
     }
     .lang-chip.lch-on .chip-check { opacity:1; }
 
     /* ── Toggle ── */
     .tog-track {
-      width:38px; height:22px; border-radius:11px; background:var(--border);
-      position:relative; cursor:pointer; transition:background .2s; flex-shrink:0;
+      width:36px; height:20px; border-radius:10px; background:var(--s300);
+      position:relative; cursor:pointer; transition:background .15s; flex-shrink:0;
     }
-    .tog-track.tog-on { background:var(--ink); }
+    .tog-track.tog-on { background:var(--bd-500); }
     .tog-thumb {
-      position:absolute; top:4px; left:4px; width:14px; height:14px;
-      border-radius:50%; background:white; transition:transform .2s;
-      box-shadow:0 1px 3px rgba(0,0,0,.25);
+      position:absolute; top:3px; left:3px; width:14px; height:14px; border-radius:50%;
+      background:#fff; transition:transform .15s cubic-bezier(.34,1.56,.64,1);
+      box-shadow:0 1px 2px rgba(0,0,0,.2);
     }
     .tog-track.tog-on .tog-thumb { transform:translateX(16px); }
 
-    /* ── Language progress cards (processing) ── */
+    /* ── Language progress cards ── */
     .lang-card {
-      background:white; border:1.5px solid var(--border); border-radius:12px;
-      padding:14px 8px; display:flex; flex-direction:column; align-items:center;
-      gap:6px; transition:border-color .3s, background .3s;
+      background:#fff; border:1px solid var(--border); border-radius:8px;
+      padding:10px 4px; display:flex; flex-direction:column; align-items:center;
+      gap:4px; transition:border-color .2s, background .2s;
     }
-    .lang-card.lc-active { border-color:var(--ink); background:var(--mist); }
-    .lang-card.lc-done   { border-color:var(--green-bd); background:var(--green-bg); }
-    .lang-flag { font-size:20px; line-height:1; }
-    .lang-abbr { font-size:10px; font-weight:700; color:var(--subtle); letter-spacing:.06em; text-transform:uppercase; transition:color .3s; }
-    .lang-card.lc-active .lang-abbr { color:var(--ink); }
-    .lang-card.lc-done   .lang-abbr { color:var(--green); }
-    .lang-dot { width:6px; height:6px; border-radius:50%; background:var(--border); transition:background .3s; }
-    .lang-card.lc-active .lang-dot { background:var(--ink); animation:pulse-dot 1.6s ease-in-out infinite; }
-    .lang-card.lc-done   .lang-dot { background:var(--green); }
+    .lang-card.lc-active { border-color:var(--bd-500); background:var(--bd-50); }
+    .lang-card.lc-done   { border-color:var(--green-200); background:var(--green-50); }
+    .lang-flag { font-size:18px; line-height:1; }
+    .lang-abbr { font-size:10px; font-weight:500; color:var(--s600); letter-spacing:.04em; text-transform:uppercase; }
+    .lang-card.lc-active .lang-abbr { color:var(--bd-700); }
+    .lang-card.lc-done   .lang-abbr { color:var(--green-700); }
+    .lang-dot { width:5px; height:5px; border-radius:50%; background:var(--s300); transition:background .2s; }
+    .lang-card.lc-active .lang-dot { background:var(--bd-500); animation:pulse-dot 1.4s ease-in-out infinite; }
+    .lang-card.lc-done   .lang-dot { background:var(--green-500); }
 
     /* ── Progress bar ── */
-    #progress-bar { transition:width .8s cubic-bezier(.4,0,.2,1); position:relative; overflow:hidden; }
-    #progress-bar::after {
-      content:''; position:absolute; top:0; left:0; height:100%; width:35%;
-      background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);
-      animation:shimmer 2.2s ease infinite;
-    }
+    #progress-bar { transition:width .7s cubic-bezier(.4,0,.2,1); }
 
     /* ── Insight card ── */
-    #insight-wrap { transition:opacity .35s ease; }
+    #insight-wrap { transition:opacity .25s ease; }
 
     /* ── Buttons ── */
     .btn-ink {
-      background:var(--ink); color:white; border-radius:12px; cursor:pointer;
-      transition:background .15s, transform .1s; letter-spacing:.03em; border:none;
+      background:var(--bd-500); color:#fff; border-radius:8px; cursor:pointer;
+      border:none; font-family:var(--font-text); font-weight:500; font-size:14px;
+      transition:background .15s; letter-spacing:-.01em;
     }
-    .btn-ink:hover:not(:disabled) { background:#2a2a2a; }
-    .btn-ink:active:not(:disabled){ transform:scale(.98); }
-    .btn-ink:disabled { opacity:.28; cursor:not-allowed; }
+    .btn-ink:hover:not(:disabled)  { background:var(--bd-600); }
+    .btn-ink:active:not(:disabled) { background:var(--bd-700); }
+    .btn-ink:disabled { opacity:.4; cursor:not-allowed; }
+
     .btn-ghost {
-      border:1px solid var(--border); color:var(--muted); background:none;
-      border-radius:12px; cursor:pointer; transition:background .15s; letter-spacing:.03em;
+      border:1.5px solid var(--border); color:var(--s900); background:#fff;
+      border-radius:8px; cursor:pointer; font-family:var(--font-text); font-weight:500; font-size:14px;
+      transition:background .15s, border-color .15s; letter-spacing:-.01em;
     }
-    .btn-ghost:hover { background:var(--mist); }
+    .btn-ghost:hover { background:var(--s50); border-color:var(--s500); }
+    .btn-ghost:disabled { opacity:.4; cursor:not-allowed; }
 
-    /* ── Review table ── */
-    #review-thead th { background:var(--paper); border-bottom:1px solid var(--border); position:sticky; top:0; }
-    #review-tbody tr:nth-child(even) { background:var(--paper); }
-    #review-tbody tr:hover { background:rgba(13,13,13,.03); }
-
-    /* ── Glass cards ── */
-    #drop-zone { background:rgba(255,255,255,.85) !important; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
-    #view-configure > div:first-child,
-    #view-configure > div[style*="background:white"] { background:rgba(255,255,255,.85) !important; backdrop-filter:blur(8px); }
+    /* ── Table ── */
+    #review-thead th { background:var(--s50); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:1; }
+    #review-tbody tr:hover { background:var(--s50); }
   </style>
 </head>
-<body style="min-height:100vh;">
+<body>
 
-<!-- ── Header ─────────────────────────────────────────────────────────────── -->
-<header style="background:rgba(255,255,255,.80); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid rgba(255,255,255,.6); position:sticky; top:0; z-index:10;">
-  <div style="max-width:680px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between;">
+<!-- ── Header ── -->
+<header style="background:#fff; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10;">
+  <div style="max-width:720px; margin:0 auto; padding:0 24px; height:56px; display:flex; align-items:center; justify-content:space-between;">
     <div id="logo-home" style="display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;" title="Home">
-      <div style="width:26px; height:26px; background:var(--ink); border-radius:4px; display:flex; align-items:center; justify-content:center;">
-        <span style="color:white; font-size:11px; font-weight:700; letter-spacing:-.01em;">M</span>
+      <div style="width:28px; height:28px; background:var(--s900); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <span style="color:#fff; font-family:var(--font-display); font-size:14px; font-weight:700; letter-spacing:-.04em;">M</span>
       </div>
-      <span style="font-size:14px; font-weight:600; color:var(--ink); letter-spacing:-.01em;">Monotype</span>
+      <span style="font-family:var(--font-display); font-size:16px; font-weight:700; color:var(--s900); letter-spacing:-.02em;">Monotype</span>
     </div>
+    <span style="font-size:11px; color:var(--s600);">Translation crew</span>
   </div>
 </header>
 
-<main style="max-width:680px; margin:0 auto; padding:48px 24px 80px;">
+<main style="max-width:720px; margin:0 auto; padding:40px 24px 80px;">
 
-  <!-- ── Step indicator ─────────────────────────────────────────────────── -->
+  <!-- ── Step indicator ── -->
   <div id="step-indicator" class="step-indicator" style="display:none;">
     <div class="si-step si-active" data-step="1"><div class="si-dot"></div><span class="si-label">Upload</span></div>
     <div class="si-line"></div>
@@ -312,52 +308,38 @@ _HTML = r"""<!DOCTYPE html>
     <div class="si-step" data-step="4"><div class="si-dot"></div><span class="si-label">Download</span></div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════════════ -->
-  <!-- VIEW 1: UPLOAD                                                         -->
-  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- VIEW 1: UPLOAD                                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div id="view-upload" class="anim-fade-up">
 
-    <!-- Orange accent orb -->
-    <div aria-hidden="true" style="position:absolute; top:38%; right:8%; width:160px; height:160px; border-radius:50%; pointer-events:none; z-index:-1; background:radial-gradient(circle, rgba(249,115,22,.10), transparent 60%); animation:float3 10s ease-in-out infinite;"></div>
-
-    <!-- Colour accent bar -->
-    <div style="display:flex; gap:4px; margin-bottom:20px;">
-      <div style="width:24px; height:3px; border-radius:2px; background:#7C3AED;"></div>
-      <div style="width:14px; height:3px; border-radius:2px; background:#0EA5E9;"></div>
-      <div style="width:8px; height:3px; border-radius:2px; background:#F97316;"></div>
-    </div>
-
-    <h1 class="serif" style="font-size:3rem; line-height:1.08; color:var(--ink); margin-bottom:12px; letter-spacing:-.02em;">
-      Translate your<br><span style="background:linear-gradient(135deg,#7C3AED 0%,#0EA5E9 50%,#F97316 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:text-shimmer 4s linear infinite;">UI strings.</span>
+    <h1 style="font-family:var(--font-display); font-size:33px; line-height:40px; font-weight:700; letter-spacing:-.02em; color:var(--s900); margin-bottom:8px;">
+      Translate your UI strings
     </h1>
-    <p style="font-size:14px; color:var(--muted); line-height:1.65; max-width:460px; margin-bottom:32px;">
-      Upload a file containing English source strings — we translate into five languages,
-      guided by Monotype brand standards and approved terminology.
+    <p style="font-size:14px; color:var(--s700); line-height:1.6; max-width:520px; margin-bottom:28px;">
+      Upload a file containing English source strings. We translate into five languages, guided by Monotype brand standards and approved terminology.
     </p>
 
     <!-- Drop zone -->
-    <div id="drop-zone" style="border-radius:14px; padding:32px; cursor:pointer; background:white;">
+    <div id="drop-zone">
       <div style="display:flex; align-items:center; gap:20px;">
-        <div class="drop-arrow" style="flex-shrink:0; width:52px; height:52px; border-radius:12px;
-             background:linear-gradient(135deg,#F5F3FF,#EFF6FF); display:flex; align-items:center; justify-content:center; border:1px solid rgba(124,58,237,.12);">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <path d="M11 14V4M11 4L8 7M11 4L14 7" stroke="#7C3AED" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M3 16v1.5A1.5 1.5 0 004.5 19h13a1.5 1.5 0 001.5-1.5V16" stroke="#0EA5E9" stroke-width="1.6" stroke-linecap="round"/>
+        <div class="drop-arrow" style="flex-shrink:0; width:48px; height:48px; border-radius:12px;
+             background:var(--bd-50); border:1px solid var(--bd-200);
+             display:flex; align-items:center; justify-content:center;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 13V4M10 4L7 7M10 4L13 7" stroke="#1a73e8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 14v1.5A1.5 1.5 0 004.5 17h11a1.5 1.5 0 001.5-1.5V14" stroke="#1a73e8" stroke-width="1.6" stroke-linecap="round"/>
           </svg>
         </div>
         <div>
-          <p style="font-size:14px; font-weight:500; color:var(--ink); margin-bottom:4px;">
-            Drop your file here — we'll handle the rest
+          <p style="font-size:14px; font-weight:500; color:var(--s900); margin-bottom:4px;">
+            Drop your file here — or <button id="browse-btn" style="color:var(--bd-500); text-decoration:underline; text-underline-offset:3px; background:none; border:none; cursor:pointer; font-size:14px; font-weight:500; padding:0; font-family:var(--font-text);">browse to upload</button>
           </p>
-          <p style="font-size:13px; color:var(--subtle); margin-bottom:10px;">
-            or <button id="browse-btn" style="color:var(--ink); text-decoration:underline; text-underline-offset:3px;
-               background:none; border:none; cursor:pointer; font-size:13px; font-weight:500; padding:0;">browse to upload</button>
-          </p>
-          <div style="display:flex; gap:5px; flex-wrap:wrap;">
-            <span style="font-size:10px; padding:2px 7px; border-radius:4px; background:var(--mist); color:var(--muted);">.xlsx</span>
-            <span style="font-size:10px; padding:2px 7px; border-radius:4px; background:var(--mist); color:var(--muted);">.pdf</span>
-            <span style="font-size:10px; padding:2px 7px; border-radius:4px; background:var(--mist); color:var(--muted);">.docx</span>
-            <span style="font-size:10px; padding:2px 7px; border-radius:4px; background:var(--mist); color:var(--subtle);">Max 10 MB</span>
+          <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:6px;">
+            <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:var(--s100); border:1px solid var(--border); color:var(--s700);">.xlsx</span>
+            <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:var(--s100); border:1px solid var(--border); color:var(--s700);">.pdf</span>
+            <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:var(--s100); border:1px solid var(--border); color:var(--s700);">.docx</span>
+            <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:var(--s100); color:var(--s600);">Max 10 MB</span>
           </div>
         </div>
       </div>
@@ -365,27 +347,27 @@ _HTML = r"""<!DOCTYPE html>
     <input type="file" id="file-input" accept=".xlsx,.pdf,.docx,.doc" style="display:none;">
 
     <!-- File selected card -->
-    <div id="file-card" style="display:none; margin-top:10px; padding:14px 16px; border-radius:12px;
-         background:var(--mist); border:1px solid var(--border); align-items:center; gap:12px;">
-      <div style="width:36px; height:36px; border-radius:8px; background:white; border:1px solid var(--border);
+    <div id="file-card" style="display:none; margin-top:8px; padding:12px 16px; border-radius:8px;
+         background:var(--s50); border:1px solid var(--border); align-items:center; gap:12px;">
+      <div style="width:32px; height:32px; border-radius:6px; background:#fff; border:1px solid var(--border);
            display:flex; align-items:center; justify-content:center; flex-shrink:0;">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M8 1H3a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6L8 1z" stroke="var(--muted)" stroke-width="1.2"/>
-          <path d="M8 1v5h5" stroke="var(--muted)" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M8 1H3a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6L8 1z" stroke="var(--s600)" stroke-width="1.2"/>
+          <path d="M8 1v5h5" stroke="var(--s600)" stroke-width="1.2" stroke-linecap="round"/>
         </svg>
       </div>
       <div style="flex:1; min-width:0;">
-        <p id="file-name" style="font-size:13px; font-weight:500; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></p>
+        <p id="file-name" style="font-size:13px; font-weight:500; color:var(--s900); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></p>
         <div style="display:flex; align-items:center; gap:8px; margin-top:3px; flex-wrap:wrap;">
-          <p id="file-size" style="font-size:11px; color:var(--subtle);"></p>
+          <p id="file-size" style="font-size:11px; color:var(--s600);"></p>
           <div id="preview-spinner" style="display:none; width:10px; height:10px; border-radius:50%;
-               border:1.5px solid var(--border); border-top-color:var(--muted); animation:spin .7s linear infinite;"></div>
-          <div id="string-count-pill" style="display:none; font-size:10px; font-weight:700; padding:2px 9px;
-               border-radius:20px; background:var(--ink); color:white; letter-spacing:.03em;"></div>
+               border:1.5px solid var(--border); border-top-color:var(--s600); animation:spin .7s linear infinite;"></div>
+          <div id="string-count-pill" style="display:none; font-size:11px; font-weight:500; padding:2px 8px;
+               border-radius:9999px; background:var(--bd-100); color:var(--bd-700); border:1px solid var(--bd-200);"></div>
         </div>
       </div>
-      <button id="remove-file" style="width:22px; height:22px; border-radius:50%; border:none; background:none;
-              cursor:pointer; color:var(--subtle); display:flex; align-items:center; justify-content:center; padding:0;">
+      <button id="remove-file" style="width:20px; height:20px; border-radius:50%; border:none; background:none;
+              cursor:pointer; color:var(--s500); display:flex; align-items:center; justify-content:center; padding:0;">
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
           <path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
@@ -393,25 +375,25 @@ _HTML = r"""<!DOCTYPE html>
     </div>
 
     <!-- Trust signals -->
-    <div style="display:flex; align-items:center; gap:8px; margin-top:18px; flex-wrap:wrap;">
-      <div style="display:flex; align-items:center; gap:6px; padding:5px 11px; border-radius:20px; background:#F5F3FF; border:1px solid #DDD6FE;">
-        <div style="width:6px; height:6px; border-radius:50%; background:#7C3AED; flex-shrink:0;"></div>
-        <span style="font-size:11px; color:#7C3AED; font-weight:500;">Brand-aligned terminology</span>
+    <div style="display:flex; align-items:center; gap:6px; margin-top:16px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:5px; padding:4px 10px; border-radius:9999px; background:var(--s100); border:1px solid var(--border);">
+        <div style="width:5px; height:5px; border-radius:50%; background:var(--s600); flex-shrink:0;"></div>
+        <span style="font-size:11px; color:var(--s700);">Brand-aligned terminology</span>
       </div>
-      <div style="display:flex; align-items:center; gap:6px; padding:5px 11px; border-radius:20px; background:#F0F9FF; border:1px solid #BAE6FD;">
-        <div style="width:6px; height:6px; border-radius:50%; background:#0EA5E9; flex-shrink:0;"></div>
-        <span style="font-size:11px; color:#0EA5E9; font-weight:500;">Preserves tone & UI length</span>
+      <div style="display:flex; align-items:center; gap:5px; padding:4px 10px; border-radius:9999px; background:var(--s100); border:1px solid var(--border);">
+        <div style="width:5px; height:5px; border-radius:50%; background:var(--s600); flex-shrink:0;"></div>
+        <span style="font-size:11px; color:var(--s700);">Preserves tone &amp; UI length</span>
       </div>
-      <div style="display:flex; align-items:center; gap:6px; padding:5px 11px; border-radius:20px; background:#FFF7ED; border:1px solid #FED7AA;">
-        <div style="width:6px; height:6px; border-radius:50%; background:#F97316; flex-shrink:0;"></div>
-        <span style="font-size:11px; color:#F97316; font-weight:500;">5 languages at once</span>
+      <div style="display:flex; align-items:center; gap:5px; padding:4px 10px; border-radius:9999px; background:var(--s100); border:1px solid var(--border);">
+        <div style="width:5px; height:5px; border-radius:50%; background:var(--s600); flex-shrink:0;"></div>
+        <span style="font-size:11px; color:var(--s700);">5 languages at once</span>
       </div>
     </div>
 
     <!-- CTA -->
     <button id="continue-btn" disabled class="btn-ink"
-            style="width:100%; padding:14px; font-size:13px; font-weight:600; margin-top:20px;
-                   letter-spacing:.05em; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:8px;">
+            style="width:100%; padding:12px; font-size:14px; margin-top:20px;
+                   display:flex; align-items:center; justify-content:center; gap:8px;">
       <span>Continue</span>
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -419,44 +401,44 @@ _HTML = r"""<!DOCTYPE html>
     </button>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════════════ -->
-  <!-- VIEW 2: CONFIGURE                                                      -->
-  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- VIEW 2: CONFIGURE                                                       -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div id="view-configure" style="display:none;" class="anim-fade-up">
 
-    <!-- File summary row -->
-    <div style="display:flex; align-items:center; gap:12px; padding:14px 16px; background:white;
-         border:1px solid var(--border); border-radius:12px; margin-bottom:32px;">
-      <div style="width:34px; height:34px; border-radius:8px; background:var(--mist); flex-shrink:0;
+    <!-- File summary -->
+    <div style="display:flex; align-items:center; gap:12px; padding:12px 16px; background:#fff;
+         border:1px solid var(--border); border-radius:8px; margin-bottom:24px;">
+      <div style="width:32px; height:32px; border-radius:6px; background:var(--s100); flex-shrink:0;
            display:flex; align-items:center; justify-content:center;">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M8 1H3a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6L8 1z" stroke="var(--muted)" stroke-width="1.2"/>
-          <path d="M8 1v5h5" stroke="var(--muted)" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M8 1H3a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6L8 1z" stroke="var(--s600)" stroke-width="1.2"/>
+          <path d="M8 1v5h5" stroke="var(--s600)" stroke-width="1.2" stroke-linecap="round"/>
         </svg>
       </div>
       <div style="flex:1; min-width:0;">
-        <p id="conf-filename" style="font-size:13px; font-weight:500; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></p>
-        <p id="conf-meta" style="font-size:11px; color:var(--subtle); margin-top:2px;"></p>
+        <p id="conf-filename" style="font-size:13px; font-weight:500; color:var(--s900); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></p>
+        <p id="conf-meta" style="font-size:11px; color:var(--s600); margin-top:2px;"></p>
       </div>
-      <button id="conf-change" style="font-size:11px; color:var(--muted); background:none; border:none; cursor:pointer;
-              padding:0; text-decoration:underline; text-underline-offset:3px; white-space:nowrap; flex-shrink:0;">
+      <button id="conf-change" style="font-size:12px; color:var(--bd-500); background:none; border:none; cursor:pointer;
+              font-weight:500; white-space:nowrap; flex-shrink:0; font-family:var(--font-text);">
         Change file
       </button>
     </div>
 
     <!-- Language selection -->
-    <div style="margin-bottom:28px;">
-      <p style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px;">Target languages</p>
-      <p style="font-size:12px; color:var(--subtle); margin-bottom:14px;">All five are on by default. Tap to deselect any you don't need.</p>
+    <div style="background:#fff; border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:12px;">
+      <p style="font-size:11px; font-weight:500; color:var(--s600); letter-spacing:.04em; text-transform:uppercase; margin-bottom:4px;">Target languages</p>
+      <p style="font-size:13px; color:var(--s700); margin-bottom:14px;">All five are selected. Tap to deselect any you don't need.</p>
       <div id="lang-chips" style="display:grid; grid-template-columns:repeat(5,1fr); gap:8px;"></div>
     </div>
 
-    <!-- Length optimisation toggle -->
-    <div style="padding:16px 18px; background:white; border:1px solid var(--border); border-radius:12px; margin-bottom:28px;">
+    <!-- Length toggle -->
+    <div style="padding:16px 20px; background:#fff; border:1px solid var(--border); border-radius:16px; margin-bottom:24px;">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:16px;">
         <div>
-          <p style="font-size:13px; font-weight:500; color:var(--ink); margin-bottom:3px;">Optimise for UI length</p>
-          <p style="font-size:11px; color:var(--subtle); line-height:1.5;">Keep translations concise — helps strings fit buttons and labels at smaller sizes.</p>
+          <p style="font-size:14px; font-weight:500; color:var(--s900); margin-bottom:3px;">Optimise for UI length</p>
+          <p style="font-size:12px; color:var(--s600); line-height:1.5;">Keep translations concise — helps strings fit buttons and labels at smaller sizes.</p>
         </div>
         <div id="length-toggle" class="tog-track tog-on" onclick="toggleLength()">
           <div class="tog-thumb"></div>
@@ -466,10 +448,9 @@ _HTML = r"""<!DOCTYPE html>
 
     <!-- Start button -->
     <button id="translate-btn" class="btn-ink"
-            style="width:100%; padding:14px; font-size:13px; font-weight:600;
-                   letter-spacing:.05em; text-transform:uppercase;
+            style="width:100%; padding:12px; font-size:14px;
                    display:flex; align-items:center; justify-content:center; gap:8px;">
-      <span id="translate-btn-label">Start Translation</span>
+      <span id="translate-btn-label">Start translation</span>
       <span id="translate-btn-icon" style="display:flex; align-items:center;">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -477,46 +458,46 @@ _HTML = r"""<!DOCTYPE html>
       </span>
     </button>
 
-    <p style="font-size:11px; color:var(--subtle); text-align:center; margin-top:12px; line-height:1.6;">
-      Translation takes 3–8 minutes. Live progress shown — you can leave this tab open.
+    <p style="font-size:11px; color:var(--s600); text-align:center; margin-top:12px; line-height:1.6;">
+      Translation takes 3–8 minutes. Progress shown below — you can leave this tab open.
     </p>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════════════ -->
-  <!-- VIEW 3: PROCESSING                                                     -->
-  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- VIEW 3: PROCESSING                                                      -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div id="view-processing" style="display:none;" class="anim-fade-up">
 
-    <!-- File + elapsed row -->
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+    <!-- File + elapsed -->
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
       <div style="display:flex; align-items:center; gap:8px;">
         <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
-          <path d="M7 1H2a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5L7 1z" stroke="var(--subtle)" stroke-width="1.2"/>
-          <path d="M7 1v4h4" stroke="var(--subtle)" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M7 1H2a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5L7 1z" stroke="var(--s500)" stroke-width="1.2"/>
+          <path d="M7 1v4h4" stroke="var(--s500)" stroke-width="1.2" stroke-linecap="round"/>
         </svg>
-        <span id="proc-filename" style="font-size:12px; font-weight:500; color:var(--muted);"></span>
+        <span id="proc-filename" style="font-size:12px; font-weight:500; color:var(--s700);"></span>
       </div>
-      <span id="elapsed-disp" style="font-size:12px; color:var(--subtle); font-variant-numeric:tabular-nums;"></span>
+      <span id="elapsed-disp" style="font-size:12px; color:var(--s600); font-variant-numeric:tabular-nums;"></span>
     </div>
 
     <!-- Progress bar -->
-    <div style="margin-bottom:20px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-        <span id="progress-stage-label" style="font-size:12px; color:var(--muted); font-weight:500;">Initialising…</span>
-        <span id="progress-pct" style="font-size:12px; color:var(--subtle); font-variant-numeric:tabular-nums; font-weight:500;">0%</span>
+    <div style="margin-bottom:16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+        <span id="progress-stage-label" style="font-size:12px; color:var(--s700); font-weight:500;">Initialising…</span>
+        <span id="progress-pct" style="font-size:12px; color:var(--s600); font-variant-numeric:tabular-nums;">0%</span>
       </div>
-      <div style="height:6px; background:var(--mist); border-radius:6px; overflow:hidden;">
-        <div id="progress-bar" style="height:100%; background:var(--ink); width:2%; border-radius:6px;"></div>
+      <div style="height:4px; background:var(--s200); border-radius:9999px; overflow:hidden;">
+        <div id="progress-bar" style="height:100%; background:var(--bd-500); width:2%; border-radius:9999px;"></div>
       </div>
     </div>
 
     <!-- Active task banner -->
-    <div id="active-task-card" style="background:var(--ink); border-radius:14px; padding:16px 20px;
+    <div id="active-task-card" style="background:var(--s900); border-radius:12px; padding:14px 18px;
          display:flex; align-items:center; gap:14px; margin-bottom:16px;">
-      <div style="width:9px; height:9px; border-radius:50%; background:white; flex-shrink:0;
-           animation:pulse-dot 1.6s ease-in-out infinite;"></div>
+      <div style="width:7px; height:7px; border-radius:50%; background:#fff; flex-shrink:0;
+           animation:pulse-dot 1.4s ease-in-out infinite;"></div>
       <div style="min-width:0;">
-        <p id="active-task-label" style="font-size:13px; font-weight:600; color:white; margin-bottom:3px;">Initialising…</p>
+        <p id="active-task-label" style="font-size:13px; font-weight:500; color:#fff; margin-bottom:2px;">Initialising…</p>
         <p id="active-task-desc"  style="font-size:11px; color:rgba(255,255,255,.45); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></p>
       </div>
     </div>
@@ -532,64 +513,63 @@ _HTML = r"""<!DOCTYPE html>
 
     <!-- Insight card -->
     <div>
-      <p style="font-size:10px; color:var(--subtle); letter-spacing:.1em; text-transform:uppercase; margin-bottom:12px; font-weight:600;">Did you know</p>
-      <div id="insight-wrap" style="background:white; border:1px solid var(--border); border-radius:14px; padding:20px;">
-        <p id="insight-title" style="font-size:13px; font-weight:600; color:var(--ink); margin-bottom:8px; letter-spacing:-.01em;"></p>
-        <p id="insight-body"  style="font-size:12px; line-height:1.75; color:var(--muted);"></p>
-        <div id="insight-dots" style="display:flex; gap:5px; margin-top:16px;"></div>
+      <p style="font-size:10px; color:var(--s600); letter-spacing:.08em; text-transform:uppercase; margin-bottom:10px; font-weight:500;">Did you know</p>
+      <div id="insight-wrap" style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px;">
+        <p id="insight-title" style="font-size:13px; font-weight:500; color:var(--s900); margin-bottom:6px;"></p>
+        <p id="insight-body"  style="font-size:12px; line-height:1.75; color:var(--s700);"></p>
+        <div id="insight-dots" style="display:flex; gap:4px; margin-top:14px;"></div>
       </div>
     </div>
 
-    <p style="font-size:11px; color:var(--subtle); text-align:center; margin-top:28px; line-height:1.6;">
+    <p style="font-size:11px; color:var(--s600); text-align:center; margin-top:24px; line-height:1.6;">
       Your translations are getting ready — you can leave this tab open.
     </p>
-    <p id="job-id-disp" style="font-size:10px; color:var(--border); text-align:center; font-family:monospace; margin-top:6px;"></p>
-    <div style="text-align:center; margin-top:20px;">
-      <button id="cancel-btn" class="btn-ghost" style="padding:10px 32px; font-size:12px; font-weight:500;
-              letter-spacing:.05em; text-transform:uppercase;">
-        Cancel Translation
+    <p id="job-id-disp" style="font-size:10px; color:var(--s300); text-align:center; font-family:var(--font-mono); margin-top:4px;"></p>
+    <div style="text-align:center; margin-top:16px;">
+      <button id="cancel-btn" class="btn-ghost" style="padding:8px 28px; font-size:12px;">
+        Cancel translation
       </button>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════════════ -->
-  <!-- VIEW 4: RESULTS                                                        -->
-  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- VIEW 4: RESULTS                                                         -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div id="view-results" style="display:none;">
 
     <!-- Headline -->
-    <div style="margin-bottom:28px;" class="anim-slide-up">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-        <div style="width:28px; height:28px; border-radius:50%; background:var(--green-bg); border:1px solid var(--green-bd);
+    <div style="margin-bottom:24px;" class="anim-slide-up">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <div style="width:24px; height:24px; border-radius:50%; background:var(--green-50); border:1px solid var(--green-200);
              display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M2.5 7.5l3 3 6-6" stroke="var(--green)" stroke-width="1.6"
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6.5l2.5 2.5 5.5-5.5" stroke="#26a568" stroke-width="1.6"
                   stroke-linecap="round" stroke-linejoin="round"
-                  stroke-dasharray="14" stroke-dashoffset="14"
-                  style="animation:draw-check .4s .1s ease forwards;"/>
+                  stroke-dasharray="12" stroke-dashoffset="12"
+                  style="animation:draw-check .35s .05s ease forwards;"/>
           </svg>
         </div>
-        <span style="font-size:11px; font-weight:700; color:var(--green); letter-spacing:.07em; text-transform:uppercase;">Complete</span>
+        <span style="font-size:11px; font-weight:500; color:var(--green-700); letter-spacing:.06em; text-transform:uppercase;">Complete</span>
       </div>
-      <h2 class="serif" style="font-size:2.25rem; color:var(--ink); letter-spacing:-.02em; margin-bottom:6px;">Ready to download.</h2>
-      <p id="result-summary" style="font-size:13px; color:var(--muted);"></p>
+      <h2 style="font-family:var(--font-display); font-size:33px; line-height:40px; font-weight:700; letter-spacing:-.02em; color:var(--s900); margin-bottom:6px;">Ready to download.</h2>
+      <p id="result-summary" style="font-size:13px; color:var(--s700);"></p>
     </div>
 
     <!-- Language completion pills -->
-    <div id="lang-pills" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px;"></div>
+    <div id="lang-pills" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;"></div>
 
     <!-- Download card -->
-    <div style="background:var(--ink); border-radius:16px; padding:20px 24px; display:flex;
-         align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px;">
+    <div style="background:var(--s900); border-radius:16px; padding:18px 20px; display:flex;
+         align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px;">
       <div>
-        <p id="dl-format-label" style="font-size:13px; font-weight:600; color:white; margin-bottom:4px;">All translations · Excel</p>
+        <p id="dl-format-label" style="font-size:13px; font-weight:500; color:#fff; margin-bottom:4px;">All translations · Excel</p>
         <p id="dl-filename" style="font-size:11px; color:rgba(255,255,255,.4);"></p>
       </div>
       <button id="download-btn"
-              style="display:flex; align-items:center; gap:8px; padding:10px 20px; border-radius:10px;
+              style="display:flex; align-items:center; gap:8px; padding:8px 16px; border-radius:8px;
                      background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15);
-                     color:white; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;
-                     letter-spacing:.04em; text-transform:uppercase; transition:background .15s;"
+                     color:#fff; font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap;
+                     font-family:var(--font-text); letter-spacing:-.01em; transition:background .15s;"
               onmouseover="this.style.background='rgba(255,255,255,.18)'"
               onmouseout="this.style.background='rgba(255,255,255,.1)'">
         <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
@@ -601,48 +581,47 @@ _HTML = r"""<!DOCTYPE html>
     </div>
 
     <!-- Preview table -->
-    <div style="background:white; border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:16px;">
-      <div style="padding:16px 20px; border-bottom:1px solid var(--border); background:var(--paper);
+    <div style="background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:16px;">
+      <div style="padding:14px 20px; border-bottom:1px solid var(--border); background:var(--s50);
            display:flex; align-items:center; justify-content:space-between; gap:12px;">
-        <p style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.07em; text-transform:uppercase; white-space:nowrap;">
-          Preview Translations
+        <p style="font-size:11px; font-weight:500; color:var(--s600); letter-spacing:.06em; text-transform:uppercase; white-space:nowrap;">
+          Preview translations
         </p>
         <input id="search-input" type="text" placeholder="Search strings…"
-               style="font-size:12px; padding:7px 12px; border-radius:8px; border:1px solid var(--border);
-                      background:white; color:var(--ink); width:180px; outline:none; transition:border-color .15s;"
-               onfocus="this.style.borderColor='var(--muted)'" onblur="this.style.borderColor='var(--border)'"/>
+               style="font-size:13px; padding:6px 12px; border-radius:8px; border:1px solid var(--border);
+                      background:#fff; color:var(--s900); width:180px; outline:none; font-family:var(--font-text);
+                      transition:border-color .15s;"
+               onfocus="this.style.borderColor='var(--bd-500)'" onblur="this.style.borderColor='var(--border)'"/>
       </div>
       <div style="overflow-x:auto; max-height:420px; overflow-y:auto;">
-        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
           <thead id="review-thead"></thead>
           <tbody id="review-tbody"></tbody>
         </table>
       </div>
-      <p id="no-matches" style="display:none; text-align:center; font-size:12px; color:var(--subtle); padding:24px;">No matching strings.</p>
+      <p id="no-matches" style="display:none; text-align:center; font-size:13px; color:var(--s600); padding:24px;">No matching strings.</p>
     </div>
 
-    <button id="btn-new" class="btn-ghost"
-            style="width:100%; padding:13px; font-size:12px; font-weight:500;
-                   text-transform:uppercase; letter-spacing:.05em;">
+    <button id="btn-new" class="btn-ghost" style="width:100%; padding:11px; font-size:13px;">
       Translate another file
     </button>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════════════ -->
-  <!-- VIEW: ERROR                                                             -->
-  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- VIEW: ERROR                                                              -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
   <div id="view-error" style="display:none; text-align:center; padding:48px 0;" class="anim-fade-up">
-    <div style="width:48px; height:48px; border-radius:50%; background:#FFF1F2; border:1px solid #FECDD3;
+    <div style="width:44px; height:44px; border-radius:50%; background:var(--red-50); border:1px solid var(--red-200);
          display:inline-flex; align-items:center; justify-content:center; margin-bottom:16px;">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path d="M10 7v3M10 13.5h.01M10 1L1.5 17h17L10 1z" stroke="#E11D48" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M9 6v4M9 12.5h.01M9 1L1 16h16L9 1z" stroke="#dc0024" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <h3 class="serif" style="font-size:1.75rem; color:var(--ink); letter-spacing:-.02em; margin-bottom:10px;">
+    <h3 style="font-family:var(--font-display); font-size:23px; line-height:32px; font-weight:700; letter-spacing:-.01em; color:var(--s900); margin-bottom:8px;">
       Something went wrong.
     </h3>
-    <p id="error-text" style="font-size:13px; color:var(--muted); max-width:380px; margin:0 auto 28px; line-height:1.6;"></p>
-    <button id="btn-retry" class="btn-ink" style="padding:12px 32px; font-size:13px; font-weight:600; letter-spacing:.04em;">
+    <p id="error-text" style="font-size:13px; color:var(--s700); max-width:380px; margin:0 auto 24px; line-height:1.6;"></p>
+    <button id="btn-retry" class="btn-ink" style="padding:10px 28px; font-size:13px;">
       Try again
     </button>
   </div>
