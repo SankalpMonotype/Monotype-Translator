@@ -181,7 +181,9 @@ Examples:
 
 ## Untranslatable Brand & Product Names
 
-The following names are **proper nouns** and must NEVER be translated, transliterated, or phonetically rendered in **Japanese**. Keep them exactly as written in English. Example of what is forbidden: "モナタイプ" for "Monotype".
+**"Monotype"** must remain as **"Monotype"** in **all languages** — never translated, adapted, or transliterated (e.g. "モナタイプ" in Japanese is forbidden).
+
+The remaining names below apply to **Japanese only** — keep them in their exact English form in Japanese output.
 
 | Term              | Rule                                                                 |
 |-------------------|----------------------------------------------------------------------|
