@@ -196,6 +196,47 @@ Standalone UI button labels and short action labels: **drop する**.
 | Filter by: | `フィルター：` | `次の条件でフィルタリング:` |
 | Filter by glyphs | `グリフで絞り込み` | `グリフでフィルタリング` |
 
+### UI operation labels — native vocabulary over katakana
+For action-category headings and section labels, prefer native Japanese over katakana transliterations.
+
+| English | Correct | Wrong |
+|---------|---------|-------|
+| Bulk action | `一括操作` | `バルクアクション` |
+| Additional actions | `その他の操作` | `追加アクション` |
+| Sort (label) | `並べ替え` | `ソート` / `ソートラベル` |
+| Total results | `総件数` | `合計結果` |
+| Table (list/grid view) | `一覧` | `テーブル` |
+| Go forward / Next | `次へ` | `進む` |
+| Pairs well with | `相性の良いペア` | `よく合う` |
+
+### Role and access scope labels
+Use descriptive native Japanese — never katakana for role concepts.
+
+| English | Correct | Wrong |
+|---------|---------|-------|
+| Collaborator | `共同編集者` | `コラボレーター` |
+| Full-access | `すべての権限` | `フルアクセス` |
+| Only me (sharing scope) | `自分のみ` | `私だけ` |
+
+### Software updates vs refresh
+| Term | Japanese | Note |
+|------|----------|------|
+| Updates (software version noun) | `アップデート` | For version/release updates |
+| Refresh (reload action) | `更新` | For reloading/refreshing data |
+
+Never use `更新` for software update news or version changelogs — that is `アップデート`.
+
+### Marketing and tagline copy
+Short delight strings and taglines should be adapted naturally — **not translated word-for-word**. Aim for the same punch and brevity as the English, even if the literal words differ.
+
+| English | Correct | Wrong |
+|---------|---------|-------|
+| Making Helvetica proud. | `Helveticaも納得の仕上がりに` | `ヘルベチカを誇りに思います。` |
+| Designers will notice. Trust us. | `気づく人には、ちゃんと伝わる` | literal sentence |
+| You are looking font-astic today. | `今日のあなた、font-astic。` | `今日は「フォント素晴らしい」です。` |
+
+When the English uses a pun or wordplay, keep the English word that carries the play and build the Japanese phrase around it.
+
 ---
 
 ## AI Search Localisation Reference

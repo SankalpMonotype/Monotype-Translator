@@ -195,6 +195,29 @@ translation_task:
       NEVER フィルタリング (verbal form).
       e.g. "Filter by:" → "フィルター："
       e.g. "Filter by glyphs" → "グリフで絞り込み"
+      Japanese UI operation labels: prefer native Japanese vocabulary over katakana
+      transliterations for action-category headings and section labels:
+      "Bulk action" → 一括操作 (NEVER バルクアクション)
+      "Additional actions" → その他の操作 (NEVER 追加アクション)
+      "Sort" (section/menu label) → 並べ替え (NEVER ソートラベル or bare ソート)
+      "Total results" → 総件数 (NEVER 合計結果)
+      "Table" (as list/grid view label) → 一覧 (NEVER テーブル)
+      "Go forward" / forward navigation → 次へ (NEVER 進む)
+      "Pairs well with" (font pairing context) → 相性の良いペア
+      Japanese role and access scope labels: use descriptive native Japanese, NOT katakana:
+      "Collaborator" → 共同編集者 (NEVER コラボレーター)
+      "Full-access" → すべての権限 (NEVER フルアクセス)
+      "Only me" (privacy/sharing scope) → 自分のみ (NEVER 私だけ)
+      Japanese "Updates" (software update noun or section heading) → アップデート —
+      NEVER 更新 (更新 is reserved for "Refresh"; アップデート is for software version updates).
+      e.g. "Updates" as a menu/section label → "アップデート"
+      Japanese marketing and tagline copy: DO NOT translate word-for-word. Adapt naturally
+      to preserve tone and punch — brevity and naturalness over literal fidelity.
+      English puns or playful strings should become equally natural/punchy in Japanese,
+      even if the literal words differ.
+      e.g. "Making Helvetica proud." → "Helveticaも納得の仕上がりに" (NOT "ヘルベチカを誇りに思います。")
+      e.g. "Designers will notice. Trust us." → "気づく人には、ちゃんと伝わる" (NOT literal)
+      e.g. "You are looking font-astic today." → "今日のあなた、font-astic。" (keep English wordplay)
     - pt-BR: use "Busque fontes" (not Pesquise), "A função AI Search" (not A Busca por IA),
       "Eu prefiro essa resposta" (essa not esta), "Sincronização e downloads" (singular, not Sincronizações).
       pt-BR article for "Monotype Fonts": always use "a Monotype Fonts" (feminine article) when
@@ -368,6 +391,12 @@ review_task:
         Correct any language that kept "AI Search" in sentence context.
     [ ] Japanese は vs が particle: in negative/empty-state sentences, verify は is used not が.
         e.g. "非アクティブユーザーはいません" (correct). Fix if が is used.
+    [ ] Japanese UI operation vocabulary: verify native terms — 一括操作 not バルクアクション,
+        その他の操作 not 追加アクション, 並べ替え not ソート/ソートラベル, 総件数 not 合計結果,
+        一覧 not テーブル (view label), 次へ not 進む.
+    [ ] Japanese role/access labels: verify 共同編集者 not コラボレーター, すべての権限 not
+        フルアクセス, 自分のみ not 私だけ.
+    [ ] Japanese "Updates" (software noun): verify アップデート is used, not 更新.
     [ ] Japanese empty-state "No X yet": verify まだ is prefixed BEFORE the noun phrase.
         e.g. "まだ承認済みのフォントがありません". Fix if まだ is missing or placed mid-sentence.
     [ ] Japanese action label verb form: verify 有効化/無効化 standalone labels have NO trailing する.
