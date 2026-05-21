@@ -90,6 +90,22 @@ _LANG_HEADER_LABELS: dict[str, str] = {
 }
 _META_KEYS = {"row_index", "english", "reviewer_note"}
 
+# Extra normalisation for language keys the LLM may return with alternate spellings.
+# Maps lower-cased aliases → canonical codes used in col_1based.
+_LANG_KEY_ALIASES: dict[str, str] = {
+    "pt":           "pt_BR",
+    "pt-br":        "pt_BR",
+    "pt_br":        "pt_BR",
+    "es":           "es_ES",
+    "es-419":       "es_ES",
+    "es-es":        "es_ES",
+    "french":       "fr",
+    "german":       "de",
+    "portuguese":   "pt_BR",
+    "japanese":     "ja",
+    "spanish":      "es_ES",
+}
+
 
 def _write_entries_to_excel(ws, entries: list[dict], header_row_idx: int) -> dict:
     """Write translation entries into an already-loaded worksheet.
@@ -97,6 +113,11 @@ def _write_entries_to_excel(ws, entries: list[dict], header_row_idx: int) -> dic
     Adds missing language columns to the header row if needed, writes each
     entry's translations at the row_index specified, normalises text, and
     resets row heights so Excel auto-fits after the new content.
+
+    Safety guards (skip + log rather than raise):
+      - row_index ≤ header_row_idx  → never overwrite the header
+      - row_index > ws.max_row      → never create phantom rows beyond the file
+      - row has no English source   → never write to blank-source rows
 
     Returns a dict with rows_written, cells_written, skipped_rows, errors.
     """
@@ -106,17 +127,37 @@ def _write_entries_to_excel(ws, entries: list[dict], header_row_idx: int) -> dic
     col_map = _build_column_map(header_cells)
     col_1based = {lang: idx + 1 for lang, idx in col_map.items()}
 
-    active_langs = list(dict.fromkeys(
+    en_col = col_1based.get("en")          # 1-based; None if no English column found
+    max_data_row = ws.max_row              # upper bound — no phantom rows beyond this
+
+    # Collect language keys, normalising LLM aliases (e.g. "pt" → "pt_BR")
+    raw_langs = list(dict.fromkeys(
         k for entry in entries for k in entry if k not in _META_KEYS
     ))
+    active_langs = list(dict.fromkeys(
+        _LANG_KEY_ALIASES.get(k.lower(), k) for k in raw_langs
+    ))
 
+    # Map any normalised lang keys that are not yet in col_1based.
+    # Try alias resolution first; only create a new column as a last resort.
     next_col = ws.max_column + 1
     for lang in active_langs:
         if lang not in col_1based:
-            ws.cell(row=header_row_idx, column=next_col,
-                    value=_LANG_HEADER_LABELS.get(lang, lang))
-            col_1based[lang] = next_col
-            next_col += 1
+            # See if a known alias already maps this to an existing column
+            resolved = _LANG_KEY_ALIASES.get(lang.lower(), lang)
+            if resolved in col_1based:
+                col_1based[lang] = col_1based[resolved]
+            else:
+                ws.cell(row=header_row_idx, column=next_col,
+                        value=_LANG_HEADER_LABELS.get(lang, lang))
+                col_1based[lang] = next_col
+                next_col += 1
+
+    # Build a reverse map: raw entry key → normalised lang code (for text lookup)
+    raw_to_norm = {
+        k: _LANG_KEY_ALIASES.get(k.lower(), k)
+        for k in raw_langs
+    }
 
     rows_written = 0
     cells_written = 0
@@ -129,17 +170,48 @@ def _write_entries_to_excel(ws, entries: list[dict], header_row_idx: int) -> dic
             skipped_rows.append({"entry": str(entry)[:100], "reason": "missing row_index"})
             continue
 
+        # Guard 1: never write to the header row (or above it)
+        if row_index <= header_row_idx:
+            skipped_rows.append({
+                "entry": str(entry)[:100],
+                "reason": f"row_index {row_index} is the header row or above — skipped",
+            })
+            continue
+
+        # Guard 2: never create phantom rows beyond the worksheet's current extent
+        if row_index > max_data_row:
+            skipped_rows.append({
+                "entry": str(entry)[:100],
+                "reason": (
+                    f"row_index {row_index} exceeds file max row {max_data_row} "
+                    f"— likely an LLM row-count error; skipped"
+                ),
+            })
+            continue
+
+        # Guard 3: never write to a row whose English source cell is blank
+        if en_col is not None:
+            en_val = ws.cell(row=row_index, column=en_col).value
+            if not en_val or str(en_val).strip() == "":
+                skipped_rows.append({
+                    "entry": str(entry)[:100],
+                    "reason": f"row {row_index} has no English source text — skipped",
+                })
+                continue
+
         wrote_any = False
-        for lang in active_langs:
-            text = entry.get(lang, "")
+        for raw_key in raw_langs:
+            norm_lang = raw_to_norm[raw_key]
+            # Prefer the normalised key in the entry; fall back to the raw key
+            text = entry.get(norm_lang) or entry.get(raw_key, "")
             if not text or str(text).strip() == "":
                 continue
-            col = col_1based.get(lang)
+            col = col_1based.get(norm_lang)
             if col is None:
-                errors.append(f"Row {row_index}: No column for language '{lang}'")
+                errors.append(f"Row {row_index}: No column for language '{norm_lang}'")
                 continue
             ws.cell(row=row_index, column=col,
-                    value=_normalise_translation(str(text).strip(), lang))
+                    value=_normalise_translation(str(text).strip(), norm_lang))
             cells_written += 1
             wrote_any = True
 

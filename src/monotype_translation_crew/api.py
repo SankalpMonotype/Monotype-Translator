@@ -1476,6 +1476,54 @@ def _run_docx_job(job_id: str, docx_path: str, languages: str) -> None:
             JOBS[job_id]["error"] = str(exc)
 
 
+def _populate_preview_from_output(
+    job_id: str,
+    excel_path: str,
+    target_languages: list[str],
+    max_preview: int = 200,
+) -> None:
+    """Fallback: when 0 rows were translated (file already complete), read the
+    output file and load existing translations into review_data so the UI preview
+    is not blank.
+    """
+    try:
+        import openpyxl as _ox
+        output_path = Path(JOBS[job_id].get("output_path", ""))
+        if not output_path.exists():
+            return
+        wb = _ox.load_workbook(str(output_path), data_only=True, read_only=True)
+        ws = wb.active
+        from .tools.excel_tools import _detect_header_row, _build_column_map
+        hdr = _detect_header_row(ws)
+        hdr_cells = list(ws.iter_rows(min_row=hdr, max_row=hdr, values_only=False))[0]
+        col_map = _build_column_map(hdr_cells)
+        en_col = col_map.get("en")
+        lang_cols = {lang: col_map[lang] for lang in target_languages if lang in col_map}
+        if en_col is None or not lang_cols:
+            wb.close()
+            return
+        preview: list[dict] = []
+        for row in ws.iter_rows(min_row=hdr + 1, values_only=True):
+            en_val = row[en_col] if en_col < len(row) else None
+            if not en_val or str(en_val).strip() == "":
+                continue
+            entry: dict = {"english": str(en_val).strip()}
+            for lang, col in lang_cols.items():
+                val = row[col] if col < len(row) else None
+                if val and str(val).strip():
+                    entry[lang] = str(val).strip()
+            if len(entry) > 1:           # at least one translation present
+                preview.append(entry)
+            if len(preview) >= max_preview:
+                break
+        wb.close()
+        if preview:
+            JOBS[job_id]["review_data"] = preview
+            print(f"[ExcelBatch] Populated preview with {len(preview)} rows from existing output.")
+    except Exception as exc:
+        print(f"[ExcelBatch] _populate_preview_from_output failed: {exc}")
+
+
 def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") -> None:
     """Run the full CrewAI pipeline in a background thread, batching large files."""
     JOBS[job_id]["status"] = "running"
@@ -1522,6 +1570,8 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
         n_batches = max(1, math.ceil(total_rows / batch_size))
         JOBS[job_id]["total_batches"] = n_batches
 
+        review_path = Path("outputs/reviewed_translations.json")
+
         for batch_num in range(n_batches):
             if JOBS[job_id].get("cancel_requested"):
                 break
@@ -1531,13 +1581,32 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                   f"(batch_size={batch_size}) for job {job_id}")
             MonotypeTranslationCrew().crew().kickoff(inputs=inputs)
 
-        # Snapshot review data from the last batch (shared file; capture before another job runs)
-        review_path = Path("outputs/reviewed_translations.json")
+            # Early-exit: if the crew produced 0 translations this batch
+            # (because all strings are already done), stop rather than running
+            # the remaining n_batches−1 iterations for nothing.
+            if review_path.exists():
+                try:
+                    batch_data = json.loads(review_path.read_text())
+                    if isinstance(batch_data, list) and len(batch_data) == 0:
+                        print(f"[ExcelBatch] Batch {batch_num + 1}: 0 rows translated — "
+                              f"all strings complete, stopping early.")
+                        break
+                except Exception:
+                    pass
+
+        # Snapshot review data from the last productive batch
+        # (shared file; capture before another job can overwrite it)
         if review_path.exists():
             try:
-                JOBS[job_id]["review_data"] = json.loads(review_path.read_text())
+                last_batch_data = json.loads(review_path.read_text())
+                JOBS[job_id]["review_data"] = last_batch_data
             except Exception:
                 pass
+
+        # If review_data is empty (file was already fully translated when submitted),
+        # populate the preview from the output file so the UI is not blank.
+        if not JOBS[job_id].get("review_data"):
+            _populate_preview_from_output(job_id, excel_path, target_languages)
 
         # Capture the latest production report
         reports = sorted(Path("outputs").glob("translation_report-*.md"))
