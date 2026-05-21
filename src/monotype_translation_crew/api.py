@@ -1502,6 +1502,19 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             "target_languages_str": target_languages_str,
             "tone": JOBS[job_id].get("tone", "informal"),
             "row_limit": batch_size,
+            # ----------------------------------------------------------------
+            # Passthrough dummies for {{placeholder}} examples in tasks.yaml.
+            # CrewAI 0.203+ strips one brace layer from {{x}} → {x} and then
+            # validates that every {x} exists in inputs. These keys satisfy
+            # that check while leaving the template tokens untouched in the
+            # agent prompt (the value is the single-brace form the agent sees).
+            # ----------------------------------------------------------------
+            "count": "{count}",
+            "styleName": "{styleName}",
+            "styleCount": "{styleCount}",
+            "familyName": "{familyName}",
+            "wp_count": "{wp_count}",
+            "risk_count": "{risk_count}",
         }
 
         # Compute number of batches so the UI can show "Batch N/M" progress.
