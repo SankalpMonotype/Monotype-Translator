@@ -51,10 +51,10 @@ translation_task:
   description: >
     Step 1: Call the read_excel_for_translation tool with:
     - excel_path = "{excel_path}"
-    - row_limit = 75
+    - row_limit = {row_limit}
     - target_languages = "{target_languages_str}" (comma-separated string, e.g.
       "ja" or "fr,de,pt_BR,ja,es_ES")
-    This returns a JSON object containing "rows_to_translate" (an array of up to 75
+    This returns a JSON object containing "rows_to_translate" (an array of up to {row_limit}
     rows that are missing one or more of the requested language translations) and
     "column_map" (showing which Excel columns map to each language).
     If "rows_needing_translation" is 0, all strings are already done — skip directly

@@ -686,6 +686,7 @@ let optimizeLen    = true;
 let stringCount    = null;
 let currentJobId   = null;
 let currentStep    = 0;
+let activePipeline = PIPELINE_STAGES;
 let pollTimer      = null;
 let elapsedTimer   = null;
 let insightTimer   = null;
@@ -858,9 +859,22 @@ async function startTranslation() {
 
 // ── Processing view ───────────────────────────────────────────────────────────
 function initProcessingView() {
-  $('active-task-label').textContent = PIPELINE_STAGES[0].label;
-  $('active-task-desc').textContent  = PIPELINE_STAGES[0].desc;
-  ['fr','de','pt','ja','es'].forEach(l => { const e=$('lang-'+l); if(e) e.className='lang-card'; });
+  // Build a pipeline filtered to only the languages the user selected.
+  const _langIds = new Set(['fr','de','pt','ja','es']);
+  const _n = selectedLangs.size;
+  activePipeline = PIPELINE_STAGES
+    .filter(s => !_langIds.has(s.id) || selectedLangs.has(s.id))
+    .map(s => s.id === 'review'
+      ? {...s, label: _n === 1 ? 'Reviewing 1 language' : `Reviewing ${_n} languages`}
+      : s);
+
+  $('active-task-label').textContent = activePipeline[0].label;
+  $('active-task-desc').textContent  = activePipeline[0].desc;
+  ['fr','de','pt','ja','es'].forEach(l => {
+    const e=$('lang-'+l); if(!e) return;
+    e.style.display = selectedLangs.has(l) ? '' : 'none';
+    e.className='lang-card';
+  });
 
   $('insight-dots').innerHTML = INSIGHTS.map((_,i) =>
     `<div data-dot="${i}" style="width:5px;height:5px;border-radius:50%;
@@ -877,19 +891,19 @@ function initProcessingView() {
   insightTimer = setInterval(() => showInsight(insightIdx+1), 9000);
 }
 
-const LANG_STAGE_IDX = { fr:3, de:4, pt:5, ja:6, es:7 };
-
 function advanceStages(sec) {
   let ai = 0;
-  PIPELINE_STAGES.forEach((s,i) => { if (sec >= s.est) ai = i; });
-  Object.entries(LANG_STAGE_IDX).forEach(([l, si]) => {
+  activePipeline.forEach((s,i) => { if (sec >= s.est) ai = i; });
+  ['fr','de','pt','ja','es'].forEach(l => {
     const e = $('lang-'+l); if (!e) return;
-    e.className = ai > si ? 'lang-card lc-done' : ai === si ? 'lang-card lc-active' : 'lang-card';
+    const pi = activePipeline.findIndex(s => s.id === l);
+    if (pi === -1) return;
+    e.className = ai > pi ? 'lang-card lc-done' : ai === pi ? 'lang-card lc-active' : 'lang-card';
   });
-  const stage = PIPELINE_STAGES[ai];
+  const stage = activePipeline[ai];
   $('active-task-label').textContent = stage.label;
   $('active-task-desc').textContent  = stage.desc;
-  const maxEst = PIPELINE_STAGES[PIPELINE_STAGES.length-1].est + 60;
+  const maxEst = activePipeline[activePipeline.length-1].est + 60;
   const pct = Math.min(95, 2 + (sec/maxEst)*93);
   $('progress-bar').style.width = pct + '%';
   $('progress-pct').textContent = Math.round(pct) + '%';
@@ -922,7 +936,10 @@ async function pollStatus() {
       $('progress-pct').textContent  = '100%';
       $('active-task-label').textContent = 'Translation complete';
       $('active-task-desc').textContent  = 'All languages reviewed and ready to download';
-      ['fr','de','pt','ja','es'].forEach(l => { const e=$('lang-'+l); if(e) e.className='lang-card lc-done'; });
+      ['fr','de','pt','ja','es'].forEach(l => {
+        if (!selectedLangs.has(l)) return;
+        const e=$('lang-'+l); if(e) e.className='lang-card lc-done';
+      });
       setTimeout(() => { goToStep(4); showResults(data); }, 800);
     } else if (data.status === 'failed') {
       clearInterval(pollTimer); clearInterval(elapsedTimer); clearInterval(insightTimer);
@@ -1475,16 +1492,17 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
         # to check for completeness (prevents single-language jobs from looping forever).
         target_languages_str = ",".join(target_languages)
 
+        # Scale batch size: fewer languages → more rows per batch (same output-token budget).
+        batch_size = _excel_batch_size(len(target_languages))
+
         inputs = {
             "excel_path": excel_path,
             "knowledge_dir": "knowledge",
             "target_languages": target_languages,
             "target_languages_str": target_languages_str,
             "tone": JOBS[job_id].get("tone", "informal"),
+            "row_limit": batch_size,
         }
-
-        # Scale batch size: fewer languages → more rows per batch (same output-token budget).
-        batch_size = _excel_batch_size(len(target_languages))
 
         # Compute number of batches so the UI can show "Batch N/M" progress.
         total_rows = _count_excel_rows(excel_path)
