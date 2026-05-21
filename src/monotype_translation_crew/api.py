@@ -13,6 +13,7 @@ For single-user / small-team use this is fine.
 
 import asyncio
 import json
+import math
 import re
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -1161,6 +1162,9 @@ async def get_status(job_id: str):
     job = JOBS.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found.")
+    total = job.get("total_batches")
+    current = job.get("current_batch")
+    batch_progress = f"{current}/{total}" if total and total > 1 else None
     return JSONResponse({
         "job_id": job_id,
         "status": job["status"],
@@ -1169,6 +1173,7 @@ async def get_status(job_id: str):
         "created_at": job["created_at"],
         "error": job["error"],
         "review_data": job["review_data"],
+        "batch_progress": batch_progress,
     })
 
 
@@ -1217,7 +1222,21 @@ async def download(job_id: str):
 # Background job runner
 # ---------------------------------------------------------------------------
 
-_DOCX_BATCH_SIZE = 10  # segments per direct-LLM translation call for large documents
+_DOCX_BATCH_SIZE = 10   # segments per direct-LLM translation call for large documents
+EXCEL_BATCH_SIZE = 75   # rows per CrewAI kickoff for Excel translation
+
+
+def _count_excel_rows(path: str) -> int:
+    """Count non-empty English-column rows (excluding header) in an Excel file."""
+    try:
+        import openpyxl
+        wb = openpyxl.load_workbook(path, data_only=True, read_only=True)
+        ws = wb.active
+        count = sum(1 for row in ws.iter_rows(min_row=2, max_col=1, values_only=True) if row[0])
+        wb.close()
+        return count
+    except Exception:
+        return 0
 
 _LANG_RULES = {
     "fr":     "French — formal 'vous' register",
@@ -1435,7 +1454,7 @@ def _run_docx_job(job_id: str, docx_path: str, languages: str) -> None:
 
 
 def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") -> None:
-    """Run the full CrewAI pipeline in a background thread."""
+    """Run the full CrewAI pipeline in a background thread, batching large files."""
     JOBS[job_id]["status"] = "running"
     try:
         from .crew import MonotypeTranslationCrew  # import here to keep startup fast
@@ -1446,14 +1465,27 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             for l in languages.split(",") if l.strip()
         ]
 
-        MonotypeTranslationCrew().crew().kickoff(inputs={
+        inputs = {
             "excel_path": excel_path,
             "knowledge_dir": "knowledge",
             "target_languages": target_languages,
             "tone": JOBS[job_id].get("tone", "informal"),
-        })
+        }
 
-        # Snapshot review data immediately (shared file; capture before another job runs)
+        # Compute number of batches so the UI can show "Batch N/M" progress.
+        total_rows = _count_excel_rows(excel_path)
+        n_batches = max(1, math.ceil(total_rows / EXCEL_BATCH_SIZE))
+        JOBS[job_id]["total_batches"] = n_batches
+
+        for batch_num in range(n_batches):
+            if JOBS[job_id].get("cancel_requested"):
+                break
+
+            JOBS[job_id]["current_batch"] = batch_num + 1
+            print(f"[ExcelBatch] Starting batch {batch_num + 1}/{n_batches} for job {job_id}")
+            MonotypeTranslationCrew().crew().kickoff(inputs=inputs)
+
+        # Snapshot review data from the last batch (shared file; capture before another job runs)
         review_path = Path("outputs/reviewed_translations.json")
         if review_path.exists():
             try:

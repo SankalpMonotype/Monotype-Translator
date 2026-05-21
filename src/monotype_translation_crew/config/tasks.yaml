@@ -49,10 +49,12 @@ brand_context_task:
 
 translation_task:
   description: >
-    Step 1: Call the read_excel_for_translation tool with excel_path="{excel_path}".
-    This returns a JSON object containing "rows_to_translate"
-    (an array of rows that have English content but are missing one or more language
-    translations) and "column_map" (showing which Excel columns map to each language).
+    Step 1: Call the read_excel_for_translation tool with excel_path="{excel_path}"
+    and row_limit=75. This returns a JSON object containing "rows_to_translate"
+    (an array of up to 75 rows that have English content but are missing one or more
+    language translations) and "column_map" (showing which Excel columns map to each
+    language). If "rows_needing_translation" is 0, all strings are already done — skip
+    directly to producing an empty JSON array [] as your output.
 
     Step 2: Using the brand context document from the brand_context_task as your
     primary reference, translate every row in "rows_to_translate" into these

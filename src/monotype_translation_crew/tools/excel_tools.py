@@ -220,8 +220,15 @@ def write_reviewed_translations_to_excel(excel_path: str) -> str:
     if not os.path.exists(excel_path):
         return json.dumps({"error": f"File not found: {excel_path}"})
 
+    # For batch processing: if a _translated.xlsx already exists from a prior batch,
+    # load it (not the original) so previously written translations are preserved.
+    p = Path(excel_path)
+    outputs_dir = Path(os.getcwd()) / "outputs"
+    translated_path = outputs_dir / f"{p.stem}_translated{p.suffix}"
+    load_path = str(translated_path) if translated_path.exists() else excel_path
+
     try:
-        wb = openpyxl.load_workbook(excel_path)
+        wb = openpyxl.load_workbook(load_path)
         ws = wb.active
         result = _write_entries_to_excel(ws, entries, _detect_header_row(ws))
         output_path = _save_translated_excel(wb, excel_path)
@@ -254,13 +261,19 @@ def read_reviewed_translations() -> str:
 # ---------------------------------------------------------------------------
 
 @tool
-def read_excel_for_translation(excel_path: str) -> str:
+def read_excel_for_translation(excel_path: str, row_limit: int = 0) -> str:
     """
-    Reads the Monotype translation Excel file and returns all rows that have English
+    Reads the Monotype translation Excel file and returns rows that have English
     content but are missing one or more language translations (fr, de, pt_BR, ja, es_ES).
 
+    If a previously translated output file (_translated.xlsx) exists in the outputs/
+    directory, it is used as the working file so that already-translated rows are
+    automatically skipped — enabling safe batch-by-batch processing of large files.
+
     Args:
-        excel_path: Absolute or relative path to the main .xlsx file to translate.
+        excel_path: Absolute or relative path to the source .xlsx file.
+        row_limit: Maximum number of untranslated rows to return (0 = no limit).
+                   Set to 75 when processing large files to stay within LLM output limits.
 
     Returns:
         A JSON string with keys:
@@ -278,8 +291,15 @@ def read_excel_for_translation(excel_path: str) -> str:
     if not os.path.exists(excel_path):
         return json.dumps({"error": f"File not found: {excel_path}"})
 
+    # Use the in-progress translated file if it exists, so already-translated rows
+    # are treated as complete and skipped automatically (enables batch processing).
+    p = Path(excel_path)
+    outputs_dir = Path(os.getcwd()) / "outputs"
+    translated_path = outputs_dir / f"{p.stem}_translated{p.suffix}"
+    working_path = str(translated_path) if translated_path.exists() else excel_path
+
     try:
-        wb = openpyxl.load_workbook(excel_path, data_only=True, read_only=True)
+        wb = openpyxl.load_workbook(working_path, data_only=True, read_only=True)
         ws = wb.active
 
         # Detect header row
@@ -354,6 +374,10 @@ def read_excel_for_translation(excel_path: str) -> str:
                 rows_to_translate.append(entry)
 
         wb.close()
+
+        # Apply batch cap — return only the first row_limit untranslated rows.
+        if row_limit and row_limit > 0:
+            rows_to_translate = rows_to_translate[:row_limit]
 
         result = {
             "excel_path": excel_path,
