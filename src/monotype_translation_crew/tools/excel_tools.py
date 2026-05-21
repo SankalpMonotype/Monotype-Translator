@@ -367,20 +367,19 @@ def read_excel_for_translation(
             total_scanned += 1
             english = str(en_val).strip()
 
-            # Build per-language values; only flag a language as missing if it
-            # is in the requested set (avoids false positives for unrequested langs).
+            # Only include requested languages in the payload — unrequested columns
+            # are never sent to the LLM, avoiding unnecessary token consumption.
             lang_values: dict[str, str] = {}
             missing_langs: list[str] = []
-            for lang in TARGET_LANGS:
+            for lang in requested:
                 if lang not in col_map:
-                    if lang in requested:
-                        missing_langs.append(lang)
+                    missing_langs.append(lang)
                     lang_values[lang] = ""
                 else:
                     cell_val = row[col_map[lang]] if col_map[lang] < len(row) else None
                     text = str(cell_val).strip() if cell_val else ""
                     lang_values[lang] = text
-                    if not text and lang in requested:
+                    if not text:
                         missing_langs.append(lang)
 
             entry = {
