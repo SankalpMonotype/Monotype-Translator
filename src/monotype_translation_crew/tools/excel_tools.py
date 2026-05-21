@@ -261,10 +261,14 @@ def read_reviewed_translations() -> str:
 # ---------------------------------------------------------------------------
 
 @tool
-def read_excel_for_translation(excel_path: str, row_limit: int = 0) -> str:
+def read_excel_for_translation(
+    excel_path: str,
+    row_limit: int = 0,
+    target_languages: str = "",
+) -> str:
     """
     Reads the Monotype translation Excel file and returns rows that have English
-    content but are missing one or more language translations (fr, de, pt_BR, ja, es_ES).
+    content but are missing one or more of the requested language translations.
 
     If a previously translated output file (_translated.xlsx) exists in the outputs/
     directory, it is used as the working file so that already-translated rows are
@@ -274,6 +278,10 @@ def read_excel_for_translation(excel_path: str, row_limit: int = 0) -> str:
         excel_path: Absolute or relative path to the source .xlsx file.
         row_limit: Maximum number of untranslated rows to return (0 = no limit).
                    Set to 75 when processing large files to stay within LLM output limits.
+        target_languages: Comma-separated list of language codes to check for completeness
+                          (e.g. "fr,de,pt_BR,ja,es_ES" or "ja"). Only languages in this
+                          list are used to decide whether a row still needs translation.
+                          If empty, all supported languages are checked.
 
     Returns:
         A JSON string with keys:
@@ -327,6 +335,16 @@ def read_excel_for_translation(excel_path: str, row_limit: int = 0) -> str:
 
         en_idx = col_map["en"]
 
+        # Determine which languages to check for completeness.
+        # Only languages in target_languages (if specified) count as "missing".
+        # This prevents single-language jobs from looping forever because other
+        # language columns remain empty throughout the run.
+        requested = (
+            [l.strip() for l in target_languages.split(",") if l.strip()]
+            if target_languages
+            else TARGET_LANGS
+        )
+
         rows_to_translate = []
         total_scanned = 0
 
@@ -349,18 +367,20 @@ def read_excel_for_translation(excel_path: str, row_limit: int = 0) -> str:
             total_scanned += 1
             english = str(en_val).strip()
 
-            # Build per-language values
+            # Build per-language values; only flag a language as missing if it
+            # is in the requested set (avoids false positives for unrequested langs).
             lang_values: dict[str, str] = {}
             missing_langs: list[str] = []
             for lang in TARGET_LANGS:
                 if lang not in col_map:
-                    missing_langs.append(lang)
+                    if lang in requested:
+                        missing_langs.append(lang)
                     lang_values[lang] = ""
                 else:
                     cell_val = row[col_map[lang]] if col_map[lang] < len(row) else None
                     text = str(cell_val).strip() if cell_val else ""
                     lang_values[lang] = text
-                    if not text:
+                    if not text and lang in requested:
                         missing_langs.append(lang)
 
             entry = {

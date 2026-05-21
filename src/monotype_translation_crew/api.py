@@ -1223,7 +1223,13 @@ async def download(job_id: str):
 # ---------------------------------------------------------------------------
 
 _DOCX_BATCH_SIZE = 10   # segments per direct-LLM translation call for large documents
-EXCEL_BATCH_SIZE = 75   # rows per CrewAI kickoff for Excel translation
+_EXCEL_BATCH_BASE = 75  # rows per batch when translating all 5 languages
+
+
+def _excel_batch_size(n_languages: int) -> int:
+    """Scale batch size inversely with language count to stay under output-token limits.
+    5 langs → 75 rows/batch; 1 lang → 300 rows/batch (capped)."""
+    return min(300, _EXCEL_BATCH_BASE * 5 // max(1, n_languages))
 
 
 def _count_excel_rows(path: str) -> int:
@@ -1465,16 +1471,24 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             for l in languages.split(",") if l.strip()
         ]
 
+        # target_languages_str is passed to the tool so it knows which language columns
+        # to check for completeness (prevents single-language jobs from looping forever).
+        target_languages_str = ",".join(target_languages)
+
         inputs = {
             "excel_path": excel_path,
             "knowledge_dir": "knowledge",
             "target_languages": target_languages,
+            "target_languages_str": target_languages_str,
             "tone": JOBS[job_id].get("tone", "informal"),
         }
 
+        # Scale batch size: fewer languages → more rows per batch (same output-token budget).
+        batch_size = _excel_batch_size(len(target_languages))
+
         # Compute number of batches so the UI can show "Batch N/M" progress.
         total_rows = _count_excel_rows(excel_path)
-        n_batches = max(1, math.ceil(total_rows / EXCEL_BATCH_SIZE))
+        n_batches = max(1, math.ceil(total_rows / batch_size))
         JOBS[job_id]["total_batches"] = n_batches
 
         for batch_num in range(n_batches):
@@ -1482,7 +1496,8 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                 break
 
             JOBS[job_id]["current_batch"] = batch_num + 1
-            print(f"[ExcelBatch] Starting batch {batch_num + 1}/{n_batches} for job {job_id}")
+            print(f"[ExcelBatch] Starting batch {batch_num + 1}/{n_batches} "
+                  f"(batch_size={batch_size}) for job {job_id}")
             MonotypeTranslationCrew().crew().kickoff(inputs=inputs)
 
         # Snapshot review data from the last batch (shared file; capture before another job runs)
