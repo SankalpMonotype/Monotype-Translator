@@ -79,11 +79,10 @@ translation_task:
     - Japanese ONLY: when any count variable (e.g. "{{user.count}}") refers to users, always
       add the counter 人 with a space — write "{{user.count}} 人のユーザー" (space before 人),
       never "{{user.count}}人のユーザー" (no space) or "{{user.count}} ユーザー" (no 人).
-    - ALL languages: "Monotype" is a proper brand name — keep it as "Monotype" in
-      every language without exception. NEVER translate, adapt, or transliterate it
-      (e.g. NEVER "モナタイプ" in Japanese).
-    - Japanese ONLY: All other Monotype product names — MyFonts, Fonts.com,
-      Monotype Fonts, Monotype AI, Mosaic, SkyFonts — must also stay in English.
+    - ALL languages: "Monotype" and all Monotype product names — MyFonts, Fonts.com,
+      Monotype Fonts, Monotype AI, Mosaic, SkyFonts — must stay in their exact English
+      form in every language. NEVER translate, adapt, or transliterate them
+      (e.g. NEVER "モナタイプ" for "Monotype" in Japanese).
     - Japanese ONLY: Short brand attribution strings — "Made with ♡", "by Monotype.",
       "Powered by Monotype" and similar footer/tagline strings — must be left
       UNTRANSLATED. Copy them verbatim from English.
