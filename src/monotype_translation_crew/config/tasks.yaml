@@ -167,6 +167,34 @@ translation_task:
       "Which response would you prefer?" → "希望する提案を選択してください"
       "I prefer this response" → "この表現を希望します"
       "total fonts activated" → "アクティベートされたフォントの合計"
+      Japanese {{count}} counter: when {{count}} represents a countable number of items
+      (fonts, users, projects, etc.), always append 件 immediately after the variable —
+      write "{{count}}件". When the count appears mid-sentence use 件中: "{{count}}件中{{count}}件".
+      NEVER leave a bare {{count}} without the 件 suffix when it represents a quantity.
+      e.g. "Web projects {{count}}" → "ウェブプロジェクト（{{count}}件）"
+      e.g. "{{count}} of {{count}} used" → "{{count}}件中{{count}}件が使用済み"
+      EXCEPTION: when {{count}} is already inside a Japanese counter phrase like
+      "{{user.count}} 人のユーザー", the 人 counter applies instead of 件.
+      Japanese brackets: ALWAYS use full-width brackets （ ） — NEVER ASCII ( ) — when
+      wrapping a count or parenthetical in Japanese text.
+      e.g. "（{{count}}件）" NOT "({{count}}件)" or "（{{count}} 件）".
+      Japanese confirmation/success messages: use ACTIVE voice (〜しました, 〜を追加しました)
+      — NEVER passive voice (〜されました, 〜が追加されました) for toast/success notifications.
+      e.g. "{{styleName}} added to Favourites." → "{{styleName}}をお気に入りに追加しました。"
+      e.g. "Font activated." → "フォントをアクティベートしました。"
+      Japanese button labels (standalone UI labels, NOT full sentences): OMIT trailing する.
+      e.g. "Retain the fonts" → "フォントを保持" NOT "フォントを保持する"
+      e.g. "Notify admin" → "管理者に通知" NOT "管理者に通知する"
+      e.g. "Ignore conflict" → "競合を無視" NOT "競合を無視する"
+      Japanese "Leaving" / "Leaves" in font-lifecycle context means the font is being
+      DISCONTINUED/RETIRED — translate as 提供終了 (end of service), NEVER as 出発 (departure).
+      e.g. "Leaving in {{count}} days" → "{{count}}日後に終了"
+      e.g. "Leaving earliest" → "終了日が早い順"
+      e.g. "font leaves the Monotype Library" → "Monotypeライブラリから提供終了となった"
+      Japanese "Filter by" / "filter" UI labels: use フィルター (noun) or 絞り込み —
+      NEVER フィルタリング (verbal form).
+      e.g. "Filter by:" → "フィルター："
+      e.g. "Filter by glyphs" → "グリフで絞り込み"
     - pt-BR: use "Busque fontes" (not Pesquise), "A função AI Search" (not A Busca por IA),
       "Eu prefiro essa resposta" (essa not esta), "Sincronização e downloads" (singular, not Sincronizações).
       pt-BR article for "Monotype Fonts": always use "a Monotype Fonts" (feminine article) when

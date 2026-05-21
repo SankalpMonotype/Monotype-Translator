@@ -150,6 +150,54 @@ listed terms without brand team approval.
 
 ---
 
+## Japanese UI Conventions (Native-Speaker Rules)
+
+### Counter word 件 with {{count}}
+When `{{count}}` represents a quantity of items (fonts, projects, requests, etc.), always append **件** immediately after it. Use full-width brackets （ ） — never ASCII ( ).
+
+| Pattern | Correct | Wrong |
+|---------|---------|-------|
+| Label + count | `ウェブプロジェクト（{{count}}件）` | `ウェブプロジェクト {{count}}` |
+| X of Y used | `{{count}}件中{{count}}件が使用済み` | `{{count}}のうち{{count}}が使用` |
+| Notification requests sent | `通知リクエスト送信数 {{count}}件` | `{{count}}件の通知リクエストが送信されました` |
+
+Exception: when 人 is the counter (users), use 人 instead — see user-count rules above.
+
+### Active voice for success/confirmation toasts
+Use **active** (〜しました) not **passive** (〜されました) for toast and success messages.
+
+| English | Correct (active) | Wrong (passive) |
+|---------|-----------------|-----------------|
+| {{styleName}} added to Favourites. | `{{styleName}}をお気に入りに追加しました。` | `{{styleName}}がお気に入りに追加されました。` |
+| Font activated. | `フォントをアクティベートしました。` | `フォントがアクティベートされました。` |
+| {{styleName}} removed from Favourites. | `{{styleName}}をお気に入りから削除しました。` | `{{styleName}}がお気に入りから削除されました。` |
+
+### Button label — omit trailing する
+Standalone UI button labels and short action labels: **drop する**.
+
+| English | Correct | Wrong |
+|---------|---------|-------|
+| Retain the fonts | `フォントを保持` | `フォントを保持する` |
+| Notify admin | `管理者に通知` | `管理者に通知する` |
+| Ignore conflict | `競合を無視` | `競合を無視する` |
+
+### "Leaving" in font-lifecycle context
+"Leaving" / "leaves" means the font is being **discontinued/retired** — NOT physically departing.
+
+| English | Correct | Wrong |
+|---------|---------|-------|
+| Leaving in {{count}} days | `{{count}}日後に終了` | `{{count}}日後に出発します` |
+| Leaving earliest | `終了日が早い順` | `早く出発する順` |
+| font leaves the library | `ライブラリから提供終了となった` | `ライブラリを離れる` |
+
+### Filter terminology
+| English | Correct | Wrong |
+|---------|---------|-------|
+| Filter by: | `フィルター：` | `次の条件でフィルタリング:` |
+| Filter by glyphs | `グリフで絞り込み` | `グリフでフィルタリング` |
+
+---
+
 ## AI Search Localisation Reference
 
 "AI Search" is a Monotype product name. Its form differs by language and context:
