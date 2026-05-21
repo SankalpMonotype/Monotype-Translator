@@ -79,8 +79,13 @@ translation_task:
     - Japanese ONLY: when any count variable (e.g. "{{user.count}}") refers to users, always
       add the counter 人 with a space — write "{{user.count}} 人のユーザー" (space before 人),
       never "{{user.count}}人のユーザー" (no space) or "{{user.count}} ユーザー" (no 人).
-    - Monotype product names listed in the brand context as untranslatable MUST remain
-      in English in every language.
+    - "Monotype" is a proper brand name — NEVER transliterate it (e.g. NEVER write
+      "モナタイプ" in Japanese). Keep it as "Monotype" in every language without exception.
+      The same applies to all Monotype product names: MyFonts, Fonts.com, Monotype Fonts,
+      Monotype AI, Mosaic, SkyFonts — always English, never translated or transliterated.
+    - Short brand attribution strings — "Made with ♡", "by Monotype.", "Powered by Monotype",
+      and similar footer/tagline strings — must be left UNTRANSLATED in every language.
+      Copy them verbatim from English.
     - Global tone setting: {tone}. Apply across all languages where register allows.
     - German: use formal "Sie". French: use formal "vous". Japanese: use 丁寧語 (polite
       register). pt-BR: use "você". es-ES: use "tú" throughout, informal and conversational

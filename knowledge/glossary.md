@@ -179,6 +179,24 @@ Examples:
 
 ---
 
+## Untranslatable Brand & Product Names
+
+The following names are **proper nouns** and must NEVER be translated, transliterated, or phonetically rendered in any language. Keep them exactly as written in English — including in Japanese, where the temptation to write "モナタイプ" for "Monotype" is incorrect.
+
+| Term              | Rule                                                                 |
+|-------------------|----------------------------------------------------------------------|
+| Monotype          | Always "Monotype" — never "モナタイプ" or any other transliteration  |
+| MyFonts           | Always "MyFonts" — no translation                                    |
+| Fonts.com         | Always "Fonts.com" — no translation                                  |
+| Monotype Fonts    | Always "Monotype Fonts" — no translation                             |
+| Monotype AI       | Always "Monotype AI" — no translation                                |
+| Mosaic            | Always "Mosaic" — no translation                                     |
+| SkyFonts          | Always "SkyFonts" — no translation                                   |
+
+**Short attribution strings** such as "Made with ♡", "by Monotype.", "Powered by Monotype" must be left **untranslated** — they are brand signatures, not UI copy.
+
+---
+
 ## Placeholder Reference
 
 These placeholder formats appear frequently in Monotype strings. They must be preserved exactly.
