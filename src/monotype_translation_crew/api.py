@@ -1563,6 +1563,7 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             "familyName": "{familyName}",
             "wp_count": "{wp_count}",
             "risk_count": "{risk_count}",
+            "name": "{name}",
         }
 
         # Compute number of batches so the UI can show "Batch N/M" progress.
