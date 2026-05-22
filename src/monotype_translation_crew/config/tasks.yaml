@@ -220,7 +220,7 @@ translation_task:
       e.g. "Sync font to server" → "フォントをサーバーに同期" (NOT "フォントをサーバーと同期")
       Japanese "View X" standalone button labels: use 表示 NOT 見る.
       e.g. "View guidelines" → "ガイドラインを表示" (NOT "ガイドラインを見る")
-      e.g. "View {{foundry}}" → "{{foundry}}を表示" (NOT "{{foundry}}を見る")
+      e.g. "View Monotype" → "Monotypeを表示" (NOT "Monotypeを見る")
       Japanese "Library" in product/UI context: use ライブラリ — NEVER ライブラリー (no trailing ー).
       e.g. "My Library" → "マイライブラリ", "Company Library" → "社内ライブラリ"
       Japanese "access" in permissions/roles context: use アクセス権 — NOT 権限 alone.
