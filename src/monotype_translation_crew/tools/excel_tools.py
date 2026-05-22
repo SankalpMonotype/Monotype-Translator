@@ -42,6 +42,9 @@ def _normalise_translation(text: str, lang: str) -> str:
     # Universal: ellipsis normalisation
     text = text.replace('\u2026', '...')
 
+    # Universal: normalise placeholder spacing — strip inner spaces from {{ name }} → {{name}}
+    text = re.sub(r'\{\{\s+(\S+?)\s+\}\}', r'{{\1}}', text)
+
     # French: non-breaking space before punctuation → regular space
     if lang == "fr":
         text = re.sub(r'\u00a0([?!:;])', r' \1', text)
