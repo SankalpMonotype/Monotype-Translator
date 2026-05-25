@@ -312,6 +312,17 @@ translation_task:
       "Auto" stays as "Auto" (do NOT translate to "Automático").
       "Sincronização e Downloads" — capital D in Downloads.
       "No X yet" short status labels: use just "Nenhuma X Y" without "ainda". e.g. "No fonts rejected yet" → "Nenhuma fonte rejeitada" (NOT "Nenhuma fonte rejeitada ainda").
+      pt-BR "role" (user role in SaaS/UI context) → "função" — NEVER "papel".
+      e.g. "Manage users, teams & roles" → "Gerenciar usuários, equipes e funções"
+      e.g. "Select the permissions to assign to this role." → "Selecione as permissões a serem atribuídas a esta função."
+      pt-BR "scan" (verb, document/risk analysis context) → "analisar … em busca de" — NEVER "escanear".
+      e.g. "scan documents for risk" → "analisar documentos em busca de riscos"
+      pt-BR "membership" (team context) → "membros" — NEVER "filiação".
+      e.g. "manage team membership" → "gerenciar os membros das equipes"
+      pt-BR "entitlements" (SaaS permissions/licensing context) → "permissões" or "licenças" depending on context — NEVER "direitos".
+      e.g. "View reports & entitlements" → "Visualizar relatórios e permissões" (access context) or "Visualizar relatórios e licenças" (licensing context)
+      pt-BR list connectors: when the final item in a list is a longer action phrase, prefer "além de" over a plain comma.
+      e.g. "Create, rename, delete teams, and manage team membership." → "Criar, renomear e excluir equipes, além de gerenciar os membros das equipes."
     - es-ES: "Auto" stays as "Auto" (do NOT translate to "Automático").
       "[X] will appear here for you to take action" → "para que actúes como corresponda".
       e.g. "las fuentes aparecerán aquí para que actúes como corresponda."
@@ -435,6 +446,10 @@ review_task:
     [ ] Japanese confirmation verb: verify てよろしいですか？ — NOT てもよろしいですか？
     [ ] French "No X yet": verify "pour l'instant" is used (not "pour le moment").
     [ ] German "quarterly": verify "vierteljährlich" is used (not "quartalsweise").
+    [ ] pt-BR "role" (SaaS/UI): verify "função" is used — NOT "papel". Fix any occurrence.
+    [ ] pt-BR "scan" (document/risk analysis): verify "analisar … em busca de" — NOT "escanear". Fix any occurrence.
+    [ ] pt-BR "membership" (team context): verify "membros" — NOT "filiação". Fix any occurrence.
+    [ ] pt-BR "entitlements": verify "permissões" or "licenças" — NOT "direitos". Fix any occurrence.
 
     For any string that fails a check: correct it in-place in the JSON.
     For any string where you are uncertain after correction: add a "reviewer_note"
