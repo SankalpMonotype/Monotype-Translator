@@ -334,7 +334,7 @@ translation_task:
       e.g. "las fuentes aparecerán aquí para que actúes como corresponda."
       es-ES "Add" (action verb) → ALWAYS "Añadir" — NEVER "Agregar" (Latin American).
       e.g. "Añadir fuentes", "Añadir dominio", "Añadir usuario".
-      es-ES "workspace" → "área de trabajo" — NEVER "espacio de trabajo".
+      es-ES "workspace" → "espacio de trabajo" — NEVER "área de trabajo".
       es-ES "features" (OpenType, UI features) → "características" — NOT "funciones".
       e.g. "Include OpenType features" → "Incluir características de OpenType".
       es-ES "specific" / "exact" (in UI copy qualifying a noun) → "concreto/a" — NOT "específico/a".
@@ -373,6 +373,18 @@ translation_task:
       When in doubt, choose the term used in Spain (Castilian) over the Latin American alternative.
     - es-ES: "output" when referring to font production output → "producción", never "salida".
     - es-ES: when two actions are paired (approve/reject, mark/unmark), join with "o" — never slash.
+    - es-ES UI action vocabulary (linguist-approved):
+      "Manage" → "Gestionar" (NEVER "Administrar" in UI action context).
+      "seat" (software licensing unit) → "plaza" — NEVER "licencia individual" or "asiento".
+      e.g. "5 seats" → "5 plazas"
+      "entitlement" (permissions/licensing context) → "derecho" (Castilian standard, Microsoft-aligned).
+      e.g. "View reports & entitlements" → "Ver informes y derechos"
+      "add-on" (plan context) → "complemento".
+      e.g. "Add an add-on" → "Añadir un complemento"
+      "bulk" (mass action context) → "masivo/a" or "de forma masiva".
+      e.g. "Bulk import" → "Importación masiva", "bulk action" → "acción masiva"
+      "MyLibrary" / library (product context) → "Mi biblioteca" / "biblioteca".
+      e.g. "Company Library" → "biblioteca de empresa", "MyLibrary" → "Mi biblioteca"
     - es-ES grammatical voice: the informal tú register applies only to second-person copy —
       strings where the user is the agent (what the user does, chooses, or sees).
       Impersonal and passive constructions must stay impersonal/passive regardless of tone setting.

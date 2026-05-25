@@ -35,7 +35,7 @@ listed terms without brand team approval.
 | Descender                | Hampe descendante            | Unterlänge                    | Descendente                     | ディセンダー            | Descendente                 |
 | Foundry                  | Fonderie                     | Schriftgießerei               | Fundidora                       | ファウンドリ            | Fundición                   |
 | Stylistic Set            | Jeu stylistique              | Stilistischer Satz            | Conjunto estilístico            | スタイリスティックセット | Conjunto estilístico        |
-| Seat (licence unit)      | Licence individuelle         | Einzellizenz                  | Licença individual              | シート                  | Licencia individual         |
+| Seat (licence unit)      | Licence individuelle         | Einzellizenz                  | Licença individual              | シート                  | Plaza                       |
 | Monotype Library         | Bibliothèque Monotype        | Monotype-Bibliothek           | Biblioteca da Monotype          | Monotypeライブラリ      | Biblioteca de Monotype      |
 
 ---
@@ -51,7 +51,7 @@ listed terms without brand team approval.
 | Licence agreement        | Contrat de licence           | Lizenzvertrag                 | Contrato de licença             | ライセンス契約          | Acuerdo de licencia         |
 | Brand                    | Marque                       | Marke                         | Marca                           | ブランド                | Marca                       |
 | Project                  | Projet                       | Projekt                       | Projeto                         | プロジェクト            | Proyecto                    |
-| Workspace                | Espace de travail            | Arbeitsbereich                | Área de trabalho                | ワークスペース          | Área de trabajo             |
+| Workspace                | Espace de travail            | Arbeitsbereich                | Área de trabalho                | ワークスペース          | Espacio de trabajo          |
 | Dashboard                | Tableau de bord              | Dashboard                     | Painel                          | ダッシュボード          | Panel                       |
 | Settings                 | Paramètres                   | Einstellungen                 | Configurações                   | 設定                   | Ajustes                     |
 | Account                  | Compte                       | Konto                         | Conta                           | アカウント              | Cuenta                      |
