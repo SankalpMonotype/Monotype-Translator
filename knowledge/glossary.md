@@ -26,6 +26,17 @@ listed terms without brand team approval.
 | Font family              | Famille de polices           | Schriftfamilie                | Família de fontes               | フォントファミリー      | Familia de fuentes          |
 | Display font             | Police d'affichage           | Display-Schrift               | Fonte display                   | ディスプレイフォント    | Fuente display              |
 | Body text font           | Police de corps              | Mengentext-Schrift            | Fonte para texto                | 本文フォント            | Fuente para texto           |
+| Bold                     | Gras                         | Fett                          | Negrito                         | ボールド / 太字         | Negrita                     |
+| Italic                   | Italique                     | Kursiv                        | Itálico                         | イタリック              | Cursiva                     |
+| Condensed                | Condensé                     | Schmal / Condensed            | Condensado                      | コンデンス              | Condensada                  |
+| Slab serif               | Serif égyptien               | Serifenbetonte Schrift        | Serifa Retangular               | スラブセリフ            | Serif egipcia               |
+| Small caps               | Petites capitales            | Kapitälchen                   | Versalete                       | スモールキャップ        | Versalitas                  |
+| Ascender                 | Hampe ascendante             | Oberlänge                     | Ascendente                      | アセンダー              | Ascendente                  |
+| Descender                | Hampe descendante            | Unterlänge                    | Descendente                     | ディセンダー            | Descendente                 |
+| Foundry                  | Fonderie                     | Schriftgießerei               | Fundidora                       | ファウンドリ            | Fundición                   |
+| Stylistic Set            | Jeu stylistique              | Stilistischer Satz            | Conjunto estilístico            | スタイリスティックセット | Conjunto estilístico        |
+| Seat (licence unit)      | Licence individuelle         | Einzellizenz                  | Licença individual              | シート                  | Licencia individual         |
+| Monotype Library         | Bibliothèque Monotype        | Monotype-Bibliothek           | Biblioteca da Monotype          | Monotypeライブラリ      | Biblioteca de Monotype      |
 
 ---
 
@@ -131,7 +142,7 @@ listed terms without brand team approval.
 | Guest                    | Invité                       | Gast                          | Convidado                    | ゲスト                 | Invitado                    |
 | Viewer                   | Lecteur                      | Betrachter                    | Visualizador                 | 閲覧者                 | Espectador                  |
 | Editor                   | Éditeur                      | Bearbeiter                    | Editor                       | 編集者                 | Editor                      |
-| Membership               | Appartenance                 | Mitgliedschaft                | Adesão                       | メンバーシップ         | Pertenencia                 |
+| Membership               | Appartenance                 | Mitgliedschaft                | Participação / membros       | メンバーシップ         | Pertenencia                 |
 
 ---
 

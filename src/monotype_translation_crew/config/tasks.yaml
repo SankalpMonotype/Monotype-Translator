@@ -323,6 +323,12 @@ translation_task:
       e.g. "View reports & entitlements" → "Visualizar relatórios e permissões" (access context) or "Visualizar relatórios e licenças" (licensing context)
       pt-BR list connectors: when the final item in a list is a longer action phrase, prefer "além de" over a plain comma.
       e.g. "Create, rename, delete teams, and manage team membership." → "Criar, renomear e excluir equipes, além de gerenciar os membros das equipes."
+      pt-BR "seat" (software licensing) → "licença individual" — NEVER "assento" or "lugar".
+      e.g. "5 seats" → "5 licenças individuais"
+      pt-BR "Monotype Library" (product name context) → "Biblioteca da Monotype".
+      pt-BR "foundry" (generic noun, not a brand name) → "fundidora".
+      e.g. "This foundry offers variable fonts" → "Esta fundidora oferece fontes variáveis"
+      NOTE: specific foundry brand names (Berthold, Bitstream, etc.) stay in English as always.
     - es-ES: "Auto" stays as "Auto" (do NOT translate to "Automático").
       "[X] will appear here for you to take action" → "para que actúes como corresponda".
       e.g. "las fuentes aparecerán aquí para que actúes como corresponda."
