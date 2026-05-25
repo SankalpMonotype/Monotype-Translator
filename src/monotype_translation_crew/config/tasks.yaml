@@ -29,10 +29,18 @@ brand_context_task:
        around a variable name — must be copied character-for-character into every
        translation. Do not translate, move, or reformat them.
     4. PER-LANGUAGE NOTES: Formality level, register, and writing system choices for
-       French, German, pt-BR, Japanese, and es-ES.
-    5. GLOSSARY: Key typography and product terminology with approved translations per
-       language. Supplement the knowledge-file glossary with any additional font category
-       or UI terms discovered on MyFonts.com.
+       French, German, pt-BR, Japanese, and es-ES. Include all per-language guide
+       content from the knowledge files (ja_guide.md, pt_BR_guide.md, es_ES_guide.md,
+       fr_guide.md, de_guide.md) — reproduce ALL rule tables and pattern examples
+       verbatim so downstream agents can reference them directly.
+    5. GLOSSARY: Reproduce the COMPLETE glossary tables from knowledge/glossary.md
+       VERBATIM — every row, every column, preserving markdown table format. Do NOT
+       summarise, abbreviate, or omit any rows. Include all sections: Core Typography
+       Terms, Product & Platform Terms, UI Action Terms, Status & Feedback Terms,
+       Access & Permissions Terms, Time & Reporting Terms, Japanese UI Conventions,
+       AI Search Localisation Reference, Production & Status Terms. After the full
+       table, append any additional typography terms found on MyFonts.com as
+       supplementary rows.
 
     Step 5: Call the save_brand_context_cache tool with:
     - content = the full brand context document you just synthesised
@@ -63,6 +71,15 @@ translation_task:
     Step 2: Using the brand context document from the brand_context_task as your
     primary reference, translate every row in "rows_to_translate" into these
     target languages: {target_languages}
+
+    MANDATORY GLOSSARY CHECK — do this for every string before writing any translation:
+    Scan the GLOSSARY section of the brand context for each key noun, UI action verb,
+    and product term in the English source. If the term appears in the glossary table
+    for your target language, use that EXACT approved translation — never paraphrase,
+    never substitute an alternative. Then check the PER-LANGUAGE NOTES section for
+    any pattern rule that applies to the string (dialog type, button label, empty state,
+    etc.) and follow it precisely. Only apply general translation judgment for terms
+    and patterns that are absent from both sections.
 
     CRITICAL RULES — violation of these will break production:
     - Preserve ALL placeholder tokens verbatim: single-brace tokens with identifier names,
