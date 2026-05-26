@@ -34,6 +34,13 @@ Castilian Spanish — NEVER Latin American variants.
 | AI Search (sentence subject/object) | `La función AI Search` | La búsqueda IA |
 | AI Search (standalone label) | `AI Search` | (keep as-is) |
 | Auto | Keep as `Auto` — NEVER translate to Automático | — |
+| assets (UI noun — files, fonts, resources) | `recursos` | activos |
+| Create Assets (label) | `Crear recursos` | Crear activos |
+| self-hosting (web kit context) | `autoalojamiento` (one word, no hyphen) | auto-hospedaje, auto-alojamiento |
+| Download web self-hosting kits | `Descargar kits web de autoalojamiento` | Descargar kits de auto-hospedaje web |
+| Direct Production Marking | `Marcar directamente como de producción` | Marcado de producción directa |
+| with own teams only | `solo con tus equipos` | solo con sus propios equipos |
+| with anyone in the company | `con todos en la empresa` | — |
 
 ---
 
@@ -136,6 +143,11 @@ Use **todavía** — NEVER aún.
 | Include OpenType features | `Incluir características de OpenType` |
 | Enter specific characters | `Introducir caracteres concretos` |
 | Select specific languages | `Selecciona los idiomas concretos que se admitirán` |
+| At least one setting must be enabled before you can proceed. | `Se debe activar al menos un ajuste para poder continuar.` |
+| Check your settings | `Revisa tus ajustes` |
+| Download web self-hosting kits | `Descargar kits web de autoalojamiento` |
+| Create Assets | `Crear recursos` |
+| Direct Production Marking | `Marcar directamente como de producción` |
 
 ---
 

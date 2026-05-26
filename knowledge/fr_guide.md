@@ -19,6 +19,11 @@ Register: formal "vous".
 | Monospaced | `Monoespace` | Chasse fixe |
 | tags | `tags` (keep as-is) | balises |
 | View / Read (permission label) | `Consulter` | Voir, Lire |
+| View reports & entitlements | `Consulter les rapports et les droits d'utilisation` | Voir les rapports et les droits |
+| assets (UI noun — files, fonts, resources) | `ressources` | actifs, éléments |
+| Create Assets (label) | `Créer des ressources` | Créer des actifs |
+| with own teams only | `avec vos propres équipes uniquement` | avec uniquement ses propres équipes |
+| with anyone in the company | `avec tous les membres de l'entreprise` | — |
 | unmark (remove production marking) | `retirer le marquage` | Démarquer, démarrer |
 | Do not X (negative action label) | `Ne pas X` (infinitive) | Ne partagez pas X (imperative) |
 | quarterly (adjective) | `trimestriel / trimestrielle` | — |
@@ -108,6 +113,12 @@ Use **pour l'instant** — NEVER pour le moment.
 
 For read/view access in permission or capability descriptions: ALWAYS `Consulter`.
 "Voir" and "Lire" are too casual for permission descriptions.
+
+| English | Correct | NEVER |
+|---------|---------|-------|
+| View reports & entitlements | `Consulter les rapports et les droits d'utilisation` | Voir les rapports et les droits |
+| Read usage and activity | `Consulter l'utilisation et l'activité` | Voir l'utilisation et l'activité |
+| View & export usage reports | `Consulter et exporter les rapports d'utilisation` | Voir et exporter |
 
 ---
 

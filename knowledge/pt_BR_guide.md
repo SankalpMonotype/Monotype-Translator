@@ -22,6 +22,12 @@ Focus: terminology the model frequently translates incorrectly.
 | AI (general UI text) | `IA` | AI |
 | AI Search (sentence subject/object) | `A função AI Search` | A busca por IA |
 | AI Search (standalone button/label) | `AI Search` | (keep as-is) |
+| assets (UI noun — files, fonts, resources) | `ativos` | recursos |
+| Create Assets (label) | `Criar ativos` | Criar recursos |
+| self-hosting (web kit context) | `self-hosting` (keep English, no translation) | auto-hospedagem, auto-gerenciamento |
+| Download web self-hosting kits | `Baixar kits para self-hosting web` | Baixar kits de auto-hospedagem da web |
+| with own teams only | `apenas com suas equipes` | somente com suas próprias equipes |
+| with anyone in the company | `com todos na empresa` | — |
 
 ---
 

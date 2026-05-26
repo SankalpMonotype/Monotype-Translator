@@ -18,9 +18,9 @@ These are the behavioural rules the model most frequently gets wrong.
 
 ## Button Labels vs Full Sentences
 
-**Standalone button labels and short action labels (1-5 words, no subject):**
-- OMIT trailing する
-- Use shortest natural form
+**Standalone button labels, short action labels, and section headings (1-6 words, no subject):**
+- OMIT trailing する AND します。
+- Use shortest natural noun/verb form — NO polite sentence endings.
 
 | English | Correct | Wrong |
 |---------|---------|-------|
@@ -32,6 +32,9 @@ These are the behavioural rules the model most frequently gets wrong.
 | Turn on X | `Xをオン` | `Xをオンにする` |
 | View guidelines | `ガイドラインを表示` | `ガイドラインを見る` |
 | Type to search | `入力して検索` | `検索するには入力してください` |
+| Manage company settings (label) | `会社設定の管理` | `会社の設定を管理します。` |
+| Define and manage administrative access | `管理者アクセスと会社設定を管理` | `管理アクセスと企業レベルのコントロールを定義して管理します。` |
+| Share assets with teams or company-wide. | `チームや全社でアセットを共有する。` | `チームや企業全体とリソースを共有します。` |
 
 EXCEPTION — keep する when already established: "Set expiry date" → `有効期限を設定する`
 
@@ -202,6 +205,51 @@ When English uses a pun or wordplay, keep the English word that carries the play
 Strip inner spaces from `{{ name }}` → `{{name}}` (no spaces inside braces).
 
 - `{{ name }} column` → `{{name}}列`
+
+---
+
+## Permissions / Reports Vocabulary
+
+These terms appear in role descriptions, permission labels, and usage reporting:
+
+| English | Correct | NEVER |
+|---------|---------|-------|
+| activity (in "usage and activity") | `アクティビティ` | `活動` |
+| usage (in permission/report labels) | `利用状況` | `使用状況` |
+| Read / View (in permission labels) | `確認する` or `確認` | `読む`, `見る` |
+| Read usage and activity | `利用状況とアクティビティを確認` | `使用状況と活動を読む` |
+| View & export usage & activity reports | `利用状況およびアクティビティレポートの表示とエクスポート` | `使用状況と活動のレポートを表示およびエクスポートします。` |
+| assets (UI noun — files, fonts, resources) | `アセット` | `リソース`, `資産` |
+| Create Assets (label) | `アセットを作成` | `アセットの作成する` |
+| Share assets with teams | `チームや全社でアセットを共有する。` | `チームや企業全体とリソースを共有します。` |
+| with anyone in the company | `社内のすべてのユーザー` | `会社の誰とでも` |
+| with own teams only | `自分のチームのみ` | `自分のチームだけ` |
+| Direct Production Marking | `ダイレクトプロダクションマーキング` | `直接的な制作マーク` |
+| Mark / unmark fonts for production | `プロダクション用フォントにマーク／マーク解除` | `製造用にフォントをマーク/アンマークします。` |
+
+---
+
+## Loading State Pattern
+
+"Loading X…" → `X を読み込んでいます…` — NEVER `X を読み込み中...`
+
+| English | Correct | Wrong |
+|---------|---------|-------|
+| Loading permissions… | `権限を読み込んでいます…` | `権限を読み込み中...` |
+| Loading fonts… | `フォントを読み込んでいます…` | `フォントを読み込み中...` |
+
+---
+
+## Conciseness Rule for Permission / Capability Descriptions
+
+When a long English description can be expressed as a short noun phrase or short verb phrase in Japanese, prefer the shorter form. Do NOT add explanatory clauses or expand with words not in the English.
+
+| English | Correct (concise) | Wrong (verbose) |
+|---------|-------------------|----------------|
+| Manage company settings | `会社設定の管理` | `会社の設定を管理します。` |
+| Define and manage administrative access and company-level controls | `管理者アクセスと会社設定を管理` | `管理アクセスと企業レベルのコントロールを定義して管理します。` |
+| Approve/reject imported fonts access requests | `インポート済みフォントのアクセス申請を承認／拒否` | `インポートされたフォントへのアクセス要求を承認または拒否します。` |
+| Create, rename, delete teams, and manage team membership. | `チームの作成、名前の変更、削除、およびメンバーの管理を行います。` | `チームを作成、名前変更、削除し、チームのメンバーシップを管理します。` |
 
 ---
 
