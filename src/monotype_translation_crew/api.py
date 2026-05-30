@@ -431,7 +431,7 @@ _HTML = r"""<!DOCTYPE html>
     <!-- Language selection -->
     <div style="background:#fff; border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:12px;">
       <p style="font-size:11px; font-weight:500; color:var(--s600); letter-spacing:.04em; text-transform:uppercase; margin-bottom:4px;">Target languages</p>
-      <p style="font-size:13px; color:var(--s700); margin-bottom:14px;">All five are selected. Tap to deselect any you don't need.</p>
+      <p style="font-size:13px; color:var(--s700); margin-bottom:14px;">All five are selected by default. Tap a language to deselect it — only highlighted languages will be translated.</p>
       <div id="lang-chips" style="display:grid; grid-template-columns:repeat(5,1fr); gap:8px;"></div>
     </div>
 
@@ -1261,6 +1261,65 @@ def _count_excel_rows(path: str) -> int:
     except Exception:
         return 0
 
+
+def _ensure_excel_header(excel_path: str) -> bool:
+    """Ensure the Excel file has a recognised English column header in row 1.
+
+    Many translators upload files that have source strings starting at row 1
+    with no header row (e.g. "Leaving soon", "Used fonts {{count}}", …).
+    Our read_excel_for_translation tool requires a header row to locate the
+    English source column; without one it returns an error and the agent
+    hallucinates garbage translations.
+
+    This function:
+      1. Scans rows 1-10 for any recognised language alias.
+      2. If a header is already present → returns False (no change needed).
+      3. If no header is found → inserts a new row 1 containing "English" in
+         column A (shifting all existing rows down by one) and saves the file.
+         Returns True to indicate the file was modified.
+
+    Call this before passing the uploaded Excel to the crew pipeline.
+    """
+    try:
+        import openpyxl
+        from .tools.excel_tools import COLUMN_ALIASES
+
+        all_aliases: set[str] = {
+            alias for aliases in COLUMN_ALIASES.values() for alias in aliases
+        }
+
+        # Read-only scan first to avoid loading the whole workbook unnecessarily.
+        wb_ro = openpyxl.load_workbook(excel_path, read_only=True, data_only=True)
+        ws_ro = wb_ro.active
+        header_found = False
+        for row_idx in range(1, 11):
+            try:
+                row_vals = [str(cell.value or "").strip().lower() for cell in ws_ro[row_idx]]
+            except Exception:
+                break
+            if any(v in all_aliases for v in row_vals):
+                header_found = True
+                break
+        wb_ro.close()
+
+        if header_found:
+            return False  # already has a proper header — nothing to do
+
+        # No header detected: open for writing, insert a header row.
+        print(f"[EnsureHeader] No header found in '{excel_path}' — inserting 'English' header.")
+        wb = openpyxl.load_workbook(excel_path)
+        ws = wb.active
+        ws.insert_rows(1)
+        ws.cell(row=1, column=1, value="English")
+        wb.save(excel_path)
+        wb.close()
+        print(f"[EnsureHeader] Header row inserted successfully.")
+        return True
+
+    except Exception as exc:
+        print(f"[EnsureHeader] Warning: could not auto-insert header: {exc}")
+        return False
+
 _LANG_RULES = {
     "fr":     "French — formal 'vous' register",
     "de":     "German — formal 'Sie' register",
@@ -1539,6 +1598,12 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
         # target_languages_str is passed to the tool so it knows which language columns
         # to check for completeness (prevents single-language jobs from looping forever).
         target_languages_str = ",".join(target_languages)
+
+        # Ensure the uploaded file has a proper "English" header row.
+        # Some translators upload files where source strings start at row 1 with
+        # no header — this causes read_excel_for_translation to error and the agent
+        # to hallucinate garbage. Auto-insert the header before running the crew.
+        _ensure_excel_header(excel_path)
 
         # Scale batch size: fewer languages → more rows per batch (same output-token budget).
         batch_size = _excel_batch_size(len(target_languages))
