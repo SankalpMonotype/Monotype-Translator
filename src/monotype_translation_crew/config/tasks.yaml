@@ -615,10 +615,13 @@ review_task:
         → "Sélectionner tous les utilisateurs affectés"; "View only unassigned roles" → "Afficher uniquement les rôles non affectés".
 
     --- GERMAN ENFORCEMENT ---
-    [ ] German Font(s) NEVER Schrift(en): verify "Font(s)" is used in every string, including compound words.
-        Font-Cache (NOT Schrift-Cache); Fontlisten (NOT Schriftlisten); Font aktivieren (NOT Schrift aktivieren);
-        Fonts in diesem Dokument (NOT Schriften). Hard exceptions only: "Ähnliche Schriften anzeigen";
-        "Schriftarten" in specific brand/marketing phrasing. NO other exceptions.
+    [ ] GERMAN ONLY — "Font(s)" stays as "Font" in German compound words and standalone labels.
+        DO NOT apply this rule to French, Spanish, Portuguese, or Japanese — in those languages
+        "fonts" translates normally to polices / fuentes / fontes / フォント. Verify any FR/ES/PT/JA
+        string containing "font" uses the language's normal translation, NOT the English word "font".
+        For DE: Font-Cache (NOT Schrift-Cache); Fontlisten (NOT Schriftlisten); Font aktivieren
+        (NOT Schrift aktivieren); Fonts in diesem Dokument (NOT Schriften).
+        Hard exceptions only: "Ähnliche Schriften anzeigen"; "Schriftarten" in specific brand/marketing phrasing.
     [ ] German button labels (INFINITIVE without Sie): standalone labels ≤6 words with no subject pronoun
         use plain infinitive. "Bestimmte Zeichen eingeben" (NOT "Geben Sie spezifische Zeichen ein");
         "Eigenen Text eingeben" (NOT "Geben Sie Ihren eigenen Text ein"); "Bestimmte Sprachen auswählen"

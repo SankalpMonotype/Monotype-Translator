@@ -1637,6 +1637,7 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
         JOBS[job_id]["total_batches"] = n_batches
 
         review_path = Path("outputs/reviewed_translations.json")
+        all_review_data: list = []
 
         for batch_num in range(n_batches):
             if JOBS[job_id].get("cancel_requested"):
@@ -1647,27 +1648,23 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                   f"(batch_size={batch_size}) for job {job_id}")
             MonotypeTranslationCrew().crew().kickoff(inputs=inputs)
 
-            # Early-exit: if the crew produced 0 translations this batch
-            # (because all strings are already done), stop rather than running
-            # the remaining n_batches−1 iterations for nothing.
+            # Accumulate review data across batches so the UI shows the full count.
             if review_path.exists():
                 try:
                     batch_data = json.loads(review_path.read_text())
-                    if isinstance(batch_data, list) and len(batch_data) == 0:
-                        print(f"[ExcelBatch] Batch {batch_num + 1}: 0 rows translated — "
-                              f"all strings complete, stopping early.")
-                        break
+                    if isinstance(batch_data, list):
+                        if len(batch_data) == 0:
+                            print(f"[ExcelBatch] Batch {batch_num + 1}: 0 rows translated — "
+                                  f"all strings complete, stopping early.")
+                            break
+                        all_review_data.extend(batch_data)
+                        JOBS[job_id]["review_data"] = all_review_data
                 except Exception:
                     pass
 
-        # Snapshot review data from the last productive batch
-        # (shared file; capture before another job can overwrite it)
-        if review_path.exists():
-            try:
-                last_batch_data = json.loads(review_path.read_text())
-                JOBS[job_id]["review_data"] = last_batch_data
-            except Exception:
-                pass
+        # Ensure review_data reflects the complete accumulated set.
+        if all_review_data:
+            JOBS[job_id]["review_data"] = all_review_data
 
         # If review_data is empty (file was already fully translated when submitted),
         # populate the preview from the output file so the UI is not blank.
