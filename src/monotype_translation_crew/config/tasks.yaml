@@ -133,16 +133,16 @@ translation_task:
 
     es-ES ERROR MESSAGE PATTERNS:
     - "We couldn't [action]" (system tried on behalf of user) → "No hemos podido [action]"
-      e.g. "We couldn't delete '{{name}}'." → "No hemos podido eliminar «{{name}}»."
+      e.g. "We couldn't delete '<item_name>'." → "No hemos podido eliminar «<item_name>»."
     - "Failed to [action]" (system-level failure) → "No se ha podido [action]" (impersonal)
       e.g. "Failed to export data." → "No se han podido exportar los datos."
 
     es-ES QUOTATION MARKS: Always use «» guillemets for quoted strings in es-ES.
-    e.g. 'No results found for "{{query}}"' → 'No se han encontrado resultados para «{{query}}»'
+    e.g. 'No results found for "<query>"' → 'No se han encontrado resultados para «<query>»'
 
     es-ES FONT LIFECYCLE "LEAVING":
     - "Leaving soon" → "Nos dejan" (NOT "se van pronto")
-    - "Leaving soon in {{count}}" → "Nos dejan en {{count}}"
+    - "Leaving soon in <count>" → "Nos dejan en <count>"
     - "Leaving soon fonts" → "Fuentes que nos dejan"
     - "Leaving earliest" → "Próxima retirada"
 
@@ -154,7 +154,7 @@ translation_task:
 
     CRITICAL RULES — violation of these will break production:
     - Preserve ALL placeholder tokens verbatim: single-brace tokens with identifier names,
-      double-brace tokens, %s, %d, %1$s, positional tokens like {0}, and bracket tokens
+      double-brace tokens, %s, %d, %1$s, positional tokens like <0>, and bracket tokens
       like [name]. Copy them character-for-character. Do not translate, reorder, or reformat them.
     - EXCEPTION — Link-anchor label tokens: when a single-brace token contains a human-readable
       multi-word label like "Terms of Use", translate the text inside the braces while keeping
@@ -255,20 +255,20 @@ translation_task:
       "Which response would you prefer?" → "希望する提案を選択してください"
       "I prefer this response" → "この表現を希望します"
       "total fonts activated" → "アクティベートされたフォントの合計"
-      Japanese {{count}} counter: when {{count}} represents a countable number of items
+      Japanese <count> counter: when <count> represents a countable number of items
       (fonts, users, projects, etc.), always append 件 immediately after the variable —
-      write "{{count}}件". When the count appears mid-sentence use 件中: "{{count}}件中{{count}}件".
-      NEVER leave a bare {{count}} without the 件 suffix when it represents a quantity.
-      e.g. "Web projects {{count}}" → "ウェブプロジェクト（{{count}}件）"
-      e.g. "{{count}} of {{count}} used" → "{{count}}件中{{count}}件が使用済み"
-      EXCEPTION: when {{count}} is already inside a Japanese counter phrase like
+      write "<count>件". When the count appears mid-sentence use 件中: "<count>件中<count>件".
+      NEVER leave a bare <count> without the 件 suffix when it represents a quantity.
+      e.g. "Web projects <count>" → "ウェブプロジェクト（<count>件）"
+      e.g. "<count> of <count> used" → "<count>件中<count>件が使用済み"
+      EXCEPTION: when <count> is already inside a Japanese counter phrase like
       "{{user.count}} 人のユーザー", the 人 counter applies instead of 件.
       Japanese brackets: ALWAYS use full-width brackets （ ） — NEVER ASCII ( ) — when
       wrapping a count or parenthetical in Japanese text.
-      e.g. "（{{count}}件）" NOT "({{count}}件)" or "（{{count}} 件）".
+      e.g. "（<count>件）" NOT "(<count>件)" or "（<count> 件）".
       Japanese confirmation/success messages: use ACTIVE voice (〜しました, 〜を追加しました)
       — NEVER passive voice (〜されました, 〜が追加されました) for toast/success notifications.
-      e.g. "{{styleName}} added to Favourites." → "{{styleName}}をお気に入りに追加しました。"
+      e.g. "<styleName> added to Favourites." → "<styleName>をお気に入りに追加しました。"
       e.g. "Font activated." → "フォントをアクティベートしました。"
       Japanese button labels (standalone UI labels, NOT full sentences): OMIT trailing する.
       e.g. "Retain the fonts" → "フォントを保持" NOT "フォントを保持する"
@@ -276,7 +276,7 @@ translation_task:
       e.g. "Ignore conflict" → "競合を無視" NOT "競合を無視する"
       Japanese "Leaving" / "Leaves" in font-lifecycle context means the font is being
       DISCONTINUED/RETIRED — translate as 提供終了 (end of service), NEVER as 出発 (departure).
-      e.g. "Leaving in {{count}} days" → "{{count}}日後に終了"
+      e.g. "Leaving in <count> days" → "<count>日後に終了"
       e.g. "Leaving earliest" → "終了日が早い順"
       e.g. "font leaves the Monotype Library" → "Monotypeライブラリから提供終了となった"
       Japanese "Filter by" / "filter" UI labels: use フィルター (noun) or 絞り込み —
@@ -328,8 +328,8 @@ translation_task:
       Japanese "process" for technical UI actions: use 処理 NOT プロセス.
       e.g. "Uninstall process started" → "アンインストール処理を開始しました"
       Japanese placeholders: if the source has spaces inside braces like {{ name }},
-      always output the placeholder without inner spaces: {{name}}.
-      e.g. "{{ name }} column" → "{{name}}列" (NOT "{{ name }}列")
+      always strip the inner spaces and output the placeholder without spaces inside the braces.
+      e.g. "{{ name }} column" → strip spaces → write as the variable name with no inner spaces, then 列
       Japanese marketing and tagline copy: DO NOT translate word-for-word. Adapt naturally
       to preserve tone and punch — brevity and naturalness over literal fidelity.
       English puns or playful strings should become equally natural/punchy in Japanese,
@@ -652,9 +652,9 @@ review_task:
     [ ] Japanese button label (ALL verb forms): ALL standalone labels drop trailing する/します — not only
         有効化/無効化 forms. Includes アクティベートする → アクティベート; 再起動する → 再起動;
         表示する → 表示; 確認する → 確認. Check every short action label for trailing する.
-    [ ] Japanese 件 counter: verify {{count}} representing item quantities always has 件 appended.
-        "Replaced {{count}} instance with the selected font" → "{{count}} 件を選択したフォントに置き換えました".
-        Any bare {{count}} in a replacement/count context without 件 is a defect — correct it.
+    [ ] Japanese 件 counter: verify <count> representing item quantities always has 件 appended.
+        "Replaced <count> instance with the selected font" → "<count> 件を選択したフォントに置き換えました".
+        Any bare <count> in a replacement/count context without 件 is a defect — correct it.
 
     For any string that fails a check: correct it in-place in the JSON.
     For any string where you are uncertain after correction: add a "reviewer_note"
