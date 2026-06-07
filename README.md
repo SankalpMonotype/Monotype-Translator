@@ -336,6 +336,7 @@ monotype_translation_crew/
 
 | Item | Status |
 |------|--------|
+| Automated test suite | No unit tests — reliability is validated by running the tool on linguist-approved Excel files and diffing AI output against the approved column. New rules are verified the same way before being committed. |
 | Translation Memory (TM) integration — look up approved translations before calling the LLM | Planned |
 | SSO / internal Monotype auth | Not yet — currently open prototype |
 | Additional languages (es-419, zh-CN, ko-KR) | Planned |

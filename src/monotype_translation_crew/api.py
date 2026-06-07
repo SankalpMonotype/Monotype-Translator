@@ -1363,7 +1363,7 @@ def _translate_segment_batch(
         _os.environ.get("MODEL")
         or _os.environ.get("ANTHROPIC_MODEL")
         or _os.environ.get("OPENAI_MODEL_NAME")
-        or "anthropic/claude-sonnet-4-6"
+        or "openai/gpt-4.1-2025-04-14"
     )
 
     lang_rules = "\n".join(

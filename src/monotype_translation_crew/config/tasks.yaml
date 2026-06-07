@@ -1,3 +1,16 @@
+# ---------------------------------------------------------------------------
+# tasks.yaml — Translation agent instructions
+#
+# Every rule in this file was taught to us by a linguist. The domain-specific
+# vocabulary blocks, error-message patterns, and review checklists below
+# encode decisions that would otherwise live only in a linguist's head —
+# so they are applied consistently on every string, every run, regardless
+# of which linguist reviews the output.
+#
+# To add a new rule: find the relevant language section and add a bullet.
+# Changes take effect on the next translation run — no code deployment needed.
+# ---------------------------------------------------------------------------
+
 brand_context_task:
   description: >
     Step 1: Call the read_brand_context_cache tool with knowledge_dir="{knowledge_dir}".

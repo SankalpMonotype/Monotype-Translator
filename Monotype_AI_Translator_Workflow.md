@@ -31,7 +31,7 @@ The pipeline runs four AI agents in sequence:
 | **Translation Reviewer** | Reviews each translation for accuracy, register, placeholder integrity, and brand compliance; corrects errors |
 | **Production Manager** | Assembles the final output Excel file with one column per language |
 
-All agents are powered by **Claude (Anthropic)** via the Claude API.
+All agents are powered by **OpenAI GPT-4.1** via the OpenAI API.
 
 ---
 
@@ -88,14 +88,14 @@ The AI agents reference language-specific style guides covering:
 | Translation Memory (TM) integration | ❌ Not yet — planned backlog item |
 | SSO / internal auth | ❌ Not yet — currently open prototype |
 | Hosting | HuggingFace Spaces (free tier) |
-| API cost | Anthropic Claude API — per-token billing |
+| API cost | OpenAI API — per-token billing |
 
 ---
 
 ## Technology Stack
 
 - **AI Framework:** CrewAI (multi-agent orchestration)
-- **LLM:** Claude Sonnet (Anthropic API)
+- **LLM:** OpenAI GPT-4.1
 - **Backend:** Python, FastAPI
 - **Hosting:** HuggingFace Spaces
 - **Input/Output:** openpyxl (Excel processing)
