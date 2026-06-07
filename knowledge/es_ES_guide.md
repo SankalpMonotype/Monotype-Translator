@@ -146,6 +146,17 @@ Use only before singular definite human nouns:
 
 ---
 
+## "Unable to X" / "Cannot X" System Error Messages
+
+System-level inability (the system cannot perform the action) uses **No es posible X** — NEVER "No se puede X".
+
+| English | Correct es-ES | NEVER |
+|---------|---------------|-------|
+| Unable to delete user | `No es posible eliminar el usuario` | `No se puede eliminar el usuario` |
+| Unable to deactivate user | `No es posible desactivar el usuario` | `No se puede desactivar al usuario` |
+
+---
+
 ## Error Messages — "We couldn't" vs "Failed to"
 
 Two distinct patterns; do not mix them:

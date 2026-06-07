@@ -337,6 +337,14 @@ translation_task:
       e.g. "Making Helvetica proud." → "Helveticaも納得の仕上がりに" (NOT "ヘルベチカを誇りに思います。")
       e.g. "Designers will notice. Trust us." → "気づく人には、ちゃんと伝わる" (NOT literal)
       e.g. "You are looking font-astic today." → "今日のあなた、font-astic。" (keep English wordplay)
+    - pt-BR button labels: standalone action labels use INFINITIVE — NEVER imperative.
+      "Select specific languages" → "Selecionar idiomas específicos" (NOT "Selecione os idiomas").
+      "Enter specific characters" → "Inserir caracteres específicos" (NOT "Insira caracteres").
+      "Select the exact characters needed" → "Selecionar os caracteres exatos necessários" (NOT "Selecione").
+      Apply the same infinitive rule used for French, German, and es-ES standalone labels.
+    - pt-BR "Unable to X" / "Cannot X": use "Não foi possível X" — NEVER "Incapaz de X".
+      "Unable to delete user" → "Não foi possível excluir o usuário".
+      "Unable to deactivate user" → "Não foi possível desativar o usuário".
     - pt-BR: use "Busque fontes" (not Pesquise), "A função AI Search" (not A Busca por IA),
       "Eu prefiro essa resposta" (essa not esta), "Sincronização e downloads" (singular, not Sincronizações).
       pt-BR article for "Monotype Fonts": always use "a Monotype Fonts" (feminine article) when
@@ -367,6 +375,16 @@ translation_task:
       e.g. "Try out AI mode" → "Versuchen Sie den KI-Modus", "Try our AI mode" → "Versuchen Sie unseren KI-Modus".
       "[X] will appear here for you to take action" → passive construction: "werden die [X] hier angezeigt, sodass Sie entsprechende Maßnahmen ergreifen können".
       "Fragen Sie mich alles..." for "Ask me anything" — NEVER "Frag mich alles" (du form).
+      German button/action label style: short standalone labels (no subject pronoun, ≤6 words) use
+      plain INFINITIVE without "Sie". "Bestimmte Zeichen eingeben" not "Geben Sie spezifische Zeichen ein".
+      "Eigenen Text eingeben" not "Geben Sie Ihren eigenen Text ein".
+      "Bestimmte Sprachen auswählen" not "Wählen Sie die spezifischen Sprachen".
+      For sentence-level instructions addressing the user, continue using Sie form.
+      German "Failed to X" loading/action errors: pattern is "X konnte(n) nicht [verb] werden."
+      NEVER "[X] fehlgeschlagen" as the full error string.
+      "Failed to export data" → "Daten konnten nicht exportiert werden."
+      "Failed to load fonts" → "Fonts konnten nicht geladen werden."
+      "Failed to load permissions" → "Berechtigungen konnten nicht geladen werden."
       German "quarterly" → "vierteljährlich" — NEVER "quartalsweise".
       e.g. "Review your quarterly usage" → "Überprüfen Sie Ihre vierteljährliche Nutzung".
       German "Empty state illustration" → "Leerer Status" (NOT "Leere-Zustand-Abbildung" or similar).
@@ -437,6 +455,9 @@ translation_task:
       es-ES "Embed code" (noun label) → "Código de incrustación" — NOT "Código incrustado".
       es-ES "No users found to export" → "No se han encontrado usuarios que exportar" (relative clause form).
       es-ES "Failed to export data. Retry" → "No se han podido exportar los datos. Reintentar".
+      es-ES "Unable to X" / "Cannot X" system errors → "No es posible X" — NEVER "No se puede X".
+      "Unable to delete user" → "No es posible eliminar el usuario".
+      "Unable to deactivate user" → "No es posible desactivar el usuario".
       es-ES "Retry" (standalone button) → "Reintentar" — NOT "Inténtalo de nuevo".
       es-ES "revoke invite" (status label, past action) → "Invitación revocada" (past participle noun phrase).
     - pt-BR and es-ES: the abbreviation "AI" in general UI text → "IA".
@@ -575,6 +596,65 @@ review_task:
     [ ] es-ES "Leaving soon": → "Nos dejan"; "Leaving earliest" → "Próxima retirada".
     [ ] All languages: third-party product names (Adobe Fonts, Google Fonts) must remain in English.
         e.g. "Adobe Fonts" must NOT appear as "Fuentes de Adobe" in es-ES.
+
+    --- FRENCH ENFORCEMENT ---
+    [ ] French button labels (INFINITIVE): ALL standalone action labels use infinitive — Sélectionner,
+        Saisir, Afficher, Entrer, Importer, Trouver — NEVER vous imperative (Sélectionnez, Saisissez,
+        Tapez, Entrez, Voyez, Trouvez, Téléchargez). Reserve vous imperative for sentence-level instructions only.
+        "Select specific languages" → "Sélectionner des langues spécifiques" (NOT Sélectionnez).
+        "Enter specific characters" → "Saisir des caractères spécifiques" (NOT Entrez / Saisir).
+        "Type your own text" → "Saisir votre propre texte" (NOT Tapez).
+    [ ] French "tags": verify "tags" is kept as "tags" in all contexts — NEVER "étiquettes" or "balises".
+        "Create Tag" → "Créer un tag"; "Delete tag" → "Supprimer le tag"; "Tags are not case sensitive"
+        → "Les tags ne sont pas sensibles à la casse."
+    [ ] French "show/view" action labels: standalone "show" or "view" labels use "Afficher" — NEVER "Voir".
+        "show more" → "Afficher plus"; "view" → "Afficher"; "View all foundries" → "Afficher toutes les fonderies".
+        "Voir" is only acceptable inside full running sentences.
+    [ ] French "assigned": use "affecté(s)/affectée(s)" — NEVER "assigné(s)". Applies to users, roles, tables.
+        "Users assigned table" → "Tableau des utilisateurs affectés"; "Select all assigned users"
+        → "Sélectionner tous les utilisateurs affectés"; "View only unassigned roles" → "Afficher uniquement les rôles non affectés".
+
+    --- GERMAN ENFORCEMENT ---
+    [ ] German Font(s) NEVER Schrift(en): verify "Font(s)" is used in every string, including compound words.
+        Font-Cache (NOT Schrift-Cache); Fontlisten (NOT Schriftlisten); Font aktivieren (NOT Schrift aktivieren);
+        Fonts in diesem Dokument (NOT Schriften). Hard exceptions only: "Ähnliche Schriften anzeigen";
+        "Schriftarten" in specific brand/marketing phrasing. NO other exceptions.
+    [ ] German button labels (INFINITIVE without Sie): standalone labels ≤6 words with no subject pronoun
+        use plain infinitive. "Bestimmte Zeichen eingeben" (NOT "Geben Sie spezifische Zeichen ein");
+        "Eigenen Text eingeben" (NOT "Geben Sie Ihren eigenen Text ein"); "Bestimmte Sprachen auswählen"
+        (NOT "Wählen Sie spezifische Sprachen"). Full sentences addressing the user keep Sie.
+    [ ] German "Sind Sie sicher": NEVER acceptable — always "Möchten Sie X wirklich?".
+        "Are you sure you want to activate?" → "Möchten Sie den Benutzer wirklich aktivieren?" (NOT Sind Sie sicher).
+    [ ] German "Failed to X": must follow "X konnte(n) nicht [verb] werden." — NEVER "[X] fehlgeschlagen" alone.
+        "Failed to export data" → "Daten konnten nicht exportiert werden."
+        "Failed to load fonts" → "Fonts konnten nicht geladen werden."
+
+    --- PORTUGUESE ENFORCEMENT ---
+    [ ] pt-BR button labels (INFINITIVE): standalone action labels use infinitive — Selecionar, Inserir,
+        Visualizar, Carregar — NEVER imperative (Selecione, Insira, Veja, Faça upload de).
+        "Select specific languages" → "Selecionar idiomas específicos" (NOT Selecione os idiomas).
+        "Enter specific characters" → "Inserir caracteres específicos" (NOT Insira).
+    [ ] pt-BR "Unable to X": must be "Não foi possível X" — NEVER "Incapaz de X" (direct calque).
+        "Unable to delete user" → "Não foi possível excluir o usuário".
+        "Unable to deactivate user" → "Não foi possível desativar o usuário".
+
+    --- SPANISH ENFORCEMENT ---
+    [ ] es-ES "Una vez desactivado/activado": NEVER use this pattern. Use "Si los desactivas..."
+        or "Si desactivas a este usuario..." instead (per the confirmation dialog rule).
+    [ ] es-ES confirmation question form: ALWAYS "¿Seguro que quieres X?" — NEVER "¿Estás seguro de que
+        quieres X?" or "¿Está seguro de X?" or any longer form.
+        "Are you sure you want to activate the user?" → "¿Seguro que quieres activar este usuario?"
+    [ ] es-ES "Unable to X" / "Cannot X" system errors: use "No es posible X" — NEVER "No se puede X".
+        "Unable to delete user" → "No es posible eliminar el usuario".
+        "Unable to deactivate user" → "No es posible desactivar el usuario".
+
+    --- JAPANESE ENFORCEMENT ---
+    [ ] Japanese button label (ALL verb forms): ALL standalone labels drop trailing する/します — not only
+        有効化/無効化 forms. Includes アクティベートする → アクティベート; 再起動する → 再起動;
+        表示する → 表示; 確認する → 確認. Check every short action label for trailing する.
+    [ ] Japanese 件 counter: verify {{count}} representing item quantities always has 件 appended.
+        "Replaced {{count}} instance with the selected font" → "{{count}} 件を選択したフォントに置き換えました".
+        Any bare {{count}} in a replacement/count context without 件 is a defect — correct it.
 
     For any string that fails a check: correct it in-place in the JSON.
     For any string where you are uncertain after correction: add a "reviewer_note"

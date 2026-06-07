@@ -81,6 +81,32 @@ When the final item in a list is a longer action phrase, prefer **além de** ove
 
 ---
 
+## Button Labels — INFINITIVE Form
+
+Standalone action labels use **INFINITIVE** — NEVER imperative, matching the rule applied in French, German, and es-ES.
+
+| English | Correct pt-BR | NEVER |
+|---------|--------------|-------|
+| Select specific languages | `Selecionar idiomas específicos` | `Selecione os idiomas específicos` |
+| Enter specific characters | `Inserir caracteres específicos` | `Insira caracteres específicos` |
+| Select the exact characters needed | `Selecionar os caracteres exatos necessários` | `Selecione os caracteres...` |
+| Upload new | `Carregar novo` | `Fazer upload de novo` |
+
+Reserve the imperative for sentence-level instructions addressing the user directly.
+
+---
+
+## "Unable to X" / "Cannot X" Error Messages
+
+System-level inability messages use **Não foi possível X** — NEVER a literal calque of "Incapaz de".
+
+| English | Correct pt-BR | NEVER |
+|---------|--------------|-------|
+| Unable to delete user | `Não foi possível excluir o usuário` | `Incapaz de excluir o usuário` |
+| Unable to deactivate user | `Não foi possível desativar o usuário` | `Incapaz de desativar o usuário` |
+
+---
+
 ## Register
 
 - Use **você** throughout (not tu, not o senhor/a senhora)

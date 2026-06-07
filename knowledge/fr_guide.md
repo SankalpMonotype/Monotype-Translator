@@ -70,6 +70,34 @@ Use **regular space (U+0020)** — NOT non-breaking space — before ?, !, :, ;.
 
 ---
 
+## "Show / View" Action Labels
+
+Standalone "show" or "view" action buttons always use **Afficher** — NEVER "Voir".
+
+| English | Correct | NEVER |
+|---------|---------|-------|
+| show more | `Afficher plus` | `voir plus` |
+| view | `Afficher` | `voir` |
+| View all foundries | `Afficher toutes les fonderies` | `Voir toutes les fonderies` |
+| View guidelines | `Afficher les directives` | `Voir les directives` |
+
+"Voir" is acceptable only inside full running sentences, not as a standalone label.
+
+---
+
+## "Assigned" → "affecté(s)"
+
+In UI labels and table headings, "assigned" must always be **affecté(s)/affectée(s)** — NEVER "assigné(s)".
+
+| English | Correct | NEVER |
+|---------|---------|-------|
+| Users assigned table | `Tableau des utilisateurs affectés` | `Tableau des utilisateurs assignés` |
+| Select all assigned users | `Sélectionner tous les utilisateurs affectés` | `...assignés` |
+| View only unassigned roles | `Afficher uniquement les rôles non affectés` | `...non assignés` |
+| No roles without assigned users | `Aucun rôle sans utilisateurs affectés` | `...assignés` |
+
+---
+
 ## Paired Actions
 
 When two actions are paired (approve/reject, mark/unmark, add/remove): join with **ou** — NEVER a slash.
