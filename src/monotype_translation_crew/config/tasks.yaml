@@ -81,6 +81,64 @@ translation_task:
     etc.) and follow it precisely. Only apply general translation judgment for terms
     and patterns that are absent from both sections.
 
+    THIRD-PARTY PRODUCT NAMES — treat the same as Monotype product names:
+    "Adobe Fonts", "Google Fonts", and any other named third-party product must remain
+    in their exact English form in all languages. NEVER translate them.
+    e.g. "Adobe Fonts" → "Adobe Fonts" (not "Fuentes de Adobe" in es-ES).
+
+    es-ES WEBKIT / WEB PROJECT VOCABULARY (product-specific, overrides generic translation):
+    - "webkit" → "kit web" (always translate — do NOT keep as "webkit")
+    - "offline" in kit web / web project context (= not serving fonts) → "invisible" (NEVER "fuera de línea")
+    - "online" in kit web / web project context (= serving fonts) → "visible" (NEVER "en línea")
+    - "offline" in network/connectivity context (= no internet) → "sin conexión" (NEVER "fuera de línea")
+    - "online" in network/connectivity context → "con conexión"
+    - "Take webkit offline" → "Hacer kit web invisible"; "Take webkits offline" → "Hacer kits web invisibles"
+    - "Take webkit online" → "Hacer kit web visible"
+    - "unpublish" (web project) → "ocultar" (NEVER "despublicar")
+    - "Live" standalone status label → "En producción" (NEVER "en vivo")
+    - "live" as adjective in warning sentences about active webkits → "activos"
+    - "live and published work" → "trabajos activos y publicados"
+    - "invite list" → "lista de invitaciones" (NEVER "lista de invitados")
+    - "kerning" in any context (including creative/marketing copy) → "kerning" (NEVER "espaciado")
+
+    es-ES EXPIRY VOCABULARY:
+    - "expiry date" → "fecha de caducidad" (NEVER "fecha de vencimiento")
+    - "expire/expires" → "caducar/caduca"
+    - "expired" → "caducado/a"
+    - "expiry" noun → "caducidad"
+    - "set expiry date" → "configurar fecha de caducidad"
+
+    es-ES UI ACTION VOCABULARY (from approved TM):
+    - "pin" (verb) → "anclar"; "unpin" → "desanclar"; "pinned" → "anclado/a"
+    - "Pin to top" → "Anclar arriba"
+    - "archive" → "archivar"; "archived" → "archivado/a"; "unarchive" → "desarchivar"
+    - "Inform for production" → "Informar de uso en producción"
+    - "production intent" → "intención de uso en producción"
+    - "Ask me anything…" → "Pregúntame lo que quieras…"
+    - "Something went wrong" → "Ha ocurrido un error"
+    - "Something went wrong. Please try again." → "Ha ocurrido un error. Inténtalo de nuevo."
+
+    es-ES ERROR MESSAGE PATTERNS:
+    - "We couldn't [action]" (system tried on behalf of user) → "No hemos podido [action]"
+      e.g. "We couldn't delete '{{name}}'." → "No hemos podido eliminar «{{name}}»."
+    - "Failed to [action]" (system-level failure) → "No se ha podido [action]" (impersonal)
+      e.g. "Failed to export data." → "No se han podido exportar los datos."
+
+    es-ES QUOTATION MARKS: Always use «» guillemets for quoted strings in es-ES.
+    e.g. 'No results found for "{{query}}"' → 'No se han encontrado resultados para «{{query}}»'
+
+    es-ES FONT LIFECYCLE "LEAVING":
+    - "Leaving soon" → "Nos dejan" (NOT "se van pronto")
+    - "Leaving soon in {{count}}" → "Nos dejan en {{count}}"
+    - "Leaving soon fonts" → "Fuentes que nos dejan"
+    - "Leaving earliest" → "Próxima retirada"
+
+    CREATIVE AND MARKETING COPY (loading messages, delight strings, taglines):
+    These strings must be IDIOMATICALLY ADAPTED — never translated word-for-word.
+    Aim for the same tone and punch as the English. Rephrase freely if needed.
+    For es-ES: if a TM version exists, it takes precedence. If no TM version, adapt naturally.
+    Typography jargon (kerning, serif, glifo) stays as-is even in playful strings.
+
     CRITICAL RULES — violation of these will break production:
     - Preserve ALL placeholder tokens verbatim: single-brace tokens with identifier names,
       double-brace tokens, %s, %d, %1$s, positional tokens like {0}, and bracket tokens
@@ -97,7 +155,7 @@ translation_task:
       add the counter 人 with a space — write "{{user.count}} 人のユーザー" (space before 人),
       never "{{user.count}}人のユーザー" (no space) or "{{user.count}} ユーザー" (no 人).
     - ALL languages: "Monotype" and all Monotype product names — MyFonts, Fonts.com,
-      Monotype Fonts, Monotype AI, Mosaic, SkyFonts — must stay in their exact English
+      Monotype Fonts, Monotype AI, Mosaic, SkyFonts, Anyword — must stay in their exact English
       form in every language. NEVER translate, adapt, or transliterate them
       (e.g. NEVER "モナタイプ" for "Monotype" in Japanese).
     - Japanese ONLY: Short brand attribution strings — "Made with ♡", "by Monotype.",
@@ -270,6 +328,11 @@ translation_task:
       "Eu prefiro essa resposta" (essa not esta), "Sincronização e downloads" (singular, not Sincronizações).
       pt-BR article for "Monotype Fonts": always use "a Monotype Fonts" (feminine article) when
       it is the subject/object of a sentence. e.g. "Com a Monotype Fonts, é fácil…" (NOT "Com Monotype Fonts").
+      pt-BR CRITICAL: "Legibility" → "Leiturabilidade" (NOT "Legibilidade").
+      "Readability" → "Legibilidade" (NOT "Leiturabilidade"). These are counterintuitive — double-check.
+      pt-BR: "user" → "usuário" — NEVER "utilizador" (that is European Portuguese).
+      pt-BR: "embedding" (web font delivery context) → "incorporação".
+      pt-BR: "Anyword" is an untranslatable Monotype product name — keep in English in all languages.
     - pt-BR confirmation dialog body: start with "Após a desativação/ativação, esses/este usuário(s)..." —
       NEVER "Uma vez desativados/ativados...".
       e.g. "Após a desativação, esses usuários não poderão acessar o sistema. Tem certeza de que deseja
@@ -485,6 +548,20 @@ review_task:
     [ ] pt-BR "scan" (document/risk analysis): verify "analisar … em busca de" — NOT "escanear". Fix any occurrence.
     [ ] pt-BR "membership" (team context): verify "membros" — NOT "filiação". Fix any occurrence.
     [ ] pt-BR "entitlements": verify "permissões" or "licenças" — NOT "direitos". Fix any occurrence.
+    [ ] es-ES webkit vocabulary: "webkit" → "kit web"; "offline/online" (kit web state) →
+        "invisible/visible"; "offline/online" (network state) → "sin conexión/con conexión";
+        "unpublish" → "ocultar"; "Live" (label) → "En producción"; "live" (adjective in warnings) → "activos".
+    [ ] es-ES kerning: verify "kerning" is kept as "kerning" — NEVER "espaciado" even in creative copy.
+    [ ] es-ES invite list: "invite list" → "lista de invitaciones" (NEVER "lista de invitados").
+    [ ] es-ES expiry: "expiry date" → "fecha de caducidad"; "expired" → "caducado/a".
+        NEVER "fecha de vencimiento" or "vencido/a".
+    [ ] es-ES pin/archive: "pin" → "anclar", "unpin" → "desanclar", "archive" → "archivar".
+    [ ] es-ES error patterns: "We couldn't X" → "No hemos podido X" (personal);
+        "Failed to X" → "No se ha podido X" (impersonal). Do NOT mix these patterns.
+    [ ] es-ES quotation marks: quoted strings use «» — NEVER straight quotes or "double quotes".
+    [ ] es-ES "Leaving soon": → "Nos dejan"; "Leaving earliest" → "Próxima retirada".
+    [ ] All languages: third-party product names (Adobe Fonts, Google Fonts) must remain in English.
+        e.g. "Adobe Fonts" must NOT appear as "Fuentes de Adobe" in es-ES.
 
     For any string that fails a check: correct it in-place in the JSON.
     For any string where you are uncertain after correction: add a "reviewer_note"

@@ -147,6 +147,7 @@ The following names MUST remain in English in all languages. Do not translate, t
 
 ### Product & Platform Names
 - Monotype Fonts
+- Anyword (Monotype AI writing product — always "Anyword", never translated)
 - Monotype AI
 - Font Manager
 - Mosaic
@@ -185,6 +186,12 @@ The following names MUST remain in English in all languages. Do not translate, t
 - CSS (in technical contexts)
 - API
 - Helvetica Now MT (typeface name — always keep in English)
+
+### Third-party Product Names (Keep in English)
+Named products from other companies must remain in their original English form — they are proper nouns, not descriptions.
+- Adobe Fonts — NEVER "Fuentes de Adobe" or any translation
+- Google Fonts — NEVER "Fuentes de Google" or any translation
+- Apply the same rule to any other third-party named product that appears in UI strings.
 
 > **Japanese exception:** Product names may be rendered in katakana when appearing in flowing
 > Japanese text for readability, e.g. モノタイプ for Monotype, フォントマネージャー for Font Manager.
@@ -277,7 +284,7 @@ counter 人: `{{user.count}} 人のユーザー`. Never omit 人.
 
 ### German (de-DE)
 - Use formal **"Sie"** throughout. Never "du" in product UI.
-- German strings are typically 20-40% longer than English. Prioritise clarity over brevity; avoid
+- German strings are typically 20-40% longer than En  glish. Prioritise clarity over brevity; avoid
   artificial truncation. Alert engineers to potential UI overflow.
 - Compound words are normal and correct. Hyphenate compounds longer than ~20 characters for
   readability: "Schrift-Verwaltungs-Dashboard" over "Schriftverwaltungsdashboard".

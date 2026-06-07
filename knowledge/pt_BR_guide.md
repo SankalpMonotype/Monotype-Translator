@@ -28,6 +28,10 @@ Focus: terminology the model frequently translates incorrectly.
 | Download web self-hosting kits | `Baixar kits para self-hosting web` | Baixar kits de auto-hospedagem da web |
 | with own teams only | `apenas com suas equipes` | somente com suas próprias equipes |
 | with anyone in the company | `com todos na empresa` | — |
+| embedding (web font delivery) | `incorporação` | incorporado |
+| organization | `organização` | empresa (in org/account context) |
+| user | `usuário` | utilizador (NEVER — European PT) |
+| admin | `administrador` | — |
 
 ---
 
@@ -113,7 +117,50 @@ When the final item in a list is a longer action phrase, prefer **além de** ove
 
 ---
 
+## Typography Terms — Critical Distinctions
+
+These two terms are **counterintuitive** in pt-BR and frequently confused:
+
+| English | Correct pt-BR | Why it looks wrong |
+|---------|---------------|--------------------|
+| **Legibility** (ease of reading individual characters) | `Leiturabilidade` | Looks like "readability" in English |
+| **Readability** (ease of reading running text) | `Legibilidade` | Looks like "legibility" in English |
+
+**Always use `leiturabilidade` for "legibility" and `legibilidade` for "readability".** The terms are not interchangeable.
+
+Other confirmed typographic term translations (from Bianca Glossary):
+
+| English | pt-BR |
+|---------|-------|
+| Typeface | `Família tipográfica` — NEVER "tipo de letra" or "fonte" for a typeface design |
+| Font (individual file/weight) | `Fonte` |
+| Glyph | `Glifo` |
+| Kerning | `Kerning` — keep as English |
+| Leading | `Entrelinha` |
+| Tracking | `Entreletra` |
+| Small caps | `Versalete` |
+| Script (font style) | `Script ou Conectada` |
+| Blackletter | `Letra gótica` |
+| Stylistic Set | `Conjunto estilístico` |
+| Optical size | `Tamanho óptico` |
+| x-height | `Altura de X` |
+| Body copy | `Corpo de texto` |
+| Ascender | `Ascendente` |
+| Descender | `Descendente` |
+
+---
+
+## EULA — Watch Out for European Portuguese
+
+Bianca's reference glossary contains a European Portuguese mistranslation:
+- ❌ `Contrato de licença do utilizador final` ("utilizador" = European PT)
+- ✅ `EULA (Contrato de Licença de Usuário Final)` ("Usuário" = Brazilian PT)
+
+Always use the Brazilian form with "Usuário".
+
+---
+
 ## Untranslatable Terms
 
-- Monotype, MyFonts, Fonts.com, Monotype AI, Mosaic, SkyFonts — always English
+- Monotype, MyFonts, Fonts.com, Monotype AI, Mosaic, SkyFonts, Anyword — always English
 - "Made with ♡", "by Monotype.", "Powered by Monotype" — copy verbatim

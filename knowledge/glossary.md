@@ -35,6 +35,8 @@ listed terms without brand team approval.
 | Descender                | Hampe descendante            | Unterlänge                    | Descendente                     | ディセンダー            | Descendente                 |
 | Foundry                  | Fonderie                     | Schriftgießerei               | Fundidora                       | ファウンドリ            | Fundición                   |
 | Stylistic Set            | Jeu stylistique              | Stilistischer Satz            | Conjunto estilístico            | スタイリスティックセット | Conjunto estilístico        |
+| Legibility (clarity of individual characters) | Lisibilité | Lesbarkeit | `Leiturabilidade` ⚠️ | 可読性 | Legibilidad |
+| Readability (ease of reading running text) | Lisibilité | Lesbarkeit | `Legibilidade` ⚠️ | 読みやすさ | Legibilidad |
 | Seat (licence unit)      | Licence individuelle         | Einzellizenz                  | Licença individual              | シート                  | Plaza                       |
 | Monotype Library         | Bibliothèque Monotype        | Monotype-Bibliothek           | Biblioteca da Monotype          | Monotypeライブラリ      | Biblioteca de Monotype      |
 
@@ -102,6 +104,12 @@ listed terms without brand team approval.
 | Unmark          | retirer le marquage     | Markierung entfernen     | desmarcar             | マークを外す       | desmarcar              |
 | Tag(s)          | tag(s) *(keep as-is)*   | Tag(s)                   | tag(s)                | タグ               | etiqueta(s)            |
 | View / Read (permission label) | Consulter  | Anzeigen / Einsehen      | Consultar             | 閲覧する           | Ver                    |
+| Pin (verb)      | Épingler                | Anheften                 | Fixar                 | ピン留めする        | Anclar                 |
+| Unpin (verb)    | Désépingler             | Ablösen                  | Desafixar             | ピン留め解除する    | Desanclar              |
+| Archive (verb)  | Archiver                | Archivieren              | Arquivar              | アーカイブする      | Archivar               |
+| Unarchive       | Désarchiver             | Dearchivieren            | Desarquivar           | アーカイブ解除する  | Desarchivar            |
+| Publish (verb)  | Publier                 | Veröffentlichen          | Publicar              | 公開する            | Publicar               |
+| Unpublish (verb — web project context) | Dépublier | Verbergen         | Ocultar (web project) | 非公開にする        | Ocultar                |
 
 ---
 
@@ -292,6 +300,9 @@ All names in the table below must remain in their exact English form in **all la
 | Monotype AI       | Always "Monotype AI" — no translation                                |
 | Mosaic            | Always "Mosaic" — no translation                                     |
 | SkyFonts          | Always "SkyFonts" — no translation                                   |
+| Adobe Fonts       | Always "Adobe Fonts" — never translate (e.g. NEVER "Fuentes de Adobe") |
+| Google Fonts      | Always "Google Fonts" — never translate                              |
+| Anyword           | Always "Anyword" — never translate (Monotype AI writing product)     |
 
 **Short attribution strings** such as "Made with ♡", "by Monotype.", "Powered by Monotype" must be left **untranslated** — they are brand signatures, not UI copy.
 
