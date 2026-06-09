@@ -5,16 +5,13 @@ Exposes a single-page web UI where users can:
   - Watch a progress indicator while the CrewAI pipeline runs
   - Download the translated Excel output
   - Browse a review table of all translated strings
-
-Known limitation: reviewed_translations.json is a shared file in outputs/.
-Running two jobs concurrently will cause the review data to be overwritten.
-For single-user / small-team use this is fine.
 """
 
 import asyncio
 import json
 import math
 import re
+import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
@@ -1249,6 +1246,73 @@ def _excel_batch_size(n_languages: int) -> int:
     return min(300, _EXCEL_BATCH_BASE * 5 // max(1, n_languages))
 
 
+# ---------------------------------------------------------------------------
+# Language-section filtering for tasks.yaml descriptions
+# ---------------------------------------------------------------------------
+
+# Maps the ALL-CAPS keyword found in === LANGUAGE RULES === headers to the
+# internal language code used in target_languages lists.
+_SECTION_TO_LANG: dict[str, str] = {
+    "FRENCH":     "fr",
+    "GERMAN":     "de",
+    "PORTUGUESE": "pt_BR",
+    "SPANISH":    "es_ES",
+    "JAPANESE":   "ja",
+}
+
+
+def _filter_task_description(description: str, target_languages: list[str]) -> str:
+    """Return *description* with language sections not in *target_languages* removed.
+
+    Parses ``=== LANGUAGE RULES ===`` headers (as they appear in the folded YAML
+    string produced by yaml.safe_load).  The GLOBAL section and the JSON output
+    footer are always kept regardless of language selection.
+
+    If no section headers are found the description is returned unchanged.
+    """
+    import re
+
+    # The JSON output footer is always required — extract it before splitting
+    # so it is preserved even when the last language section (Japanese) is dropped.
+    footer_re = re.compile(r'\nOutput ONLY a valid JSON array\.', re.MULTILINE)
+    footer_match = footer_re.search(description)
+    if footer_match:
+        json_footer = description[footer_match.start():]
+        body = description[:footer_match.start()]
+    else:
+        json_footer = ""
+        body = description
+
+    # Match === ... === and --- ... --- section headers at the start of a line.
+    # yaml.safe_load's > folding strips leading indentation, so headers appear
+    # as bare "=== FRENCH RULES ===" lines in the parsed string.
+    header_re = re.compile(r'^(?:===|---)\s+.+\s+(?:===|---)\s*$', re.MULTILINE)
+    headers = list(header_re.finditer(body))
+    if not headers:
+        return description  # no sections — nothing to filter
+
+    preamble = body[:headers[0].start()]
+    parts = [preamble]
+
+    for i, m in enumerate(headers):
+        section_start = m.start()
+        section_end = headers[i + 1].start() if i + 1 < len(headers) else len(body)
+        header_upper = m.group().upper()
+
+        # Determine which language this header belongs to (None → GLOBAL, always keep)
+        lang = None
+        for keyword, lang_code in _SECTION_TO_LANG.items():
+            if keyword in header_upper:
+                lang = lang_code
+                break
+
+        if lang is None or lang in target_languages:
+            parts.append(body[section_start:section_end])
+
+    parts.append(json_footer)
+    return "".join(parts)
+
+
 def _count_excel_rows(path: str) -> int:
     """Count non-empty English-column rows (excluding header) in an Excel file."""
     try:
@@ -1428,6 +1492,8 @@ def _run_docx_job_batched(
     from .crew import DocxTranslationCrew
     from .tools.docx_tools import write_translations_to_docx_impl
 
+    _BATCH_MAX_RETRIES = 3
+
     # Step 1: Ensure brand context is cached
     brand_cache = Path("outputs/brand_context_cache.md")
     if brand_cache.exists():
@@ -1436,7 +1502,7 @@ def _run_docx_job_batched(
         DocxTranslationCrew()._run_brand_context_only("knowledge")
         brand_context = brand_cache.read_text(encoding="utf-8") if brand_cache.exists() else ""
 
-    # Step 2: Translate in batches
+    # Step 2: Translate in batches (with per-batch retry)
     all_translations: list[dict] = []
     batches = [segments[i:i + _DOCX_BATCH_SIZE] for i in range(0, len(segments), _DOCX_BATCH_SIZE)]
     batch_errors: list[str] = []
@@ -1445,15 +1511,26 @@ def _run_docx_job_batched(
 
     for idx, batch in enumerate(batches, 1):
         print(f"[DocxBatch] Translating batch {idx}/{len(batches)} ({len(batch)} segments)")
-        try:
-            batch_result, usage = _translate_segment_batch(batch, target_languages, brand_context)
-            all_translations.extend(batch_result)
-            if usage:
-                total_prompt_tokens += usage.prompt_tokens or 0
-                total_completion_tokens += usage.completion_tokens or 0
-            print(f"[DocxBatch] Batch {idx} OK — {len(batch_result)} entries")
-        except Exception as exc:
-            err_msg = f"Batch {idx}/{len(batches)} {type(exc).__name__}: {exc}"
+        last_exc: Exception | None = None
+        for attempt in range(1, _BATCH_MAX_RETRIES + 1):
+            try:
+                batch_result, usage = _translate_segment_batch(batch, target_languages, brand_context)
+                all_translations.extend(batch_result)
+                if usage:
+                    total_prompt_tokens += usage.prompt_tokens or 0
+                    total_completion_tokens += usage.completion_tokens or 0
+                print(f"[DocxBatch] Batch {idx} OK (attempt {attempt}) — {len(batch_result)} entries")
+                last_exc = None
+                break
+            except Exception as exc:
+                last_exc = exc
+                if attempt < _BATCH_MAX_RETRIES:
+                    wait = 5 * attempt
+                    print(f"[DocxBatch] Batch {idx} attempt {attempt} failed: {exc}. Retrying in {wait}s…")
+                    time.sleep(wait)
+        if last_exc is not None:
+            err_msg = (f"Batch {idx}/{len(batches)} failed after {_BATCH_MAX_RETRIES} attempts: "
+                       f"{type(last_exc).__name__}: {last_exc}")
             print(f"[DocxBatch] FAILED: {err_msg}")
             batch_errors.append(err_msg)
             JOBS[job_id]["error"] = "; ".join(batch_errors)
@@ -1474,15 +1551,15 @@ def _run_docx_job_batched(
         "total_tokens": total_prompt_tokens + total_completion_tokens,
     }
 
-    # Step 3: Write merged translations JSON
-    review_path = Path("outputs/reviewed_docx_translations.json")
+    # Step 3: Write merged translations JSON to a job-scoped path
+    review_path = Path(f"outputs/reviewed_docx_translations_{job_id}.json")
     review_path.write_text(
         json.dumps(all_translations, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    print(f"[DocxBatch] Wrote {len(all_translations)} entries to reviewed_docx_translations.json")
+    print(f"[DocxBatch] Wrote {len(all_translations)} entries to {review_path.name}")
 
     # Step 4: Write translated docx files + zip directly (no AI agent needed)
-    result = write_translations_to_docx_impl(docx_path)
+    result = write_translations_to_docx_impl(docx_path, str(review_path))
     if not result.get("success"):
         raise RuntimeError(f"write_translations_to_docx_impl failed: {result.get('error')}")
 
@@ -1518,8 +1595,10 @@ def _run_docx_job(job_id: str, docx_path: str, languages: str) -> None:
         if zip_path.exists():
             JOBS[job_id]["output_path"] = str(zip_path)
 
-        # Capture review data
-        review_path = Path("outputs/reviewed_docx_translations.json")
+        # Capture review data from the job-scoped path (batched) or fallback (small crew)
+        review_path = Path(f"outputs/reviewed_docx_translations_{job_id}.json")
+        if not review_path.exists():
+            review_path = Path("outputs/reviewed_docx_translations.json")
         if review_path.exists():
             try:
                 JOBS[job_id]["review_data"] = json.loads(review_path.read_text())
@@ -1588,6 +1667,9 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
     JOBS[job_id]["status"] = "running"
     try:
         from .crew import MonotypeTranslationCrew  # import here to keep startup fast
+        from .tools.excel_tools import set_job_translation_path
+        _scoped_review_path = Path(f"outputs/reviewed_translations_{job_id}.json")
+        set_job_translation_path(str(_scoped_review_path))
 
         _lang_normalise = {"pt": "pt_BR", "es": "es_ES"}
         target_languages = [
@@ -1598,6 +1680,21 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
         # target_languages_str is passed to the tool so it knows which language columns
         # to check for completeness (prevents single-language jobs from looping forever).
         target_languages_str = ",".join(target_languages)
+
+        # Pre-filter the translation task description to include only the language
+        # sections actually requested.  Saves ~60 % of description tokens when a
+        # single language is selected (4 of 5 per-language sections removed).
+        _tasks_yaml_path = Path(__file__).parent / "config" / "tasks.yaml"
+        try:
+            import yaml as _yaml
+            _tasks_raw = _yaml.safe_load(_tasks_yaml_path.read_text(encoding="utf-8"))
+            _filtered_translation_desc: str | None = _filter_task_description(
+                _tasks_raw["translation_task"]["description"],
+                target_languages,
+            )
+        except Exception as _fd_exc:
+            print(f"[DescFilter] Warning: could not filter task descriptions: {_fd_exc}")
+            _filtered_translation_desc = None
 
         # Ensure the uploaded file has a proper "English" header row.
         # Some translators upload files where source strings start at row 1 with
@@ -1629,6 +1726,13 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             "wp_count": "{wp_count}",
             "risk_count": "{risk_count}",
             "name": "{name}",
+            # review_task uses these as typographic examples / localisation samples.
+            # CrewAI validates that every {x} token it finds in the description
+            # exists in inputs — add passthroughs so the check passes while
+            # preserving the token text the agent actually sees.
+            "double-brace": "{{double-brace}}",
+            "single-brace": "{single-brace}",
+            "Nutzungsbedingungen": "{Nutzungsbedingungen}",
         }
 
         # Compute number of batches so the UI can show "Batch N/M" progress.
@@ -1636,7 +1740,7 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
         n_batches = max(1, math.ceil(total_rows / batch_size))
         JOBS[job_id]["total_batches"] = n_batches
 
-        review_path = Path("outputs/reviewed_translations.json")
+        review_path = _scoped_review_path
         all_review_data: list = []
 
         for batch_num in range(n_batches):
@@ -1646,7 +1750,10 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             JOBS[job_id]["current_batch"] = batch_num + 1
             print(f"[ExcelBatch] Starting batch {batch_num + 1}/{n_batches} "
                   f"(batch_size={batch_size}) for job {job_id}")
-            MonotypeTranslationCrew().crew().kickoff(inputs=inputs)
+            _crew_obj = MonotypeTranslationCrew()
+            if _filtered_translation_desc is not None:
+                _crew_obj._translation_desc_override = _filtered_translation_desc
+            _crew_obj.crew().kickoff(inputs=inputs)
 
             # Accumulate review data across batches so the UI shows the full count.
             if review_path.exists():

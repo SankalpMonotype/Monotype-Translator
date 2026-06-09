@@ -124,6 +124,36 @@ e.g. "No inactive users available" → `非アクティブユーザーはいま�
 
 ---
 
+## Company / Organisation Strings
+
+These short strings were found untranslated or incorrectly transliterated — always use the Japanese form:
+
+| English | Correct | NEVER |
+|---------|---------|-------|
+| My Company | `自社` | "My Company" (English) |
+| Companies | `会社` | "Companies" (English) |
+| Shared with me | `共有されたアセット` | `自分と共有済み` |
+| Visual properties | `表示設定` | `ビジュアルプロパティ` (transliteration) |
+| Common characters | `共通文字` | `一般的な文字` |
+| User type | `ユーザー種別` | `ユーザータイプ` |
+| View by | `表示方法` | `次で表示` |
+| Identify font | `フォントを特定` | `フォントを識別` |
+
+---
+
+## Show More / Show Less (Collapse/Expand UI Pattern)
+
+These strings follow the Japanese UI convention for collapsible content — do NOT translate literally:
+
+| English | Correct | NEVER |
+|---------|---------|-------|
+| Show less | `折りたたむ` | `表示を減らす` |
+| Show more | `もっと見る` | `表示を増やす` |
+| Expand | `展開する` | `拡張する` |
+| Collapse | `折りたたむ` | `折り畳む` (use 折りたたむ, not 折り畳む) |
+
+---
+
 ## Native Vocabulary over Katakana (Section/Heading Labels)
 
 | English | Correct | Wrong |

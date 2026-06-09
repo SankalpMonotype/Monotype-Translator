@@ -18,6 +18,12 @@ Register: formal "vous".
 | Give us a moment... | `Donnez-nous un instant...` | — |
 | Monospaced | `Monoespace` | Chasse fixe |
 | tags | `tags` (keep as-is) | balises |
+| Upload (file upload action) | `Importer` | Téléverser, Télécharger |
+| Upload new (button) | `Importer un fichier` | `Téléverser un nouveau` |
+| Re-invite | `Réinviter` | `Renvoyer l'invitation` |
+| features (OpenType features) | `fonctionnalités` | `caractéristiques` |
+| kerning (in filter/description) | `crénage` | `kerning` (loanword — use the French term) |
+| revoke invite | `Annuler l'invitation` | `Révoquer l'invitation` |
 | View / Read (permission label) | `Consulter` | Voir, Lire |
 | View reports & entitlements | `Consulter les rapports et les droits d'utilisation` | Voir les rapports et les droits |
 | assets (UI noun — files, fonts, resources) | `ressources` | actifs, éléments |

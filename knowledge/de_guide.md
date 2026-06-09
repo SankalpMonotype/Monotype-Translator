@@ -163,6 +163,32 @@ MUST use `vierteljährlich` — NEVER `quartalsweise`.
 
 ---
 
+## Descriptive Sentences for Font Filters and Discovery Features
+
+Long descriptive strings (e.g. tooltip text, filter descriptions, OpenType feature explanations) that explain what a feature does for the user must use the **formal Sie register** with `Lassen Sie sich…` construction — NOT a bare infinitive or direct imperative.
+
+| English pattern | Correct | NEVER |
+|---|---|---|
+| Show fonts that include… | `Lassen Sie sich Fonts anzeigen, die…` | `Fonts anzeigen, die…` |
+| Show fonts that offer… | `Lassen Sie sich Fonts anzeigen, die…für einige Zeichen unterschiedliche Formen…` | `Fonts anzeigen, die unterschiedliche Zeichenformen…` |
+| Find fonts that contain… | `Lassen Sie sich Fonts anzeigen, die…` | `Fonts finden, die…` |
+| Show fonts that support… | `Lassen Sie sich Fonts anzeigen, die das dynamische Erstellen von…` | `Fonts anzeigen, die die dynamische Erstellung von…` |
+
+Rule: if the English begins with "Show fonts that…" or "Find fonts that…" in a description context (not a button label), always use `Lassen Sie sich Fonts anzeigen, die…`.
+
+---
+
+## Features Vocabulary
+
+| English | Correct | NEVER |
+|---|---|---|
+| OpenType features | `OpenType-Funktionen` | `OpenType-Features` |
+| feature(s) (generic UI) | `Funktion(en)` | `Feature(s)` |
+| Common characters | `Allgemeine Zeichen` | `Häufige Zeichen` |
+| Get help | `Hilfe` | `Hilfe erhalten` (too verbose for a short label) |
+
+---
+
 ## Button / Action Label Style
 
 Short standalone action labels (no subject pronoun, ≤ 6 words): use **infinitive** without `Sie`.

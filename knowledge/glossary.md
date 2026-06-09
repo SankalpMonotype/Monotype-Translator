@@ -19,6 +19,7 @@ listed terms without brand team approval.
 | Variant                  | Variante                     | Variante                      | Variante                        | バリアント              | Variante                    |
 | Character                | Caractère                    | Zeichen                       | Caractere                       | 文字                   | Carácter                    |
 | Kerning                  | Crénage                      | Unterschneidung               | Kerning                         | カーニング              | Kerning                     |
+| Kerning filter           | Filtre de crénage            | Unterschneidungsfilter        | Filtro de kerning               | カーニングフィルター     | Filtro de interletraje      |
 | Leading                  | Interlignage                 | Zeilenabstand                 | Entrelinha                      | 行送り                  | Interlineado                |
 | Tracking                 | Approche                     | Laufweite                     | Tracking                        | トラッキング            | Tracking                    |
 | Ligature                 | Ligature                     | Ligatur                       | Ligadura                        | 合字                   | Ligadura                    |
@@ -62,6 +63,7 @@ listed terms without brand team approval.
 | Permission               | Autorisation                 | Berechtigung                  | Permissão                       | 権限                   | Permiso                     |
 | Admin / Administrator    | Administrateur               | Administrator                 | Administrador                   | 管理者                  | Administrador               |
 | Role                     | Rôle                         | Rolle                         | Função                          | ロール                  | Rol                         |
+| Feature(s) (product/UI) | Fonctionnalité(s)            | Funktion(en)                  | Recurso(s)                      | 機能                    | Función / funciones         |
 | Plan                     | Forfait                      | Plan                          | Plano                           | プラン                  | Plan                        |
 | Trial                    | Essai                        | Testversion / Test            | Avaliação gratuita              | 試用版                  | Prueba gratuita             |
 
@@ -88,7 +90,7 @@ listed terms without brand team approval.
 | Apply           | Appliquer               | Anwenden                 | Aplicar               | 適用する          | Aplicar                |
 | Confirm         | Confirmer               | Bestätigen               | Confirmar             | 確認する          | Confirmar              |
 | Select          | Sélectionner            | Auswählen                | Selecionar            | 選択する          | Seleccionar            |
-| Upload          | Télécharger (vers)      | Hochladen                | Carregar              | アップロードする   | Subir                  |
+| Upload          | Importer                | Hochladen                | Carregar              | アップロードする   | Subir                  |
 | Download        | Télécharger             | Herunterladen            | Baixar                | ダウンロードする   | Descargar              |
 | Activate        | Activer                 | Aktivieren               | Ativar                | 有効にする        | Activar                |
 | Deactivate      | Désactiver              | Deaktivieren             | Desativar             | 無効にする        | Desactivar             |

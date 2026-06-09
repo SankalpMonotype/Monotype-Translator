@@ -29,3 +29,8 @@ packages = ["src/monotype_translation_crew"]
 
 [tool.crewai]
 type = "crew"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]

@@ -1,26 +1,7 @@
 # Monotype Translation Crew — Backlog
 
-Known gaps and improvements identified in the audit (2026-05-25).
+Known gaps and improvements identified during audits (2026-05-25, 2026-06-08).
 Items are grouped by priority. None are blocking for current use.
-
----
-
-## 🔴 High Priority
-
-### 1. Agent execution limits
-**Files:** `src/monotype_translation_crew/crew.py`  
-**Issue:** No `max_iter` or `max_execution_time` set on any agent — a stuck agent loops indefinitely.  
-**Fix:** Add `max_iter=10` / `max_execution_time=720` to brand_analyst; `max_iter=5` / `max_execution_time=600` to translator; `max_iter=3` / `max_execution_time=300` to reviewer; `max_iter=5` / `max_execution_time=120` to production_manager.
-
-### 2. Concurrent job race condition
-**Files:** `src/monotype_translation_crew/crew.py`, `src/monotype_translation_crew/api.py`  
-**Issue:** All jobs write reviewed translations to the same `outputs/reviewed_translations.json`. Two simultaneous uploads overwrite each other's data.  
-**Fix:** Use `threading.local()` in `crew.py` to store a per-job ID; derive the output filename as `reviewed_translations_{job_id}.json`; set the context from `api.py` before calling `kickoff()`.
-
-### 3. No retry on failed translation batch
-**Files:** `src/monotype_translation_crew/api.py` — `_run_job()` around line 1583  
-**Issue:** A transient LLM or network error on any batch immediately marks the whole job failed with no retry.  
-**Fix:** Wrap `crew().kickoff()` in a retry loop (2 attempts, 5 s pause between) before propagating the exception.
 
 ---
 
@@ -78,3 +59,6 @@ Items are grouped by priority. None are blocking for current use.
 | ES-ES linguist terminology applied | 4721572 |
 | 7 new Japanese quality rules | 0a3d278 |
 | Template variable dummy fix (foundry, name) | fd40335, a10c5fd |
+| Agent execution limits — `max_iter` + `max_execution_time` on all 8 agents in both crews | 2026-06-08 |
+| Concurrent job race condition — `threading.local()` scopes reviewed_translations to each job_id | 2026-06-08 |
+| Retry on failed DOCX batch — 3 attempts with 5 s / 10 s back-off before fallback | 2026-06-08 |

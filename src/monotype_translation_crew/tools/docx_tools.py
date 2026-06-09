@@ -1,12 +1,23 @@
 import io
 import json
 import os
+import threading
 import zipfile
 from pathlib import Path
 
 from crewai.tools import tool
 
-REVIEWED_DOCX_TRANSLATIONS_PATH = os.path.join("outputs", "reviewed_docx_translations.json")
+_DEFAULT_REVIEWED_DOCX_PATH = os.path.join("outputs", "reviewed_docx_translations.json")
+_job_docx_local = threading.local()
+
+
+def _get_reviewed_docx_path() -> str:
+    return getattr(_job_docx_local, "path", _DEFAULT_REVIEWED_DOCX_PATH)
+
+
+def set_job_docx_translation_path(path: str) -> None:
+    """Bind a job-scoped reviewed_docx_translations path to the current thread."""
+    _job_docx_local.path = path
 
 
 def extract_segments(docx_path: str) -> list[dict]:
@@ -153,7 +164,7 @@ def read_docx_for_translation(docx_path: str) -> str:
         return json.dumps({"error": f"Failed to read docx: {exc}"})
 
 
-def write_translations_to_docx_impl(docx_path: str) -> dict:
+def write_translations_to_docx_impl(docx_path: str, json_path: str | None = None) -> dict:
     """Core implementation — reads reviewed_docx_translations.json, writes per-language
     .docx files and bundles them into a .zip.  Returns a plain dict (not JSON string)
     so it can be called directly from Python without going through an AI agent."""
@@ -164,7 +175,7 @@ def write_translations_to_docx_impl(docx_path: str) -> dict:
     except ImportError:
         return {"error": "python-docx not installed. Run: pip install python-docx"}
 
-    json_path = REVIEWED_DOCX_TRANSLATIONS_PATH
+    json_path = json_path or _get_reviewed_docx_path()
     if not os.path.isabs(json_path):
         json_path = os.path.join(os.getcwd(), json_path)
     if not os.path.exists(json_path):

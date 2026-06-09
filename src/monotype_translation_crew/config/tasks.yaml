@@ -99,6 +99,198 @@ translation_task:
     in their exact English form in all languages. NEVER translate them.
     e.g. "Adobe Fonts" → "Adobe Fonts" (not "Fuentes de Adobe" in es-ES).
 
+    === GLOBAL RULES (apply to ALL languages) ===
+
+    CREATIVE AND MARKETING COPY (loading messages, delight strings, taglines):
+    These strings must be IDIOMATICALLY ADAPTED — never translated word-for-word.
+    Aim for the same tone and punch as the English. Rephrase freely if needed.
+    For es-ES: if a TM version exists, it takes precedence. If no TM version, adapt naturally.
+    Typography jargon (kerning, serif, glifo) stays as-is even in playful strings.
+
+    CRITICAL RULES — violation of these will break production:
+    - Preserve ALL placeholder tokens verbatim: single-brace tokens with identifier names,
+      double-brace tokens, %s, %d, %1$s, positional tokens like <0>, and bracket tokens
+      like [name]. Copy them character-for-character. Do not translate, reorder, or reformat them.
+    - EXCEPTION — Link-anchor label tokens: when a single-brace token contains a human-readable
+      multi-word label like "Terms of Use", translate the text inside the braces while keeping
+      the brace syntax intact. Per-language translations for that specific token:
+        French  → write the token as: brace + Conditions d'utilisation + brace
+        German  → write the token as: brace + Nutzungsbedingungen + brace
+        pt-BR   → write the token as: brace + Termos de Uso + brace
+        Japanese → write the token as: brace + 利用規約 + brace
+        es-ES  → keep the token unchanged as: brace + Terms of Use + brace (brand-approved)
+    - ALL languages: "Monotype" and all Monotype product names — MyFonts, Fonts.com,
+      Monotype Fonts, Monotype AI, Mosaic, SkyFonts, Anyword — must stay in their exact English
+      form in every language. NEVER translate, adapt, or transliterate them
+      (e.g. NEVER "モナタイプ" for "Monotype" in Japanese).
+    - Global tone setting: {tone}. Apply across all languages where register allows.
+    - When tone is "informal", prefer shorter, more direct phrasing in all languages.
+
+    - pt-BR and es-ES: the abbreviation "AI" in general UI text → "IA".
+      e.g. "AI mode" → "Modo IA", "Try out AI mode" → "Experimente o modo IA" (pt-BR) /
+      "Prueba el modo IA" (es-ES), "Meet AI mode" → "Conheça o modo IA" / "Descubre el modo IA".
+    - "AI Search" product name — localisation by language (CRITICAL):
+      UI button labels and standalone headings: keep as "AI Search" in all languages.
+      When "AI Search" is the SUBJECT or OBJECT in a full sentence, localise as follows:
+        French:   "La recherche IA"
+                  e.g. "La recherche IA fournit des recommandations intelligentes..."
+                  e.g. "La recherche IA peut commettre des erreurs ; vérifiez les informations importantes."
+        German:   "die KI-Suche" (declined: Die KI-Suche / die KI-Suche / der KI-Suche)
+                  e.g. "Die KI-Suche liefert intelligente Empfehlungen..."
+                  e.g. "Überprüfen Sie wichtige Informationen, da die KI-Suche Fehler machen kann."
+        Japanese: "AI検索"
+                  e.g. "AI検索はミスをすることがあるので、重要な情報はご自身でご確認ください。"
+        es-ES:   "La función AI Search" (keep product name, add "La función" prefix)
+                  e.g. "La función AI Search puede cometer errores, comprueba la información importante."
+        pt-BR:    "A função AI Search" (keep product name, add "A função" prefix)
+                  e.g. "A função AI Search pode cometer erros, verifique as informações importantes."
+    - Brazilian Portuguese (not European Portuguese). Spain Spanish / Castilian (not Latin American).
+    - For short UI labels (1-3 words), prioritise brevity and naturalness over literal fidelity.
+
+    === FRENCH RULES (apply ONLY when translating to French — do NOT apply to other languages) ===
+
+    - French: use formal "vous".
+    - French button labels: standalone action labels and "Oui, X" buttons use INFINITIVE — not "vous" imperative.
+      e.g. "Activer tous les utilisateurs", "Révoquer toutes les invitations",
+      "Oui, désactiver {{user.count}} utilisateurs." — NEVER "Activez", "Révoquez", "Oui, désactivez".
+      Reserve "vous" imperative (Vérifiez, Choisissez) for sentence-level instructions only.
+    - French confirmation dialog body: consequence sentence FIRST, "Êtes-vous sûr" question SECOND.
+      NEVER reverse the order. ALWAYS "Êtes-vous sûr de vouloir [infinitive]...?" — NEVER "Voulez-vous vraiment".
+      e.g. "Une fois désactivés, ces utilisateurs ne pourront plus accéder au système. Êtes-vous sûr de
+      vouloir désactiver tous les {{user.count}} utilisateurs ?"
+      e.g. "Une fois désactivé, cet utilisateur ne pourra plus accéder au système. Êtes-vous sûr de
+      vouloir désactiver l'utilisateur ?"
+    - French typography: use a regular space (U+0020) — not a non-breaking space — before ?, !, :, ;
+    - French: use "Vérifiez" (not Consultez), "envoyez votre rapport" (not soumettez),
+      "Étiquette" for Label (not Libellé), "Obtenir des polices similaires" for Get similar fonts.
+    - French: "Vérifiez" (not Examinez/Consultez).
+      "Auto" stays as "Auto" (do NOT translate to "Automatique").
+      "[X] will appear here for you to take action" → "pour que vous puissiez prendre les mesures nécessaires".
+      e.g. "les polices apparaîtront ici pour que vous puissiez prendre les mesures nécessaires."
+      French "No X yet" empty states: use "pour l'instant" — NEVER "pour le moment".
+      e.g. "No fonts approved yet" → "Aucune police approuvée pour l'instant"
+      e.g. "No fonts rejected yet" → "Aucune police refusée pour l'instant"
+      French "Do not X" negative action labels: use INFINITIVE "Ne pas X".
+      e.g. "Do not share assets" → "Ne pas partager les ressources" (NOT "Ne partagez pas les ressources").
+      French "Give us a moment..." → "Donnez-nous un instant..."
+      French "Monospaced" → "Monoespace" (NOT "Chasse fixe").
+      French "Font Philosopher says..." → "Font Philosopher dit..." (keep "Font Philosopher" in English).
+      French "total fonts activated" → "Nombre total de polices activées" (capital N).
+      French "Informed for production" → "Prêt pour la production".
+      French "[N] style(s) are informed to be marked for production" → "[N] style(s) sont marqués pour la production".
+    - French: "tags" is an approved Monotype term — keep as "tags" in all contexts and strings.
+      Never substitute "balises" regardless of surrounding copy.
+    - French: for any action describing read or view access in a permission or capability context,
+      use "Consulter" — never "Voir" or "Lire". "Consulter" carries the professional register
+      appropriate for permission descriptions; "Voir" and "Lire" are too casual for that register.
+    - French: "unmark" (removing a production marking from a font) → "retirer le marquage".
+      Never use "Démarquer" (ambiguous) or "démarrer" (means "start").
+    - French: when two actions are paired (approve/reject, mark/unmark, add/remove), join them
+      with "ou" — never use a slash. This applies to all such pairs in any string.
+    - French: preserve the syntactic structure of the English source — do not reorder constituents,
+      nominalise verbs, or restructure clauses. Translate the words; keep the grammar shape.
+
+    === GERMAN RULES (apply ONLY when translating to German — do NOT apply to other languages) ===
+
+    - German: use formal "Sie".
+    - German dialog patterns — FOUR DISTINCT FORMS (apply based on English string type):
+      (1) "You are about to X" notification → "Sie sind dabei, X zu [infinitive]."
+          e.g. "Sie sind dabei, {{user.count}} Benutzer zu deaktivieren." — NEVER Möchten Sie for this.
+      (2) Short dialog title "Deactivate X users?" (3-6 word label, no full sentence) → "[obj] [infinitive]?"
+          e.g. "{{user.count}} Benutzer deaktivieren?" — do NOT expand to Möchten Sie form.
+      (3) Confirmation question in body text or standalone "Are you sure?" → "Möchten Sie [obj] wirklich [verb]en?"
+          e.g. "Möchten Sie diesen Benutzer wirklich löschen?" — NEVER "Sind Sie sicher, dass Sie..."
+          Body text with "Once deactivated/activated" prefix uses: "Nach der Deaktivierung/Aktivierung
+          können/kann diese/r Benutzer [nicht mehr] auf das System zugreifen. Möchten Sie wirklich
+          alle {{user.count}} Benutzer deaktivieren/aktivieren?" (consequence FIRST, question SECOND).
+          e.g. "Nach der Deaktivierung können diese Benutzer nicht mehr auf das System zugreifen.
+          Möchten Sie wirklich alle {{user.count}} Benutzer deaktivieren?"
+      (4) Affirmation button e.g. "Yes, deactivate X users." → "Ja, [obj] [INFINITIVE]." — object first, verb LAST.
+          e.g. "Ja, {{user.count}} Benutzer deaktivieren." — NEVER "Ja, deaktivieren Sie {{user.count}} Benutzer."
+    - German: "Label" stays as "Label" (English loanword) — NEVER Bezeichnung/Beschriftung/Etikett.
+      "Font(s)" stays as "Font(s)" in German — NEVER translate to "Schrift(en)". Examples:
+      "Noch keine Fonts genehmigt", "Aktivierte Fonts", "Erkundete Fonts",
+      "Insgesamt aktivierte Fonts", "Font-Vorschläge", "Fonts hier angezeigt",
+      "Fonts abgelehnt", "Fonts widerrufen". EXCEPTION: "Ähnliche Schriften anzeigen" for "Get similar fonts".
+      EXCEPTION 2: "Modern sans-serif fonts for campaigns" → "Moderne serifenlose Schriftarten für Kampagnen"
+      (use Schriftarten in this specific marketing context, not Fonts).
+      "Permanent" → "Dauerhaft". "Temporary" → "Temporär". "Auto" → "Automatisch".
+      "Sync and Downloads" → "Synchronisierung und Downloads" (NOT "Sync & Downloads").
+      "Service" stays as "Service" (English loanword) — NEVER "Dienst".
+      "Try X" → "Versuchen Sie X" — NEVER "Probieren Sie" for "Try" commands.
+      e.g. "Try out AI mode" → "Versuchen Sie den KI-Modus", "Try our AI mode" → "Versuchen Sie unseren KI-Modus".
+      "[X] will appear here for you to take action" → passive construction: "werden die [X] hier angezeigt, sodass Sie entsprechende Maßnahmen ergreifen können".
+      "Fragen Sie mich alles..." for "Ask me anything" — NEVER "Frag mich alles" (du form).
+      German button/action label style: short standalone labels (no subject pronoun, ≤6 words) use
+      plain INFINITIVE without "Sie". "Bestimmte Zeichen eingeben" not "Geben Sie spezifische Zeichen ein".
+      "Eigenen Text eingeben" not "Geben Sie Ihren eigenen Text ein".
+      "Bestimmte Sprachen auswählen" not "Wählen Sie die spezifischen Sprachen".
+      For sentence-level instructions addressing the user, continue using Sie form.
+      German "Failed to X" loading/action errors: pattern is "X konnte(n) nicht [verb] werden."
+      NEVER "[X] fehlgeschlagen" as the full error string.
+      "Failed to export data" → "Daten konnten nicht exportiert werden."
+      "Failed to load fonts" → "Fonts konnten nicht geladen werden."
+      "Failed to load permissions" → "Berechtigungen konnten nicht geladen werden."
+      German "quarterly" → "vierteljährlich" — NEVER "quartalsweise".
+      e.g. "Review your quarterly usage" → "Überprüfen Sie Ihre vierteljährliche Nutzung".
+      German "Empty state illustration" → "Leerer Status" (NOT "Leere-Zustand-Abbildung" or similar).
+      German "Monospaced" → "Monospaced" (keep as English loanword — NOT "Monospace" or "Monodistanzschrift").
+      German "Font Philosopher says..." → "Font Philosopher sagt..." (keep "Font Philosopher" in English).
+      German "Informed for production" → "Zur Produktion vorgemerkt".
+      German "[N] style(s) are informed to be marked for production" → "[N] Stile wurden zur Produktion vorgemerkt."
+      German "Access Key" / "Copy Access Key" → "Zugriffsschlüssel" / "Zugriffsschlüssel kopieren" (NOT "Zugangsschlüssel").
+
+    === PORTUGUESE (pt-BR) RULES (apply ONLY when translating to Portuguese — do NOT apply to other languages) ===
+
+    - pt-BR: use "você".
+    - pt-BR button labels: standalone action labels use INFINITIVE — NEVER imperative.
+      "Select specific languages" → "Selecionar idiomas específicos" (NOT "Selecione os idiomas").
+      "Enter specific characters" → "Inserir caracteres específicos" (NOT "Insira caracteres").
+      "Select the exact characters needed" → "Selecionar os caracteres exatos necessários" (NOT "Selecione").
+      Apply the same infinitive rule used for French, German, and es-ES standalone labels.
+    - pt-BR "Unable to X" / "Cannot X": use "Não foi possível X" — NEVER "Incapaz de X".
+      "Unable to delete user" → "Não foi possível excluir o usuário".
+      "Unable to deactivate user" → "Não foi possível desativar o usuário".
+    - pt-BR: use "Busque fontes" (not Pesquise), "A função AI Search" (not A Busca por IA),
+      "Eu prefiro essa resposta" (essa not esta), "Sincronização e downloads" (singular, not Sincronizações).
+      pt-BR article for "Monotype Fonts": always use "a Monotype Fonts" (feminine article) when
+      it is the subject/object of a sentence. e.g. "Com a Monotype Fonts, é fácil…" (NOT "Com Monotype Fonts").
+      pt-BR CRITICAL: "Legibility" → "Leiturabilidade" (NOT "Legibilidade").
+      "Readability" → "Legibilidade" (NOT "Leiturabilidade"). These are counterintuitive — double-check.
+      pt-BR: "user" → "usuário" — NEVER "utilizador" (that is European Portuguese).
+      pt-BR: "embedding" (web font delivery context) → "incorporação".
+      pt-BR: "Anyword" is an untranslatable Monotype product name — keep in English in all languages.
+    - pt-BR confirmation dialog body: start with "Após a desativação/ativação, esses/este usuário(s)..." —
+      NEVER "Uma vez desativados/ativados...".
+      e.g. "Após a desativação, esses usuários não poderão acessar o sistema. Tem certeza de que deseja
+      desativar todos os {{user.count}} usuários?" and "Após a desativação, este usuário não poderá
+      acessar o sistema. Tem certeza de que deseja desativar o usuário?"
+    - pt-BR: "Label" → "Marcador" (not Etiqueta/Rótulo).
+      "Auto" stays as "Auto" (do NOT translate to "Automático").
+      "Sincronização e Downloads" — capital D in Downloads.
+      "No X yet" short status labels: use just "Nenhuma X Y" without "ainda". e.g. "No fonts rejected yet" → "Nenhuma fonte rejeitada" (NOT "Nenhuma fonte rejeitada ainda").
+      pt-BR "role" (user role in SaaS/UI context) → "função" — NEVER "papel".
+      e.g. "Manage users, teams & roles" → "Gerenciar usuários, equipes e funções"
+      e.g. "Select the permissions to assign to this role." → "Selecione as permissões a serem atribuídas a esta função."
+      pt-BR "scan" (verb, document/risk analysis context) → "analisar … em busca de" — NEVER "escanear".
+      e.g. "scan documents for risk" → "analisar documentos em busca de riscos"
+      pt-BR "membership" (team context) → "membros" — NEVER "filiação".
+      e.g. "manage team membership" → "gerenciar os membros das equipes"
+      pt-BR "entitlements" (SaaS permissions/licensing context) → "permissões" or "licenças" depending on context — NEVER "direitos".
+      e.g. "View reports & entitlements" → "Visualizar relatórios e permissões" (access context) or "Visualizar relatórios e licenças" (licensing context)
+      pt-BR list connectors: when the final item in a list is a longer action phrase, prefer "além de" over a plain comma.
+      e.g. "Create, rename, delete teams, and manage team membership." → "Criar, renomear e excluir equipes, além de gerenciar os membros das equipes."
+      pt-BR "seat" (software licensing) → "licença individual" — NEVER "assento" or "lugar".
+      e.g. "5 seats" → "5 licenças individuais"
+      pt-BR "Monotype Library" (product name context) → "Biblioteca da Monotype".
+      pt-BR "foundry" (generic noun, not a brand name) → "fundidora".
+      e.g. "This foundry offers variable fonts" → "Esta fundidora oferece fontes variáveis"
+      NOTE: specific foundry brand names (Berthold, Bitstream, etc.) stay in English as always.
+
+    === SPANISH (es-ES) RULES (apply ONLY when translating to Spanish — do NOT apply to other languages) ===
+
+    - es-ES: use "tú" throughout, informal and conversational
+      tone — NEVER usted (except strictly legal/contractual text).
     es-ES WEBKIT / WEB PROJECT VOCABULARY (product-specific, overrides generic translation):
     - "webkit" → "kit web" (always translate — do NOT keep as "webkit")
     - "offline" in kit web / web project context (= not serving fonts) → "invisible" (NEVER "fuera de línea")
@@ -146,64 +338,6 @@ translation_task:
     - "Leaving soon fonts" → "Fuentes que nos dejan"
     - "Leaving earliest" → "Próxima retirada"
 
-    CREATIVE AND MARKETING COPY (loading messages, delight strings, taglines):
-    These strings must be IDIOMATICALLY ADAPTED — never translated word-for-word.
-    Aim for the same tone and punch as the English. Rephrase freely if needed.
-    For es-ES: if a TM version exists, it takes precedence. If no TM version, adapt naturally.
-    Typography jargon (kerning, serif, glifo) stays as-is even in playful strings.
-
-    CRITICAL RULES — violation of these will break production:
-    - Preserve ALL placeholder tokens verbatim: single-brace tokens with identifier names,
-      double-brace tokens, %s, %d, %1$s, positional tokens like <0>, and bracket tokens
-      like [name]. Copy them character-for-character. Do not translate, reorder, or reformat them.
-    - EXCEPTION — Link-anchor label tokens: when a single-brace token contains a human-readable
-      multi-word label like "Terms of Use", translate the text inside the braces while keeping
-      the brace syntax intact. Per-language translations for that specific token:
-        French  → write the token as: brace + Conditions d'utilisation + brace
-        German  → write the token as: brace + Nutzungsbedingungen + brace
-        pt-BR   → write the token as: brace + Termos de Uso + brace
-        Japanese → write the token as: brace + 利用規約 + brace
-        es-ES  → keep the token unchanged as: brace + Terms of Use + brace (brand-approved)
-    - Japanese ONLY: when any count variable (e.g. "{{user.count}}") refers to users, always
-      add the counter 人 with a space — write "{{user.count}} 人のユーザー" (space before 人),
-      never "{{user.count}}人のユーザー" (no space) or "{{user.count}} ユーザー" (no 人).
-    - ALL languages: "Monotype" and all Monotype product names — MyFonts, Fonts.com,
-      Monotype Fonts, Monotype AI, Mosaic, SkyFonts, Anyword — must stay in their exact English
-      form in every language. NEVER translate, adapt, or transliterate them
-      (e.g. NEVER "モナタイプ" for "Monotype" in Japanese).
-    - Japanese ONLY: Short brand attribution strings — "Made with ♡", "by Monotype.",
-      "Powered by Monotype" and similar footer/tagline strings — must be left
-      UNTRANSLATED. Copy them verbatim from English.
-    - Global tone setting: {tone}. Apply across all languages where register allows.
-    - German: use formal "Sie". French: use formal "vous". Japanese: use 丁寧語 (polite
-      register). pt-BR: use "você". es-ES: use "tú" throughout, informal and conversational
-      tone — NEVER usted (except strictly legal/contractual text). When tone is "informal",
-      prefer shorter, more direct phrasing in all languages.
-    - German dialog patterns — FOUR DISTINCT FORMS (apply based on English string type):
-      (1) "You are about to X" notification → "Sie sind dabei, X zu [infinitive]."
-          e.g. "Sie sind dabei, {{user.count}} Benutzer zu deaktivieren." — NEVER Möchten Sie for this.
-      (2) Short dialog title "Deactivate X users?" (3-6 word label, no full sentence) → "[obj] [infinitive]?"
-          e.g. "{{user.count}} Benutzer deaktivieren?" — do NOT expand to Möchten Sie form.
-      (3) Confirmation question in body text or standalone "Are you sure?" → "Möchten Sie [obj] wirklich [verb]en?"
-          e.g. "Möchten Sie diesen Benutzer wirklich löschen?" — NEVER "Sind Sie sicher, dass Sie..."
-          Body text with "Once deactivated/activated" prefix uses: "Nach der Deaktivierung/Aktivierung
-          können/kann diese/r Benutzer [nicht mehr] auf das System zugreifen. Möchten Sie wirklich
-          alle {{user.count}} Benutzer deaktivieren/aktivieren?" (consequence FIRST, question SECOND).
-          e.g. "Nach der Deaktivierung können diese Benutzer nicht mehr auf das System zugreifen.
-          Möchten Sie wirklich alle {{user.count}} Benutzer deaktivieren?"
-      (4) Affirmation button e.g. "Yes, deactivate X users." → "Ja, [obj] [INFINITIVE]." — object first, verb LAST.
-          e.g. "Ja, {{user.count}} Benutzer deaktivieren." — NEVER "Ja, deaktivieren Sie {{user.count}} Benutzer."
-    - French button labels: standalone action labels and "Oui, X" buttons use INFINITIVE — not "vous" imperative.
-      e.g. "Activer tous les utilisateurs", "Révoquer toutes les invitations",
-      "Oui, désactiver {{user.count}} utilisateurs." — NEVER "Activez", "Révoquez", "Oui, désactivez".
-      Reserve "vous" imperative (Vérifiez, Choisissez) for sentence-level instructions only.
-    - French confirmation dialog body: consequence sentence FIRST, "Êtes-vous sûr" question SECOND.
-      NEVER reverse the order. ALWAYS "Êtes-vous sûr de vouloir [infinitive]...?" — NEVER "Voulez-vous vraiment".
-      e.g. "Une fois désactivés, ces utilisateurs ne pourront plus accéder au système. Êtes-vous sûr de
-      vouloir désactiver tous les {{user.count}} utilisateurs ?"
-      e.g. "Une fois désactivé, cet utilisateur ne pourra plus accéder au système. Êtes-vous sûr de
-      vouloir désactiver l'utilisateur ?"
-    - French typography: use a regular space (U+0020) — not a non-breaking space — before ?, !, :, ;
     - es-ES INFINITIVE vs IMPERATIVE (critical distinction):
       Standalone button labels and "Sí, X" confirmation buttons → INFINITIVE:
       Activar/Desactivar/Revocar/Seleccionar/Eliminar/Obtener/Configurar/Separar/Introducir/Buscar.
@@ -221,6 +355,63 @@ translation_task:
       Singular: "Si desactivas a este usuario, no podrá acceder al sistema."
       e.g. Full pattern: "Si los desactivas, no podrán acceder al sistema. ¿Seguro que quieres desactivar
       los {{user.count}} usuarios?"
+    - es-ES: "Auto" stays as "Auto" (do NOT translate to "Automático").
+      "[X] will appear here for you to take action" → "para que actúes como corresponda".
+      e.g. "las fuentes aparecerán aquí para que actúes como corresponda."
+      es-ES "Add" (action verb) → ALWAYS "Añadir" — NEVER "Agregar" (Latin American).
+      e.g. "Añadir fuentes", "Añadir dominio", "Añadir usuario".
+      es-ES "workspace" → "espacio de trabajo" — NEVER "área de trabajo".
+      es-ES "features" (OpenType, UI features) → "características" — NOT "funciones".
+      e.g. "Include OpenType features" → "Incluir características de OpenType".
+      es-ES "specific" / "exact" (in UI copy qualifying a noun) → "concreto/a" — NOT "específico/a".
+      e.g. "Enter specific characters" → "Introducir caracteres concretos".
+      e.g. "Select specific languages" → "Selecciona los idiomas concretos que se admitirán".
+      es-ES "Common characters" (UI label) → "Caracteres habituales" — NOT "comunes".
+      es-ES "Embed code" (noun label) → "Código de incrustación" — NOT "Código incrustado".
+      es-ES "No users found to export" → "No se han encontrado usuarios que exportar" (relative clause form).
+      es-ES "Failed to export data. Retry" → "No se han podido exportar los datos. Reintentar".
+      es-ES "Unable to X" / "Cannot X" system errors → "No es posible X" — NEVER "No se puede X".
+      "Unable to delete user" → "No es posible eliminar el usuario".
+      "Unable to deactivate user" → "No es posible desactivar el usuario".
+      es-ES "Retry" (standalone button) → "Reintentar" — NOT "Inténtalo de nuevo".
+      es-ES "revoke invite" (status label, past action) → "Invitación revocada" (past participle noun phrase).
+    - es-ES: use "todavía" for "yet" — NEVER "aún".
+      e.g. "No hay fuentes aprobadas todavía", "No hay fuentes rechazadas todavía".
+    - es-ES vocabulary — use Castilian Spanish terms in all contexts, never Latin American variants:
+      "settings/ajustes" not "configuración"; "subir" not "cargar" for upload;
+      "pertenencia" not "membresía"; prefer native Castilian equivalents over Anglicisms
+      (e.g. "supervisión" not "monitoreo", "informe" not "reporte").
+      When in doubt, choose the term used in Spain (Castilian) over the Latin American alternative.
+    - es-ES: "output" when referring to font production output → "producción", never "salida".
+    - es-ES: when two actions are paired (approve/reject, mark/unmark), join with "o" — never slash.
+    - es-ES UI action vocabulary (linguist-approved):
+      "Manage" → "Gestionar" (NEVER "Administrar" in UI action context).
+      "seat" (software licensing unit) → "plaza" — NEVER "licencia individual" or "asiento".
+      e.g. "5 seats" → "5 plazas"
+      "entitlement" (permissions/licensing context) → "derecho" (Castilian standard, Microsoft-aligned).
+      e.g. "View reports & entitlements" → "Ver informes y derechos"
+      "add-on" (plan context) → "complemento".
+      e.g. "Add an add-on" → "Añadir un complemento"
+      "bulk" (mass action context) → "masivo/a" or "de forma masiva".
+      e.g. "Bulk import" → "Importación masiva", "bulk action" → "acción masiva"
+      "MyLibrary" / library (product context) → "Mi biblioteca" / "biblioteca".
+      e.g. "Company Library" → "biblioteca de empresa", "MyLibrary" → "Mi biblioteca"
+    - es-ES grammatical voice: the informal tú register applies only to second-person copy —
+      strings where the user is the agent (what the user does, chooses, or sees).
+      Impersonal and passive constructions must stay impersonal/passive regardless of tone setting.
+      Any string describing a system state, system requirement, or system error uses impersonal SE
+      (se debe, se puede, no se ha podido, no se han encontrado) — never convert these to tú forms.
+      The tone setting does not change grammatical voice, only second-person address.
+
+    === JAPANESE RULES (apply ONLY when translating to Japanese — do NOT apply to other languages) ===
+
+    - Japanese: use 丁寧語 (polite register).
+    - Japanese ONLY: when any count variable (e.g. "{{user.count}}") refers to users, always
+      add the counter 人 with a space — write "{{user.count}} 人のユーザー" (space before 人),
+      never "{{user.count}}人のユーザー" (no space) or "{{user.count}} ユーザー" (no 人).
+    - Japanese ONLY: Short brand attribution strings — "Made with ♡", "by Monotype.",
+      "Powered by Monotype" and similar footer/tagline strings — must be left
+      UNTRANSLATED. Copy them verbatim from English.
     - Japanese: NEVER add 本当に to confirmation strings. Use only よろしいですか？ at end.
       User account deactivate/activate: 無効化する/有効化する — NEVER 無効にする/有効にする.
       Font activation uses "アクティベートする/アクティベートされました" (NOT 有効化する).
@@ -337,176 +528,6 @@ translation_task:
       e.g. "Making Helvetica proud." → "Helveticaも納得の仕上がりに" (NOT "ヘルベチカを誇りに思います。")
       e.g. "Designers will notice. Trust us." → "気づく人には、ちゃんと伝わる" (NOT literal)
       e.g. "You are looking font-astic today." → "今日のあなた、font-astic。" (keep English wordplay)
-    - pt-BR button labels: standalone action labels use INFINITIVE — NEVER imperative.
-      "Select specific languages" → "Selecionar idiomas específicos" (NOT "Selecione os idiomas").
-      "Enter specific characters" → "Inserir caracteres específicos" (NOT "Insira caracteres").
-      "Select the exact characters needed" → "Selecionar os caracteres exatos necessários" (NOT "Selecione").
-      Apply the same infinitive rule used for French, German, and es-ES standalone labels.
-    - pt-BR "Unable to X" / "Cannot X": use "Não foi possível X" — NEVER "Incapaz de X".
-      "Unable to delete user" → "Não foi possível excluir o usuário".
-      "Unable to deactivate user" → "Não foi possível desativar o usuário".
-    - pt-BR: use "Busque fontes" (not Pesquise), "A função AI Search" (not A Busca por IA),
-      "Eu prefiro essa resposta" (essa not esta), "Sincronização e downloads" (singular, not Sincronizações).
-      pt-BR article for "Monotype Fonts": always use "a Monotype Fonts" (feminine article) when
-      it is the subject/object of a sentence. e.g. "Com a Monotype Fonts, é fácil…" (NOT "Com Monotype Fonts").
-      pt-BR CRITICAL: "Legibility" → "Leiturabilidade" (NOT "Legibilidade").
-      "Readability" → "Legibilidade" (NOT "Leiturabilidade"). These are counterintuitive — double-check.
-      pt-BR: "user" → "usuário" — NEVER "utilizador" (that is European Portuguese).
-      pt-BR: "embedding" (web font delivery context) → "incorporação".
-      pt-BR: "Anyword" is an untranslatable Monotype product name — keep in English in all languages.
-    - pt-BR confirmation dialog body: start with "Após a desativação/ativação, esses/este usuário(s)..." —
-      NEVER "Uma vez desativados/ativados...".
-      e.g. "Após a desativação, esses usuários não poderão acessar o sistema. Tem certeza de que deseja
-      desativar todos os {{user.count}} usuários?" and "Após a desativação, este usuário não poderá
-      acessar o sistema. Tem certeza de que deseja desativar o usuário?"
-    - French: use "Vérifiez" (not Consultez), "envoyez votre rapport" (not soumettez),
-      "Étiquette" for Label (not Libellé), "Obtenir des polices similaires" for Get similar fonts.
-    - German: "Label" stays as "Label" (English loanword) — NEVER Bezeichnung/Beschriftung/Etikett.
-      "Font(s)" stays as "Font(s)" in German — NEVER translate to "Schrift(en)". Examples:
-      "Noch keine Fonts genehmigt", "Aktivierte Fonts", "Erkundete Fonts",
-      "Insgesamt aktivierte Fonts", "Font-Vorschläge", "Fonts hier angezeigt",
-      "Fonts abgelehnt", "Fonts widerrufen". EXCEPTION: "Ähnliche Schriften anzeigen" for "Get similar fonts".
-      EXCEPTION 2: "Modern sans-serif fonts for campaigns" → "Moderne serifenlose Schriftarten für Kampagnen"
-      (use Schriftarten in this specific marketing context, not Fonts).
-      "Permanent" → "Dauerhaft". "Temporary" → "Temporär". "Auto" → "Automatisch".
-      "Sync and Downloads" → "Synchronisierung und Downloads" (NOT "Sync & Downloads").
-      "Service" stays as "Service" (English loanword) — NEVER "Dienst".
-      "Try X" → "Versuchen Sie X" — NEVER "Probieren Sie" for "Try" commands.
-      e.g. "Try out AI mode" → "Versuchen Sie den KI-Modus", "Try our AI mode" → "Versuchen Sie unseren KI-Modus".
-      "[X] will appear here for you to take action" → passive construction: "werden die [X] hier angezeigt, sodass Sie entsprechende Maßnahmen ergreifen können".
-      "Fragen Sie mich alles..." for "Ask me anything" — NEVER "Frag mich alles" (du form).
-      German button/action label style: short standalone labels (no subject pronoun, ≤6 words) use
-      plain INFINITIVE without "Sie". "Bestimmte Zeichen eingeben" not "Geben Sie spezifische Zeichen ein".
-      "Eigenen Text eingeben" not "Geben Sie Ihren eigenen Text ein".
-      "Bestimmte Sprachen auswählen" not "Wählen Sie die spezifischen Sprachen".
-      For sentence-level instructions addressing the user, continue using Sie form.
-      German "Failed to X" loading/action errors: pattern is "X konnte(n) nicht [verb] werden."
-      NEVER "[X] fehlgeschlagen" as the full error string.
-      "Failed to export data" → "Daten konnten nicht exportiert werden."
-      "Failed to load fonts" → "Fonts konnten nicht geladen werden."
-      "Failed to load permissions" → "Berechtigungen konnten nicht geladen werden."
-      German "quarterly" → "vierteljährlich" — NEVER "quartalsweise".
-      e.g. "Review your quarterly usage" → "Überprüfen Sie Ihre vierteljährliche Nutzung".
-      German "Empty state illustration" → "Leerer Status" (NOT "Leere-Zustand-Abbildung" or similar).
-      German "Monospaced" → "Monospaced" (keep as English loanword — NOT "Monospace" or "Monodistanzschrift").
-      German "Font Philosopher says..." → "Font Philosopher sagt..." (keep "Font Philosopher" in English).
-      German "Informed for production" → "Zur Produktion vorgemerkt".
-      German "[N] style(s) are informed to be marked for production" → "[N] Stile wurden zur Produktion vorgemerkt."
-      German "Access Key" / "Copy Access Key" → "Zugriffsschlüssel" / "Zugriffsschlüssel kopieren" (NOT "Zugangsschlüssel").
-    - French: "Vérifiez" (not Examinez/Consultez).
-      "Auto" stays as "Auto" (do NOT translate to "Automatique").
-      "[X] will appear here for you to take action" → "pour que vous puissiez prendre les mesures nécessaires".
-      e.g. "les polices apparaîtront ici pour que vous puissiez prendre les mesures nécessaires."
-      French "No X yet" empty states: use "pour l'instant" — NEVER "pour le moment".
-      e.g. "No fonts approved yet" → "Aucune police approuvée pour l'instant"
-      e.g. "No fonts rejected yet" → "Aucune police refusée pour l'instant"
-      French "Do not X" negative action labels: use INFINITIVE "Ne pas X".
-      e.g. "Do not share assets" → "Ne pas partager les ressources" (NOT "Ne partagez pas les ressources").
-      French "Give us a moment..." → "Donnez-nous un instant..."
-      French "Monospaced" → "Monoespace" (NOT "Chasse fixe").
-      French "Font Philosopher says..." → "Font Philosopher dit..." (keep "Font Philosopher" in English).
-      French "total fonts activated" → "Nombre total de polices activées" (capital N).
-      French "Informed for production" → "Prêt pour la production".
-      French "[N] style(s) are informed to be marked for production" → "[N] style(s) sont marqués pour la production".
-    - French: "tags" is an approved Monotype term — keep as "tags" in all contexts and strings.
-      Never substitute "balises" regardless of surrounding copy.
-    - French: for any action describing read or view access in a permission or capability context,
-      use "Consulter" — never "Voir" or "Lire". "Consulter" carries the professional register
-      appropriate for permission descriptions; "Voir" and "Lire" are too casual for that register.
-    - French: "unmark" (removing a production marking from a font) → "retirer le marquage".
-      Never use "Démarquer" (ambiguous) or "démarrer" (means "start").
-    - French: when two actions are paired (approve/reject, mark/unmark, add/remove), join them
-      with "ou" — never use a slash. This applies to all such pairs in any string.
-    - French: preserve the syntactic structure of the English source — do not reorder constituents,
-      nominalise verbs, or restructure clauses. Translate the words; keep the grammar shape.
-    - pt-BR: "Label" → "Marcador" (not Etiqueta/Rótulo).
-      "Auto" stays as "Auto" (do NOT translate to "Automático").
-      "Sincronização e Downloads" — capital D in Downloads.
-      "No X yet" short status labels: use just "Nenhuma X Y" without "ainda". e.g. "No fonts rejected yet" → "Nenhuma fonte rejeitada" (NOT "Nenhuma fonte rejeitada ainda").
-      pt-BR "role" (user role in SaaS/UI context) → "função" — NEVER "papel".
-      e.g. "Manage users, teams & roles" → "Gerenciar usuários, equipes e funções"
-      e.g. "Select the permissions to assign to this role." → "Selecione as permissões a serem atribuídas a esta função."
-      pt-BR "scan" (verb, document/risk analysis context) → "analisar … em busca de" — NEVER "escanear".
-      e.g. "scan documents for risk" → "analisar documentos em busca de riscos"
-      pt-BR "membership" (team context) → "membros" — NEVER "filiação".
-      e.g. "manage team membership" → "gerenciar os membros das equipes"
-      pt-BR "entitlements" (SaaS permissions/licensing context) → "permissões" or "licenças" depending on context — NEVER "direitos".
-      e.g. "View reports & entitlements" → "Visualizar relatórios e permissões" (access context) or "Visualizar relatórios e licenças" (licensing context)
-      pt-BR list connectors: when the final item in a list is a longer action phrase, prefer "além de" over a plain comma.
-      e.g. "Create, rename, delete teams, and manage team membership." → "Criar, renomear e excluir equipes, além de gerenciar os membros das equipes."
-      pt-BR "seat" (software licensing) → "licença individual" — NEVER "assento" or "lugar".
-      e.g. "5 seats" → "5 licenças individuais"
-      pt-BR "Monotype Library" (product name context) → "Biblioteca da Monotype".
-      pt-BR "foundry" (generic noun, not a brand name) → "fundidora".
-      e.g. "This foundry offers variable fonts" → "Esta fundidora oferece fontes variáveis"
-      NOTE: specific foundry brand names (Berthold, Bitstream, etc.) stay in English as always.
-    - es-ES: "Auto" stays as "Auto" (do NOT translate to "Automático").
-      "[X] will appear here for you to take action" → "para que actúes como corresponda".
-      e.g. "las fuentes aparecerán aquí para que actúes como corresponda."
-      es-ES "Add" (action verb) → ALWAYS "Añadir" — NEVER "Agregar" (Latin American).
-      e.g. "Añadir fuentes", "Añadir dominio", "Añadir usuario".
-      es-ES "workspace" → "espacio de trabajo" — NEVER "área de trabajo".
-      es-ES "features" (OpenType, UI features) → "características" — NOT "funciones".
-      e.g. "Include OpenType features" → "Incluir características de OpenType".
-      es-ES "specific" / "exact" (in UI copy qualifying a noun) → "concreto/a" — NOT "específico/a".
-      e.g. "Enter specific characters" → "Introducir caracteres concretos".
-      e.g. "Select specific languages" → "Selecciona los idiomas concretos que se admitirán".
-      es-ES "Common characters" (UI label) → "Caracteres habituales" — NOT "comunes".
-      es-ES "Embed code" (noun label) → "Código de incrustación" — NOT "Código incrustado".
-      es-ES "No users found to export" → "No se han encontrado usuarios que exportar" (relative clause form).
-      es-ES "Failed to export data. Retry" → "No se han podido exportar los datos. Reintentar".
-      es-ES "Unable to X" / "Cannot X" system errors → "No es posible X" — NEVER "No se puede X".
-      "Unable to delete user" → "No es posible eliminar el usuario".
-      "Unable to deactivate user" → "No es posible desactivar el usuario".
-      es-ES "Retry" (standalone button) → "Reintentar" — NOT "Inténtalo de nuevo".
-      es-ES "revoke invite" (status label, past action) → "Invitación revocada" (past participle noun phrase).
-    - pt-BR and es-ES: the abbreviation "AI" in general UI text → "IA".
-      e.g. "AI mode" → "Modo IA", "Try out AI mode" → "Experimente o modo IA" (pt-BR) /
-      "Prueba el modo IA" (es-ES), "Meet AI mode" → "Conheça o modo IA" / "Descubre el modo IA".
-    - "AI Search" product name — localisation by language (CRITICAL):
-      UI button labels and standalone headings: keep as "AI Search" in all languages.
-      When "AI Search" is the SUBJECT or OBJECT in a full sentence, localise as follows:
-        French:   "La recherche IA"
-                  e.g. "La recherche IA fournit des recommandations intelligentes..."
-                  e.g. "La recherche IA peut commettre des erreurs ; vérifiez les informations importantes."
-        German:   "die KI-Suche" (declined: Die KI-Suche / die KI-Suche / der KI-Suche)
-                  e.g. "Die KI-Suche liefert intelligente Empfehlungen..."
-                  e.g. "Überprüfen Sie wichtige Informationen, da die KI-Suche Fehler machen kann."
-        Japanese: "AI検索"
-                  e.g. "AI検索はミスをすることがあるので、重要な情報はご自身でご確認ください。"
-        es-ES:   "La función AI Search" (keep product name, add "La función" prefix)
-                  e.g. "La función AI Search puede cometer errores, comprueba la información importante."
-        pt-BR:    "A função AI Search" (keep product name, add "A função" prefix)
-                  e.g. "A função AI Search pode cometer erros, verifique as informações importantes."
-    - es-ES: use "todavía" for "yet" — NEVER "aún".
-      e.g. "No hay fuentes aprobadas todavía", "No hay fuentes rechazadas todavía".
-    - es-ES vocabulary — use Castilian Spanish terms in all contexts, never Latin American variants:
-      "settings/ajustes" not "configuración"; "subir" not "cargar" for upload;
-      "pertenencia" not "membresía"; prefer native Castilian equivalents over Anglicisms
-      (e.g. "supervisión" not "monitoreo", "informe" not "reporte").
-      When in doubt, choose the term used in Spain (Castilian) over the Latin American alternative.
-    - es-ES: "output" when referring to font production output → "producción", never "salida".
-    - es-ES: when two actions are paired (approve/reject, mark/unmark), join with "o" — never slash.
-    - es-ES UI action vocabulary (linguist-approved):
-      "Manage" → "Gestionar" (NEVER "Administrar" in UI action context).
-      "seat" (software licensing unit) → "plaza" — NEVER "licencia individual" or "asiento".
-      e.g. "5 seats" → "5 plazas"
-      "entitlement" (permissions/licensing context) → "derecho" (Castilian standard, Microsoft-aligned).
-      e.g. "View reports & entitlements" → "Ver informes y derechos"
-      "add-on" (plan context) → "complemento".
-      e.g. "Add an add-on" → "Añadir un complemento"
-      "bulk" (mass action context) → "masivo/a" or "de forma masiva".
-      e.g. "Bulk import" → "Importación masiva", "bulk action" → "acción masiva"
-      "MyLibrary" / library (product context) → "Mi biblioteca" / "biblioteca".
-      e.g. "Company Library" → "biblioteca de empresa", "MyLibrary" → "Mi biblioteca"
-    - es-ES grammatical voice: the informal tú register applies only to second-person copy —
-      strings where the user is the agent (what the user does, chooses, or sees).
-      Impersonal and passive constructions must stay impersonal/passive regardless of tone setting.
-      Any string describing a system state, system requirement, or system error uses impersonal SE
-      (se debe, se puede, no se ha podido, no se han encontrado) — never convert these to tú forms.
-      The tone setting does not change grammatical voice, only second-person address.
-    - Brazilian Portuguese (not European Portuguese). Spain Spanish / Castilian (not Latin American).
-    - For short UI labels (1-3 words), prioritise brevity and naturalness over literal fidelity.
 
     Output ONLY a valid JSON array. Each element must have exactly this structure:
     {
@@ -535,34 +556,22 @@ review_task:
     Review every entry in the array against this checklist for each translated language:
     [ ] Accuracy: Does the translation faithfully convey the English meaning?
     [ ] Brand voice: Does the tone match Monotype's guidelines?
-    [ ] Placeholder integrity: Are ALL single-brace and double-brace variable tokens
-        present, unchanged, and in a grammatically valid position?
-        CRITICAL EXCEPTION — Link-anchor label tokens: The English source contains a
-        single-brace token whose text reads "Terms of Use". This token MUST appear
-        localised in French, German, pt-BR, and Japanese. The correct localised forms are:
-          French   → brace + Conditions d'utilisation + brace
-          German   → brace + Nutzungsbedingungen + brace
-          pt-BR    → brace + Termos de Uso + brace
-          Japanese → brace + 利用規約 + brace
-          es-ES   → brace + Terms of Use + brace (unchanged — brand-approved)
-        If you see brace + Conditions d'utilisation + brace in the French output, that is
-        CORRECT — do NOT revert it to brace + Terms of Use + brace. Same for the other
-        localised forms. Only the es-ES output keeps brace + Terms of Use + brace.
+    [ ] Placeholder integrity: verify all {{double-brace}} and {single-brace} tokens are
+        present verbatim. EXCEPTION — link-anchor {Terms of Use} token is correctly
+        LOCALISED: FR → {Conditions d'utilisation}, DE → {Nutzungsbedingungen},
+        pt-BR → {Termos de Uso}, JA → {利用規約}. es-ES keeps it unchanged. Do not revert.
     [ ] Untranslatable terms: Are product names kept in English?
     [ ] Natural fluency: Would a native speaker find this natural in a UI context?
     [ ] Brevity: Are short UI labels appropriately compact?
-    [ ] es-ES register: Check sentence-level copy uses tú forms (estás, tienes, quieres,
-        tu, tus). REJECT usted forms (Revise, Busque, Pruebe, su, sus, está, tiene, quiere).
-        IMPORTANT: standalone button labels and "Sí, X" confirmation buttons correctly use
-        INFINITIVE (Activar, Desactivar, Revocar, Seleccionar) — do NOT change those to tú imperatives.
-        Personal 'a' is only correct before singular human nouns (un usuario, este usuario).
-        REMOVE personal 'a' before count variables: "desactivar {{user.count}} usuarios" (no 'a').
+    [ ] es-ES register: verify sentence-level copy uses tú forms (estás, tienes, tu, tus) —
+        REJECT usted forms (Revise, su, está). Standalone buttons and "Sí, X" confirmations
+        correctly use INFINITIVE (Activar) — do NOT change those. Remove personal 'a' before
+        count variables: "desactivar {{user.count}} usuarios" (no 'a').
     [ ] Japanese count variable spacing: verify "{{user.count}} 人のユーザー" has a space between
         the variable and 人. Correct to add the space if missing.
-    [ ] AI Search sentence localisation: when "AI Search" appears as subject/object in a SENTENCE
-        (not a standalone label), verify: FR uses "La recherche IA", DE uses "die KI-Suche",
-        JA uses "AI検索", es-ES uses "La función AI Search", pt-BR uses "A función AI Search".
-        Correct any language that kept "AI Search" in sentence context.
+    [ ] AI Search sentences: when "AI Search" is subject/object in a sentence (not a standalone
+        label), verify: FR → "La recherche IA", DE → "die KI-Suche", JA → "AI検索",
+        es-ES → "La función AI Search", pt-BR → "A função AI Search". Fix any that kept "AI Search".
     [ ] Japanese は vs が particle: in negative/empty-state sentences, verify は is used not が.
         e.g. "非アクティブユーザーはいません" (correct). Fix if が is used.
     [ ] Japanese UI operation vocabulary: verify native terms — 一括操作 not バルクアクション,
@@ -598,15 +607,10 @@ review_task:
         e.g. "Adobe Fonts" must NOT appear as "Fuentes de Adobe" in es-ES.
 
     --- FRENCH ENFORCEMENT ---
-    [ ] French button labels (INFINITIVE): ALL standalone action labels use infinitive — Sélectionner,
-        Saisir, Afficher, Entrer, Importer, Trouver — NEVER vous imperative (Sélectionnez, Saisissez,
-        Tapez, Entrez, Voyez, Trouvez, Téléchargez). Reserve vous imperative for sentence-level instructions only.
-        "Select specific languages" → "Sélectionner des langues spécifiques" (NOT Sélectionnez).
-        "Enter specific characters" → "Saisir des caractères spécifiques" (NOT Entrez / Saisir).
-        "Type your own text" → "Saisir votre propre texte" (NOT Tapez).
-    [ ] French "tags": verify "tags" is kept as "tags" in all contexts — NEVER "étiquettes" or "balises".
-        "Create Tag" → "Créer un tag"; "Delete tag" → "Supprimer le tag"; "Tags are not case sensitive"
-        → "Les tags ne sont pas sensibles à la casse."
+    [ ] French button labels: verify standalone action labels use INFINITIVE (Sélectionner, Saisir)
+        not vous imperative (Sélectionnez, Saisissez). Fix any -ez endings on standalone labels.
+    [ ] French "tags": verify kept as "tags" — NEVER "étiquettes" or "balises".
+        e.g. "Create Tag" → "Créer un tag" (not "étiquette").
     [ ] French "show/view" action labels: standalone "show" or "view" labels use "Afficher" — NEVER "Voir".
         "show more" → "Afficher plus"; "view" → "Afficher"; "View all foundries" → "Afficher toutes les fonderies".
         "Voir" is only acceptable inside full running sentences.
@@ -615,31 +619,21 @@ review_task:
         → "Sélectionner tous les utilisateurs affectés"; "View only unassigned roles" → "Afficher uniquement les rôles non affectés".
 
     --- GERMAN ENFORCEMENT ---
-    [ ] GERMAN ONLY — "Font(s)" stays as "Font" in German compound words and standalone labels.
-        DO NOT apply this rule to French, Spanish, Portuguese, or Japanese — in those languages
-        "fonts" translates normally to polices / fuentes / fontes / フォント. Verify any FR/ES/PT/JA
-        string containing "font" uses the language's normal translation, NOT the English word "font".
-        For DE: Font-Cache (NOT Schrift-Cache); Fontlisten (NOT Schriftlisten); Font aktivieren
-        (NOT Schrift aktivieren); Fonts in diesem Dokument (NOT Schriften).
-        Hard exceptions only: "Ähnliche Schriften anzeigen"; "Schriftarten" in specific brand/marketing phrasing.
-    [ ] German button labels (INFINITIVE without Sie): standalone labels ≤6 words with no subject pronoun
-        use plain infinitive. "Bestimmte Zeichen eingeben" (NOT "Geben Sie spezifische Zeichen ein");
-        "Eigenen Text eingeben" (NOT "Geben Sie Ihren eigenen Text ein"); "Bestimmte Sprachen auswählen"
-        (NOT "Wählen Sie spezifische Sprachen"). Full sentences addressing the user keep Sie.
+    [ ] German "Font(s)": verify stays as "Font" in DE — NEVER "Schrift(en)". Hard exceptions:
+        "Ähnliche Schriften anzeigen" and "Schriftarten" in specific marketing phrasing.
+        Also verify FR/ES/PT/JA use their normal translation (polices/fuentes/fontes/フォント), not "font".
+    [ ] German button labels: verify short standalone labels (≤6 words) use plain INFINITIVE
+        (Bestimmte Zeichen eingeben) — not Sie form (Geben Sie...ein). Full sentences keep Sie.
     [ ] German "Sind Sie sicher": NEVER acceptable — always "Möchten Sie X wirklich?".
         "Are you sure you want to activate?" → "Möchten Sie den Benutzer wirklich aktivieren?" (NOT Sind Sie sicher).
-    [ ] German "Failed to X": must follow "X konnte(n) nicht [verb] werden." — NEVER "[X] fehlgeschlagen" alone.
-        "Failed to export data" → "Daten konnten nicht exportiert werden."
-        "Failed to load fonts" → "Fonts konnten nicht geladen werden."
+    [ ] German "Failed to X": must be "X konnte(n) nicht [verb] werden." — NEVER "[X] fehlgeschlagen" alone.
+        e.g. "Failed to export data" → "Daten konnten nicht exportiert werden."
 
     --- PORTUGUESE ENFORCEMENT ---
-    [ ] pt-BR button labels (INFINITIVE): standalone action labels use infinitive — Selecionar, Inserir,
-        Visualizar, Carregar — NEVER imperative (Selecione, Insira, Veja, Faça upload de).
-        "Select specific languages" → "Selecionar idiomas específicos" (NOT Selecione os idiomas).
-        "Enter specific characters" → "Inserir caracteres específicos" (NOT Insira).
-    [ ] pt-BR "Unable to X": must be "Não foi possível X" — NEVER "Incapaz de X" (direct calque).
-        "Unable to delete user" → "Não foi possível excluir o usuário".
-        "Unable to deactivate user" → "Não foi possível desativar o usuário".
+    [ ] pt-BR button labels: verify standalone labels use INFINITIVE (Selecionar, Inserir)
+        not imperative (Selecione, Insira). e.g. "Select languages" → "Selecionar idiomas".
+    [ ] pt-BR "Unable to X": must be "Não foi possível X" — NEVER "Incapaz de X".
+        e.g. "Unable to delete user" → "Não foi possível excluir o usuário".
 
     --- SPANISH ENFORCEMENT ---
     [ ] es-ES "Una vez desactivado/activado": NEVER use this pattern. Use "Si los desactivas..."
@@ -652,12 +646,10 @@ review_task:
         "Unable to deactivate user" → "No es posible desactivar el usuario".
 
     --- JAPANESE ENFORCEMENT ---
-    [ ] Japanese button label (ALL verb forms): ALL standalone labels drop trailing する/します — not only
-        有効化/無効化 forms. Includes アクティベートする → アクティベート; 再起動する → 再起動;
-        表示する → 表示; 確認する → 確認. Check every short action label for trailing する.
-    [ ] Japanese 件 counter: verify <count> representing item quantities always has 件 appended.
-        "Replaced <count> instance with the selected font" → "<count> 件を選択したフォントに置き換えました".
-        Any bare <count> in a replacement/count context without 件 is a defect — correct it.
+    [ ] Japanese button labels: ALL standalone labels drop trailing する — e.g. 有効化する → 有効化,
+        アクティベートする → アクティベート, 表示する → 表示. Fix any trailing する on short action labels.
+    [ ] Japanese 件 counter: verify <count> representing quantities has 件 appended — NEVER bare.
+        e.g. "<count> instances replaced" → "<count>件を選択したフォントに置き換えました". Fix bare <count>.
 
     For any string that fails a check: correct it in-place in the JSON.
     For any string where you are uncertain after correction: add a "reviewer_note"

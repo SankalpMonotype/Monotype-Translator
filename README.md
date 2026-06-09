@@ -14,7 +14,8 @@ AI-powered translation pipeline built with CrewAI and FastAPI. Translates Monoty
 
 **Status:** Live prototype — actively used by Monotype linguist teams  
 **Live tool:** https://huggingface.co/spaces/Sankalp546/Monotype_Translator  
-**Maintained by:** Sankalp Khandelwal (sankalp.khandelwal@monotype.com)
+**Maintained by:** Sankalp Khandelwal (sankalp.khandelwal@monotype.com)  
+**Last updated:** June 2026 — language-filtered prompts, unit test suite, knowledge base refresh from linguist V3 comparison
 
 ---
 
@@ -22,7 +23,7 @@ AI-powered translation pipeline built with CrewAI and FastAPI. Translates Monoty
 
 | Metric | Before (manual) | After (this tool) |
 |--------|-----------------|-------------------|
-| Time to translate 100 strings across 5 languages | 2–3 days | 3–5 minutes |
+| Time to translate 100 strings across 5 languages | 4–5 days | 3–5 minutes |
 | Brand terminology consistency | Varies by linguist | Enforced by AI on every string |
 | Style guide lookup | Manual, per string | Automated — ~20 rules checked per language |
 | Linguist role | Full translation | Post-editing and quality assurance |
@@ -218,9 +219,9 @@ Approved translations for ~100 core typographic, UI, and SaaS terms across all 5
 Cover register, button label grammar, confirmation dialog structure, error message patterns, and language-specific vocabulary traps. Examples:
 - **es-ES**: webkit → "kit web"; offline (kit web state) → "invisible" (not "fuera de línea"); expiry date → "fecha de caducidad"; creative/delight strings must be idiomatically adapted, never word-for-word
 - **pt-BR**: legibility → "leiturabilidade" (counterintuitive); readability → "legibilidade"; user → "usuário" (never "utilizador")
-- **de-DE**: four distinct dialog verb patterns; "Font(s)" stays as English loanword; quarterly → "vierteljährlich"
-- **fr-FR**: standalone buttons use infinitive (not *vous* imperative); "tags" stays as "tags" in all contexts
-- **ja-JP**: count variables for users take 人 counter; font lifecycle "Leaving" = 提供終了 (retirement); button labels drop trailing する
+- **de-DE**: four distinct dialog verb patterns; "Font(s)" stays as English loanword; quarterly → "vierteljährlich"; font filter description strings use formal "Lassen Sie sich Fonts anzeigen, die…" construction; features → "Funktionen" (never "Features")
+- **fr-FR**: standalone buttons use infinitive (not *vous* imperative); "tags" stays as "tags"; Upload → "Importer"; features → "fonctionnalités"; kerning → "crénage"; Re-invite → "Réinviter"
+- **ja-JP**: count variables for users take 人 counter; font lifecycle "Leaving" = 提供終了 (retirement); button labels drop trailing する; "My Company" → 自社; "Show less" → 折りたたむ; "Visual properties" → 表示設定; "Shared with me" → 共有されたアセット
 
 ---
 
@@ -235,7 +236,11 @@ Cover register, button label grammar, confirmation dialog structure, error messa
 | Confirmation dialog structure | Consequence sentence first, question second (all languages) |
 | webkit / web project vocabulary | es-ES: offline → "invisible", webkit → "kit web" |
 | Expiry terminology | es-ES: always "caducidad", never "vencimiento" |
-| Typography terms | Kerning stays "kerning" in es-ES; pt-BR swaps legibility/readability |
+| Typography terms | Kerning → "crénage" (FR), "Unterschneidung" (DE); kerning filter → "Filtre de crénage" / "Unterschneidungsfilter" |
+| Feature(s) terminology | FR: "fonctionnalités" (never "caractéristiques"); DE: "Funktionen" (never "Features") |
+| Upload terminology | FR: "Importer" (never "Téléverser"); PT: "Carregar" (never "Fazer upload") |
+| German descriptive sentences | Font filter descriptions use formal "Lassen Sie sich Fonts anzeigen, die…" — not bare infinitive |
+| Japanese UI conventions | "My Company" → 自社; "Show less" → 折りたたむ; "Visual properties" → 表示設定 |
 | Creative / delight strings | Idiomatically adapted in the target language, never literal |
 | Japanese counters | `{{count}}` for items → 件; for users → 人 |
 | Quotation marks | es-ES uses «»; de-DE uses „"; fr-FR uses « » |
@@ -312,9 +317,14 @@ monotype_translation_crew/
 │   │   ├── tasks.yaml      # Task instructions for Excel/PDF translation
 │   │   └── docx_tasks.yaml # Task instructions for Word document translation
 │   └── tools/
-│       ├── excel_tools.py  # Read/write Excel; brand context cache
-│       └── docx_tools.py   # Read/write Word documents
+│       ├── excel_tools.py          # Read/write Excel; brand context cache
+│       ├── docx_tools.py           # Read/write Word documents
+│       ├── glossary_validator.py   # Validates translations against approved glossary
+│       └── placeholder_validator.py # Validates placeholder integrity in output
 ├── knowledge/              # Brand rules, glossary, per-language guides
+├── tests/                  # Unit test suite (116 tests)
+│   ├── test_filter_task_description.py   # Language-filtering prompt tests (26 tests)
+│   └── ...                 # Additional test modules
 ├── inputs/                 # Uploaded source files (runtime)
 ├── outputs/                # Translated output files (runtime)
 ├── index.html              # Single-page UI
@@ -326,9 +336,13 @@ monotype_translation_crew/
 ## Architecture Notes
 
 - **Brand context caching** — on first run the Brand Analyst reads all knowledge files and scrapes MyFonts.com, then saves the result to `outputs/brand_context_cache.txt`. Subsequent runs load from cache, skipping the web scrape. Delete the cache file to force a refresh.
-- **Batch processing** — strings are translated in batches of ~50 rows to stay within LLM context limits. The Production Manager merges all batches before writing the output file.
-- **Concurrent jobs** — the `reviewed_translations.json` interim file is shared. Running two jobs simultaneously will overwrite it. This is acceptable for single-team use; a job-ID-scoped file system would fix it for multi-user deployments.
-- **docx pipeline** — Word files run through a separate `DocxTranslationCrew` that extracts paragraph text and table cells, translates them, and writes back one output `.docx` per target language.
+- **Language-filtered prompts** — the `translation_task` description is structured into a GLOBAL RULES section followed by five per-language sections (`=== FRENCH RULES ===`, `=== GERMAN RULES ===`, etc.). When fewer than all five languages are selected, only the relevant sections are included in the prompt. Selecting a single language saves 59–73% of description tokens compared to the full five-language prompt.
+- **Batch processing** — strings are translated in batches that scale inversely with language count: 1 language → 300 rows/batch, 5 languages → 75 rows/batch. This keeps output token usage roughly constant regardless of how many languages are selected.
+- **Concurrent jobs** — each job writes its interim translations to a unique `reviewed_translations_{job_id}.json` file (using `threading.local()` to scope the path per thread). Multiple simultaneous uploads are safe.
+- **Batch retry** — DOCX batch jobs retry each batch up to 3 times (5 s / 10 s back-off) before falling back to English source text. Transient API or network errors recover automatically.
+- **Agent execution limits** — all agents have `max_iter` and `max_execution_time` caps (Brand Analyst: 8 iter / 720 s; Translator: 5 / 600 s; Reviewer + Production Manager: 3 / 300 s) to prevent runaway loops.
+- **DOCX pipeline** — Word files run through a separate `DocxTranslationCrew`. Files with ≤10 segments use the full 4-agent CrewAI pipeline; larger files use direct-LLM batching with per-batch retry. Output is a zip of per-language `.docx` files.
+- **PDF pipeline** — PDFs are extracted to text/tables via pdfplumber and converted to Excel, then translated through the standard Excel pipeline. Output is a translated `.xlsx`. Complex PDF layouts (forms, multi-column, scanned images) may lose structure during extraction — OCR is not supported.
 
 ---
 
@@ -336,11 +350,11 @@ monotype_translation_crew/
 
 | Item | Status |
 |------|--------|
-| Automated test suite | No unit tests — reliability is validated by running the tool on linguist-approved Excel files and diffing AI output against the approved column. New rules are verified the same way before being committed. |
+| Automated test suite | 116 unit tests covering language-section filtering, placeholder validation, glossary validation, and batch logic. Translation quality is validated by diffing AI output against linguist-approved Excel files — a validation script generates a per-language accuracy report with exact-match % and average similarity %. |
 | Translation Memory (TM) integration — look up approved translations before calling the LLM | Planned |
 | SSO / internal Monotype auth | Not yet — currently open prototype |
 | Additional languages (es-419, zh-CN, ko-KR) | Planned |
-| Multi-user job isolation (scoped output files) | Planned |
+| Multi-user job isolation (scoped output files) | Done — each job writes to `reviewed_translations_{job_id}.json` |
 | Integration with Monotype Fonts localization pipeline | Under evaluation |
 | Hosting on Monotype internal infrastructure | Requires IT support |
 

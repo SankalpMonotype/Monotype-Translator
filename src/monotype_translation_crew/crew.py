@@ -37,6 +37,8 @@ class MonotypeTranslationCrew:
         return Agent(
             config=self.agents_config["brand_analyst"],  # type: ignore[index]
             verbose=True,
+            max_iter=8,
+            max_execution_time=720,
             tools=[
                 read_brand_context_cache,
                 read_brand_guidelines,
@@ -52,6 +54,8 @@ class MonotypeTranslationCrew:
         return Agent(
             config=self.agents_config["translator"],  # type: ignore[index]
             verbose=True,
+            max_iter=5,
+            max_execution_time=600,
             tools=[read_excel_for_translation],
             allow_delegation=False,
         )
@@ -63,6 +67,8 @@ class MonotypeTranslationCrew:
         return Agent(
             config=self.agents_config["translation_reviewer"],  # type: ignore[index]
             verbose=True,
+            max_iter=3,
+            max_execution_time=300,
             allow_delegation=False,
         )
 
@@ -71,6 +77,8 @@ class MonotypeTranslationCrew:
         return Agent(
             config=self.agents_config["production_manager"],  # type: ignore[index]
             verbose=True,
+            max_iter=3,
+            max_execution_time=300,
             tools=[write_reviewed_translations_to_excel],
             allow_delegation=False,
         )
@@ -96,9 +104,12 @@ class MonotypeTranslationCrew:
 
     @task
     def translation_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["translation_task"],  # type: ignore[index]
-        )
+        config = self.tasks_config["translation_task"]  # type: ignore[index]
+        override = getattr(self, "_translation_desc_override", None)
+        if override:
+            config = dict(config)
+            config["description"] = override
+        return Task(config=config)
 
     @task
     def review_task(self) -> Task:
@@ -157,6 +168,8 @@ class DocxTranslationCrew:
         return Agent(
             config=self._agents_cfg["brand_analyst"],
             verbose=True,
+            max_iter=8,
+            max_execution_time=720,
             tools=[
                 read_brand_context_cache,
                 read_brand_guidelines,
@@ -171,6 +184,8 @@ class DocxTranslationCrew:
         return Agent(
             config=self._agents_cfg["production_manager"],
             verbose=True,
+            max_iter=3,
+            max_execution_time=300,
             tools=[write_translations_to_docx],
             allow_delegation=False,
         )
@@ -180,12 +195,16 @@ class DocxTranslationCrew:
         translator = Agent(
             config=self._agents_cfg["translator"],
             verbose=True,
+            max_iter=5,
+            max_execution_time=600,
             tools=[read_docx_for_translation],
             allow_delegation=False,
         )
         reviewer = Agent(
             config=self._agents_cfg["translation_reviewer"],
             verbose=True,
+            max_iter=3,
+            max_execution_time=300,
             allow_delegation=False,
         )
         prod_manager = self._make_prod_manager()

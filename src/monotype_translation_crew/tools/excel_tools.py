@@ -2,8 +2,11 @@ import hashlib
 import json
 import os
 import re
+import threading
 from pathlib import Path
 from crewai.tools import tool
+from monotype_translation_crew.tools.glossary_validator import validate_glossary
+from monotype_translation_crew.tools.placeholder_validator import validate_placeholders
 
 try:
     import openpyxl
@@ -31,26 +34,50 @@ def _normalise_translation(text: str, lang: str) -> str:
     Apply deterministic post-processing to a translated string before writing to Excel.
 
     Rules applied (all languages):
-      - Replace Unicode ellipsis U+2026 (…) with ASCII triple-dot (...).
+      - Replace Unicode ellipsis U+2026 with ASCII triple-dot (...).
+      - Normalise placeholder spacing: {{ name }} -> {{name}}.
+      - Smart/curly apostrophes (‘, ’) -> ASCII apostrophe (').
+      - Smart/curly double quotes (“, ”) -> ASCII double quote (").
+        Guillemets «» are preserved (correct for es-ES).
+      - Strip trailing whitespace.
 
     Rules applied (French only):
       - Replace non-breaking space U+00A0 immediately before ?, !, :, ;
         with a regular space (U+0020). The reference files use a regular space
         in these positions; the LLM often inserts the typographic non-breaking
         space, causing an otherwise-correct translation to fail exact matching.
+
+    Rules applied (Japanese only):
+      - ASCII parentheses wrapping a number or placeholder -> fullwidth brackets.
+        e.g. "(42件)" -> "（42件）", "(<count>件)" -> "（<count>件）"
     """
     # Universal: ellipsis normalisation
     text = text.replace('\u2026', '...')
 
-    # Universal: normalise placeholder spacing — strip inner spaces from {{ name }} → {{name}}
+    # Universal: normalise placeholder spacing -- strip inner spaces from {{ name }} -> {{name}}
     text = re.sub(r'\{\{\s+(\S+?)\s+\}\}', r'{{\1}}', text)
 
-    # French: non-breaking space before punctuation → regular space
+    # Universal: curly/smart apostrophes -> straight apostrophe
+    text = text.replace('\u2019', "'").replace('\u2018', "'")
+
+    # Universal: curly/smart double quotes -> straight double quotes
+    # Guillemets (U+00AB, U+00BB) are intentionally left intact
+    text = text.replace('\u201c', '"').replace('\u201d', '"')
+
+    # Universal: strip trailing whitespace
+    text = text.rstrip()
+
+    # French: non-breaking space before punctuation -> regular space
     if lang == "fr":
         text = re.sub(r'\u00a0([?!:;])', r' \1', text)
 
-    return text
+    # Japanese: ASCII parentheses around a number or placeholder -> fullwidth brackets
+    if lang == "ja":
+        text = re.sub(r'\((\d[\d,]*(?:\s*\u4ef6)?)\)', '\uff08' + r'\1' + '\uff09', text)
+        text = re.sub(r'\((<[^>]+>(?:\s*\u4ef6)?)\)', '\uff08' + r'\1' + '\uff09', text)
+        text = re.sub(r'\((\{\{[^}]+\}\}(?:\s*\u4ef6)?)\)', '\uff08' + r'\1' + '\uff09', text)
 
+    return text
 
 def _detect_header_row(ws) -> int:
     """
@@ -85,7 +112,17 @@ def _build_column_map(header_cells) -> dict[str, int]:
 # Shared constants + internal write helper (used by Tool 0b and Tool 2)
 # ---------------------------------------------------------------------------
 
-REVIEWED_TRANSLATIONS_PATH = os.path.join("outputs", "reviewed_translations.json")
+_DEFAULT_REVIEWED_PATH = os.path.join("outputs", "reviewed_translations.json")
+_job_local = threading.local()
+
+
+def _get_reviewed_path() -> str:
+    return getattr(_job_local, "path", _DEFAULT_REVIEWED_PATH)
+
+
+def set_job_translation_path(path: str) -> None:
+    """Bind a job-scoped reviewed_translations path to the current thread."""
+    _job_local.path = path
 
 _LANG_HEADER_LABELS: dict[str, str] = {
     "fr": "French", "de": "German",
@@ -167,6 +204,18 @@ def _write_entries_to_excel(ws, entries: list[dict], header_row_idx: int) -> dic
     skipped_rows: list[dict] = []
     errors: list[str] = []
 
+    # Placeholder integrity check — runs before writing; never blocks
+    try:
+        ph_violations = validate_placeholders(entries)
+        for pv in ph_violations:
+            print(
+                f"[PLACEHOLDER] row {pv['row_index']} [{pv['lang']}] "
+                f"{pv['issue'].upper()}: {pv['placeholder']!r} "
+                f"in {pv['english']!r}"
+            )
+    except Exception as _ph_exc:
+        print(f"[PLACEHOLDER] validator error (non-fatal): {_ph_exc}")
+
     for entry in entries:
         row_index = entry.get("row_index")
         if not row_index or not isinstance(row_index, int):
@@ -224,6 +273,18 @@ def _write_entries_to_excel(ws, entries: list[dict], header_row_idx: int) -> dic
     for r in range(header_row_idx + 1, ws.max_row + 1):
         ws.row_dimensions[r].height = None
 
+    # Glossary spot-check — log violations to stdout; never blocks the write
+    try:
+        violations = validate_glossary(entries)
+        for v in violations:
+            print(
+                f"[GLOSSARY] row {v['row_index']} [{v['lang']}] "
+                f"term={v['english_term']!r} expected={v['expected_translation']!r} "
+                f"found={v['found_text']!r}"
+            )
+    except Exception as _gloss_exc:
+        print(f"[GLOSSARY] validator error (non-fatal): {_gloss_exc}")
+
     return {
         "rows_written": rows_written,
         "cells_written": cells_written,
@@ -271,7 +332,7 @@ def write_reviewed_translations_to_excel(excel_path: str) -> str:
     if not OPENPYXL_AVAILABLE:
         return json.dumps({"error": "openpyxl not installed. Run: pip install openpyxl"})
 
-    json_path = REVIEWED_TRANSLATIONS_PATH
+    json_path = _get_reviewed_path()
     if not os.path.isabs(json_path):
         json_path = os.path.join(os.getcwd(), json_path)
     if not os.path.exists(json_path):
@@ -319,7 +380,7 @@ def read_reviewed_translations() -> str:
     Reads the reviewed translations JSON file written by the review_task.
     Returns the raw JSON string ready to pass to write_translations_to_excel.
     """
-    path = REVIEWED_TRANSLATIONS_PATH
+    path = _get_reviewed_path()
     if not os.path.isabs(path):
         path = os.path.join(os.getcwd(), path)
     if not os.path.exists(path):
