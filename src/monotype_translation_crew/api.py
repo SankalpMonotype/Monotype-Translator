@@ -1599,14 +1599,13 @@ def _run_docx_job(job_id: str, docx_path: str, languages: str) -> None:
                 "target_languages": target_languages,
             })
             try:
-                _m = getattr(_small_result, "usage_metrics", None) or {}
-                if not isinstance(_m, dict):
-                    _m = vars(_m) if hasattr(_m, "__dict__") else {}
-                JOBS[job_id]["token_usage"] = {
-                    "prompt_tokens": int(_m.get("prompt_tokens", 0) or 0),
-                    "completion_tokens": int(_m.get("completion_tokens", 0) or 0),
-                    "total_tokens": int(_m.get("total_tokens", 0) or 0),
-                }
+                _tu = getattr(_small_result, "token_usage", None)
+                if _tu is not None:
+                    JOBS[job_id]["token_usage"] = {
+                        "prompt_tokens": int(getattr(_tu, "prompt_tokens", 0) or 0),
+                        "completion_tokens": int(getattr(_tu, "completion_tokens", 0) or 0),
+                        "total_tokens": int(getattr(_tu, "total_tokens", 0) or 0),
+                    }
             except Exception:
                 pass
 
@@ -1778,11 +1777,10 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                 _crew_obj._translation_desc_override = _filtered_translation_desc
             _batch_result = _crew_obj.crew().kickoff(inputs=inputs)
             try:
-                _m = getattr(_batch_result, "usage_metrics", None) or {}
-                if not isinstance(_m, dict):
-                    _m = vars(_m) if hasattr(_m, "__dict__") else {}
-                _total_prompt_tokens += int(_m.get("prompt_tokens", 0) or 0)
-                _total_completion_tokens += int(_m.get("completion_tokens", 0) or 0)
+                _tu = getattr(_batch_result, "token_usage", None)
+                if _tu is not None:
+                    _total_prompt_tokens += int(getattr(_tu, "prompt_tokens", 0) or 0)
+                    _total_completion_tokens += int(getattr(_tu, "completion_tokens", 0) or 0)
             except Exception:
                 pass
 
