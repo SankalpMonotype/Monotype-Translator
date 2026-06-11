@@ -954,7 +954,16 @@ function showResults(data) {
   const n = data.review_data ? data.review_data.length : '?';
   const isDocx = (data.file_type === 'docx') || selectedFileType === 'docx';
   const unit = isDocx ? 'segment' : 'string';
-  $('result-summary').textContent = n + ' ' + unit + (n!==1?'s':'') + ' · ' + selectedLangs.size + ' language' + (selectedLangs.size !== 1 ? 's' : '');
+  let summary = n + ' ' + unit + (n!==1?'s':'') + ' · ' + selectedLangs.size + ' language' + (selectedLangs.size !== 1 ? 's' : '');
+  if (data.token_usage && data.token_usage.total_tokens) {
+    const prompt     = data.token_usage.prompt_tokens     || 0;
+    const completion = data.token_usage.completion_tokens || 0;
+    const total      = data.token_usage.total_tokens      || 0;
+    const cost       = (prompt * 2 + completion * 8) / 1e6;
+    const kTotal     = total >= 1000 ? Math.round(total / 1000) + 'k' : total;
+    summary += ' · ' + kTotal + ' tokens · ~$' + cost.toFixed(2);
+  }
+  $('result-summary').textContent = summary;
   const baseName = selectedFile ? selectedFile.name.replace(/\.\w+$/, '') : 'file';
   $('dl-filename').textContent = baseName + (isDocx ? '_translated.zip' : '_translated.xlsx');
   $('dl-format-label').textContent = 'All translations · ' + (isDocx ? 'Zip' : 'Excel');
@@ -1188,6 +1197,7 @@ async def get_status(job_id: str):
         "error": job["error"],
         "review_data": job["review_data"],
         "batch_progress": batch_progress,
+        "token_usage": job.get("token_usage"),
     })
 
 
@@ -1583,11 +1593,22 @@ def _run_docx_job(job_id: str, docx_path: str, languages: str) -> None:
             # Large document — batch translation to avoid output-token truncation
             _run_docx_job_batched(job_id, docx_path, segments, target_languages)
         else:
-            DocxTranslationCrew().crew().kickoff(inputs={
+            _small_result = DocxTranslationCrew().crew().kickoff(inputs={
                 "docx_path": docx_path,
                 "knowledge_dir": "knowledge",
                 "target_languages": target_languages,
             })
+            try:
+                _m = getattr(_small_result, "usage_metrics", None) or {}
+                if not isinstance(_m, dict):
+                    _m = vars(_m) if hasattr(_m, "__dict__") else {}
+                JOBS[job_id]["token_usage"] = {
+                    "prompt_tokens": int(_m.get("prompt_tokens", 0) or 0),
+                    "completion_tokens": int(_m.get("completion_tokens", 0) or 0),
+                    "total_tokens": int(_m.get("total_tokens", 0) or 0),
+                }
+            except Exception:
+                pass
 
         # Locate the zip produced by write_translations_to_docx
         stem = Path(docx_path).stem
@@ -1742,6 +1763,8 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
 
         review_path = _scoped_review_path
         all_review_data: list = []
+        _total_prompt_tokens = 0
+        _total_completion_tokens = 0
 
         for batch_num in range(n_batches):
             if JOBS[job_id].get("cancel_requested"):
@@ -1753,7 +1776,15 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             _crew_obj = MonotypeTranslationCrew()
             if _filtered_translation_desc is not None:
                 _crew_obj._translation_desc_override = _filtered_translation_desc
-            _crew_obj.crew().kickoff(inputs=inputs)
+            _batch_result = _crew_obj.crew().kickoff(inputs=inputs)
+            try:
+                _m = getattr(_batch_result, "usage_metrics", None) or {}
+                if not isinstance(_m, dict):
+                    _m = vars(_m) if hasattr(_m, "__dict__") else {}
+                _total_prompt_tokens += int(_m.get("prompt_tokens", 0) or 0)
+                _total_completion_tokens += int(_m.get("completion_tokens", 0) or 0)
+            except Exception:
+                pass
 
             # Accumulate review data across batches so the UI shows the full count.
             if review_path.exists():
@@ -1772,6 +1803,13 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
         # Ensure review_data reflects the complete accumulated set.
         if all_review_data:
             JOBS[job_id]["review_data"] = all_review_data
+
+        if _total_prompt_tokens or _total_completion_tokens:
+            JOBS[job_id]["token_usage"] = {
+                "prompt_tokens": _total_prompt_tokens,
+                "completion_tokens": _total_completion_tokens,
+                "total_tokens": _total_prompt_tokens + _total_completion_tokens,
+            }
 
         # If review_data is empty (file was already fully translated when submitted),
         # populate the preview from the output file so the UI is not blank.
