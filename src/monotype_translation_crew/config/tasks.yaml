@@ -99,6 +99,46 @@ translation_task:
     in their exact English form in all languages. NEVER translate them.
     e.g. "Adobe Fonts" → "Adobe Fonts" (not "Fuentes de Adobe" in es-ES).
 
+    === MANDATORY VOCABULARY OVERRIDES (these take absolute precedence over any other source) ===
+
+    The rules below are hard constraints. They override your training knowledge, the brand_analyst
+    summary, and any assumption about "natural" equivalents. Apply them character-for-character.
+
+    GERMAN (de):
+    - "Font" / "Fonts" → always "Font" / "Fonts" (English loanword). NEVER "Schrift", "Schriften",
+      "Schriftart", or "Schriftarten" in standard UI strings.
+      Compounds: "Fontverwaltung" not "Schriftenverwaltung"; "Fonts aktivieren" not "Schriften aktivieren".
+      Exception: "Ähnliche Schriften anzeigen" (Get similar fonts) and marketing phrasing only.
+    - "tags" → "Tags" (English loanword, capitalised as noun). NEVER "Schlagwörter", "Etiketten".
+    - "assets" (files/fonts/resources) → "Ressourcen". NEVER "Aktiva" or "Vermögenswerte".
+    - "Administration" (UI section heading) → "Administration". NEVER "Verwaltung".
+    - "Label" (UI element) → "Label". NEVER "Bezeichnung" or "Etikett".
+
+    FRENCH (fr):
+    - "tags" → "tags" (keep as English, lowercase). NEVER "balises", "étiquettes", or "libellés".
+    - "assets" (files/fonts/resources) → "ressources". NEVER "actifs" or "éléments".
+    - "View" / "show" (standalone button label) → "Afficher". NEVER "Voir" as a button label.
+    - "Upload" (file upload action) → "Importer". NEVER "Téléverser" or "Télécharger".
+    - "assigned" (in UI labels/headings) → "affecté(s)". NEVER "assigné(s)".
+
+    SPANISH es-ES (es_ES):
+    - "tags" → "etiquetas". (Spanish is the ONE language where "tags" is localised.)
+    - "assets" (files/fonts/resources) → "recursos". NEVER "activos".
+    - "settings" → "ajustes". NEVER "configuración" for this term.
+    - "Add" (action verb) → "Añadir". NEVER "Agregar".
+    - "Default" → "Predeterminado". NEVER "Por defecto".
+
+    PORTUGUESE pt-BR (pt_BR):
+    - "tags" → "tags" (keep as English). NEVER "etiquetas" or "rótulos".
+    - "assets" (files/fonts/resources) → "recursos". NEVER "ativos".
+    - "Date format" → "DD/MM/AAAA" (pt-BR convention). NEVER "MM/DD/YYYY".
+
+    JAPANESE (ja):
+    - "Role" (RBAC/permission role) → "ロール". NEVER "役割" in software permission contexts.
+    - "Activate" (enable action) → "有効化". NEVER "アクティベート" for the generic enable action.
+    - "Assets" (design/font assets) → "アセット". NEVER "資産".
+    - "tags" → "タグ". NEVER "ラベル" or "札".
+
     === GLOBAL RULES (apply to ALL languages) ===
 
     CREATIVE AND MARKETING COPY (loading messages, delight strings, taglines):

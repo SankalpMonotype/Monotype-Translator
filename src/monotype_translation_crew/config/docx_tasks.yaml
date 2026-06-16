@@ -67,6 +67,19 @@ docx_translation_task:
     - Do NOT truncate, summarise, or rephrase beyond natural localisation needs.
     - Brazilian Portuguese (not European). Spain Spanish / Castilian (not Latin American).
 
+    MANDATORY VOCABULARY OVERRIDES (absolute precedence over all other sources):
+    GERMAN: "Font"/"Fonts" → always "Font"/"Fonts" (loanword). NEVER "Schrift/Schriften".
+      Compounds: "Fontverwaltung", "Fonts aktivieren". Exception: marketing phrasing only.
+      "tags" → "Tags". "assets" → "Ressourcen". NEVER "Aktiva".
+    FRENCH: "tags" → "tags" (keep English). NEVER "balises" or "étiquettes".
+      "assets" → "ressources". NEVER "actifs". "View/show" buttons → "Afficher". NEVER "Voir".
+    SPANISH es-ES: "tags" → "etiquetas". "assets" → "recursos". NEVER "activos".
+      "settings" → "ajustes". "Add" → "Añadir". NEVER "Agregar".
+    PORTUGUESE pt-BR: "tags" → "tags" (keep English). NEVER "etiquetas".
+      "assets" → "recursos". Date format → "DD/MM/AAAA". NEVER "MM/DD/YYYY".
+    JAPANESE: "Role" (RBAC) → "ロール". NEVER "役割" in software permission contexts.
+      "Activate" (generic enable) → "有効化". "Assets" → "アセット". "tags" → "タグ".
+
     Output ONLY a valid JSON array. Each element must have this exact structure:
     {"segment_id": <integer>, "english": "<original text>", "<lang_code>": "<translation>"}
     Include one key per target language (e.g. "fr", "de", "pt_BR", "ja", "es_ES").
