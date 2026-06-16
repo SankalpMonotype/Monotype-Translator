@@ -99,46 +99,6 @@ translation_task:
     in their exact English form in all languages. NEVER translate them.
     e.g. "Adobe Fonts" → "Adobe Fonts" (not "Fuentes de Adobe" in es-ES).
 
-    === MANDATORY VOCABULARY OVERRIDES (these take absolute precedence over any other source) ===
-
-    The rules below are hard constraints. They override your training knowledge, the brand_analyst
-    summary, and any assumption about "natural" equivalents. Apply them character-for-character.
-
-    GERMAN (de):
-    - "Font" / "Fonts" → always "Font" / "Fonts" (English loanword). NEVER "Schrift", "Schriften",
-      "Schriftart", or "Schriftarten" in standard UI strings.
-      Compounds: "Fontverwaltung" not "Schriftenverwaltung"; "Fonts aktivieren" not "Schriften aktivieren".
-      Exception: "Ähnliche Schriften anzeigen" (Get similar fonts) and marketing phrasing only.
-    - "tags" → "Tags" (English loanword, capitalised as noun). NEVER "Schlagwörter", "Etiketten".
-    - "assets" (files/fonts/resources) → "Ressourcen". NEVER "Aktiva" or "Vermögenswerte".
-    - "Administration" (UI section heading) → "Administration". NEVER "Verwaltung".
-    - "Label" (UI element) → "Label". NEVER "Bezeichnung" or "Etikett".
-
-    FRENCH (fr):
-    - "tags" → "tags" (keep as English, lowercase). NEVER "balises", "étiquettes", or "libellés".
-    - "assets" (files/fonts/resources) → "ressources". NEVER "actifs" or "éléments".
-    - "View" / "show" (standalone button label) → "Afficher". NEVER "Voir" as a button label.
-    - "Upload" (file upload action) → "Importer". NEVER "Téléverser" or "Télécharger".
-    - "assigned" (in UI labels/headings) → "affecté(s)". NEVER "assigné(s)".
-
-    SPANISH es-ES (es_ES):
-    - "tags" → "etiquetas". (Spanish is the ONE language where "tags" is localised.)
-    - "assets" (files/fonts/resources) → "recursos". NEVER "activos".
-    - "settings" → "ajustes". NEVER "configuración" for this term.
-    - "Add" (action verb) → "Añadir". NEVER "Agregar".
-    - "Default" → "Predeterminado". NEVER "Por defecto".
-
-    PORTUGUESE pt-BR (pt_BR):
-    - "tags" → "tags" (keep as English). NEVER "etiquetas" or "rótulos".
-    - "assets" (files/fonts/resources) → "recursos". NEVER "ativos".
-    - "Date format" → "DD/MM/AAAA" (pt-BR convention). NEVER "MM/DD/YYYY".
-
-    JAPANESE (ja):
-    - "Role" (RBAC/permission role) → "ロール". NEVER "役割" in software permission contexts.
-    - "Activate" (enable action) → "有効化". NEVER "アクティベート" for the generic enable action.
-    - "Assets" (design/font assets) → "アセット". NEVER "資産".
-    - "tags" → "タグ". NEVER "ラベル" or "札".
-
     === GLOBAL RULES (apply to ALL languages) ===
 
     CREATIVE AND MARKETING COPY (loading messages, delight strings, taglines):
@@ -651,8 +611,6 @@ review_task:
         not vous imperative (Sélectionnez, Saisissez). Fix any -ez endings on standalone labels.
     [ ] French "tags": verify kept as "tags" — NEVER "étiquettes" or "balises".
         e.g. "Create Tag" → "Créer un tag" (not "étiquette").
-    [ ] French "assets" (files/fonts/resources): verify "ressources" — NEVER "actifs" or "éléments".
-        e.g. "Create Assets" → "Créer des ressources". Correct any "actifs" to "ressources".
     [ ] French "show/view" action labels: standalone "show" or "view" labels use "Afficher" — NEVER "Voir".
         "show more" → "Afficher plus"; "view" → "Afficher"; "View all foundries" → "Afficher toutes les fonderies".
         "Voir" is only acceptable inside full running sentences.
@@ -664,10 +622,6 @@ review_task:
     [ ] German "Font(s)": verify stays as "Font" in DE — NEVER "Schrift(en)". Hard exceptions:
         "Ähnliche Schriften anzeigen" and "Schriftarten" in specific marketing phrasing.
         Also verify FR/ES/PT/JA use their normal translation (polices/fuentes/fontes/フォント), not "font".
-    [ ] German "tags": verify kept as "Tags" (English loanword, capitalised as noun) —
-        NEVER "Schlagwörter", "Etiketten", or "Beschriftungen". e.g. "Apply tags" → "Tags anwenden".
-    [ ] German "assets" (files/fonts/resources): verify "Ressourcen" — NEVER "Aktiva" or "Vermögenswerte".
-        e.g. "Create Assets" → "Ressourcen erstellen". Correct any "Aktiva" to "Ressourcen".
     [ ] German button labels: verify short standalone labels (≤6 words) use plain INFINITIVE
         (Bestimmte Zeichen eingeben) — not Sie form (Geben Sie...ein). Full sentences keep Sie.
     [ ] German "Sind Sie sicher": NEVER acceptable — always "Möchten Sie X wirklich?".
@@ -676,24 +630,12 @@ review_task:
         e.g. "Failed to export data" → "Daten konnten nicht exportiert werden."
 
     --- PORTUGUESE ENFORCEMENT ---
-    [ ] pt-BR "tags": verify kept as "tags" (English, lowercase) — NEVER "etiquetas" or "rótulos".
-        e.g. "Apply tags" → "Aplicar tags". Correct any "etiquetas" to "tags".
-    [ ] pt-BR "assets" (files/fonts/resources): verify "recursos" — NEVER "ativos".
-        e.g. "Create Assets" → "Criar recursos". Correct any "ativos" to "recursos".
-    [ ] pt-BR date format: if a date format string is present, verify "DD/MM/AAAA" —
-        NEVER "MM/DD/YYYY" (American format is wrong for pt-BR). Correct if needed.
     [ ] pt-BR button labels: verify standalone labels use INFINITIVE (Selecionar, Inserir)
         not imperative (Selecione, Insira). e.g. "Select languages" → "Selecionar idiomas".
     [ ] pt-BR "Unable to X": must be "Não foi possível X" — NEVER "Incapaz de X".
         e.g. "Unable to delete user" → "Não foi possível excluir o usuário".
 
     --- SPANISH ENFORCEMENT ---
-    [ ] es-ES "tags": verify "etiquetas" — Spanish is the ONE language that localises this term.
-        NEVER keep as "tags" in es-ES. e.g. "Apply tags" → "Aplicar etiquetas".
-    [ ] es-ES "assets" (files/fonts/resources): verify "recursos" — NEVER "activos".
-        e.g. "Create Assets" → "Crear recursos". Correct any "activos" to "recursos".
-    [ ] es-ES "settings": verify "ajustes" — NEVER "configuración" for this specific term.
-    [ ] es-ES "Add" (action verb): verify "Añadir" — NEVER "Agregar" (Latin American form).
     [ ] es-ES "Una vez desactivado/activado": NEVER use this pattern. Use "Si los desactivas..."
         or "Si desactivas a este usuario..." instead (per the confirmation dialog rule).
     [ ] es-ES confirmation question form: ALWAYS "¿Seguro que quieres X?" — NEVER "¿Estás seguro de que
@@ -704,15 +646,6 @@ review_task:
         "Unable to deactivate user" → "No es posible desactivar el usuario".
 
     --- JAPANESE ENFORCEMENT ---
-    [ ] Japanese "Role" (RBAC/permission role): verify "ロール" — NEVER "役割" in software permission
-        contexts. "役割" means job responsibility; "ロール" is the industry standard for RBAC roles.
-        Correct any "役割" → "ロール" when the context is user roles/permissions.
-    [ ] Japanese "Activate" / "Enable" (generic action): verify "有効化" — NEVER "アクティベート" for
-        the generic enable/activate action. "アクティベート" is reserved for product activation flows only.
-    [ ] Japanese "Assets" (design/font resources): verify "アセット" — NEVER "資産" (which means
-        financial assets). e.g. "Create Assets" → "アセットを作成". Correct any "資産" to "アセット".
-    [ ] Japanese "tags": verify "タグ" — NEVER "ラベル" or "札".
-        e.g. "Apply tags" → "タグを適用". Correct any "ラベル" used for tags to "タグ".
     [ ] Japanese button labels: ALL standalone labels drop trailing する — e.g. 有効化する → 有効化,
         アクティベートする → アクティベート, 表示する → 表示. Fix any trailing する on short action labels.
     [ ] Japanese 件 counter: verify <count> representing quantities has 件 appended — NEVER bare.
