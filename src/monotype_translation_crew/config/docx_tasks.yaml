@@ -102,6 +102,31 @@ docx_review_task:
     [ ] Natural fluency: would a native speaker find this natural?
     [ ] Register: French vous / German Sie / Japanese 丁寧語 / pt-BR você / es-ES tú (informal, conversational)
 
+    MANDATORY VOCABULARY VERIFICATION — check every occurrence of these terms and correct
+    in-place if the translator violated a rule. These override all other judgement:
+
+    GERMAN: "Font"/"Fonts" must stay as "Font"/"Fonts" (English loanword) — flag and correct
+      any "Schrift", "Schriften", "Schriftart", "Schriftarten" in standard UI/comms text.
+      Exception: "Ähnliche Schriften anzeigen" and marketing phrasing only.
+      "tags" → "Tags". NEVER "Schlagwörter" or "Etiketten".
+      "assets" (resources) → "Ressourcen". NEVER "Aktiva" or "Vermögenswerte".
+
+    FRENCH: "tags" → "tags" (keep English). NEVER "balises" or "étiquettes". Correct any violation.
+      "assets" (resources) → "ressources". NEVER "actifs". Correct any "actifs" to "ressources".
+      Standalone "show/view" labels → "Afficher". NEVER "Voir" as a button label.
+
+    SPANISH es-ES: "tags" → "etiquetas" (es-ES DOES localise this). NEVER keep as "tags".
+      "assets" → "recursos". NEVER "activos". Correct any "activos" to "recursos".
+      "settings" → "ajustes". "Add" (verb) → "Añadir". NEVER "Agregar".
+
+    PORTUGUESE pt-BR: "tags" → "tags" (keep English). NEVER "etiquetas" or "rótulos".
+      "assets" → "recursos". NEVER "ativos". Date format strings → "DD/MM/AAAA" not "MM/DD/YYYY".
+
+    JAPANESE: "Role" (RBAC/permission) → "ロール". NEVER "役割" in permission contexts.
+      "Activate/Enable" (generic) → "有効化". NEVER "アクティベート" for the generic action.
+      "Assets" (design resources) → "アセット". NEVER "資産".
+      "tags" → "タグ". NEVER "ラベル" or "札".
+
     Correct any errors in-place. For uncertain items, add a "reviewer_note" field.
     Return the complete corrected JSON array. Raw JSON only — no markdown, no preamble.
   expected_output: >
