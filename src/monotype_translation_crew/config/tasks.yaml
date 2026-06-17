@@ -185,9 +185,9 @@ translation_task:
     - French: "tags" is an approved Monotype term — keep as "tags" in all contexts and strings.
       Never substitute "balises" regardless of surrounding copy.
     - French: when the English source wraps a placeholder in ASCII single quotes — e.g.
-      '{{tagName}}' — wrap it in guillemets in French: «{{tagName}}».
-      e.g. "Delete '{{tagName}}' tag?" → "Supprimer le tag «{{tagName}}» ?"
-      e.g. "Tag '{{tagName}}' created." → "Le tag «{{tagName}}» a été créé."
+      '[tagName]' — wrap it in guillemets in French: «[tagName]».
+      e.g. "Delete '[tagName]' tag?" → "Supprimer le tag «[tagName]» ?"
+      e.g. "Tag '[tagName]' created." → "Le tag «[tagName]» a été créé."
     - French: "Untag" (remove all tag associations from a style) → "Désassocier". NEVER "Retirer l'étiquette".
     - French: "assets" (UI noun — files, fonts, resources) → "ressources" — NEVER "actifs" or "éléments".
       e.g. "Create Assets" → "Créer des ressources" (NOT "Créer des actifs").
@@ -237,9 +237,9 @@ translation_task:
       German button/action label style: short standalone labels (no subject pronoun, ≤6 words) use
       plain INFINITIVE without "Sie".
       German quoted placeholders: when the English source wraps a placeholder in ASCII
-      single quotes — e.g. '{{tagName}}' — wrap it in German quotes: „{{tagName}}".
-      e.g. "Delete '{{tagName}}' tag?" → "Tag „{{tagName}}" löschen?"
-      e.g. "Tag '{{tagName}}' deleted." → "Tag „{{tagName}}" gelöscht."
+      single quotes — e.g. '[tagName]' — wrap it in German quotes: „[tagName]".
+      e.g. "Delete '[tagName]' tag?" → "Tag „[tagName]" löschen?"
+      e.g. "Tag '[tagName]' deleted." → "Tag „[tagName]" gelöscht."
       German short UI labels joining two parallel items: use "&" — NOT "und".
       e.g. "Activate & Deactivate" → "Aktivieren & Deaktivieren". Scope: ≤6-word labels only.
       Full sentences and named section headings (e.g. "Synchronisierung und Downloads") keep "und". "Bestimmte Zeichen eingeben" not "Geben Sie spezifische Zeichen ein".
@@ -272,8 +272,8 @@ translation_task:
       "Unable to delete user" → "Não foi possível excluir o usuário".
       "Unable to deactivate user" → "Não foi possível desativar o usuário".
     - pt-BR: when the English source wraps a placeholder in ASCII single quotes — e.g.
-      '{{tagName}}' — wrap it in standard double quotes: "{{tagName}}".
-      e.g. "Tag '{{tagName}}' deleted." → "Tag "{{tagName}}" removida."
+      '[tagName]' — wrap it in standard double quotes: "[tagName]".
+      e.g. "Tag '[tagName]' deleted." → "Tag "[tagName]" removida."
     - pt-BR: "search" (verb) → "pesquisar" — NEVER "buscar".
       e.g. "Search fonts" → "Pesquisar fontes" (NOT "Buscar fontes").
     - pt-BR: use "A função AI Search" (not A Busca por IA),
@@ -403,8 +403,8 @@ translation_task:
     - es-ES: use "todavía" for "yet" — NEVER "aún".
       e.g. "No hay fuentes aprobadas todavía", "No hay fuentes rechazadas todavía".
     - es-ES: when the English source wraps a placeholder in ASCII single quotes — e.g.
-      '{{tagName}}' — wrap it in guillemets: «{{tagName}}». Same rule as quotation marks.
-      e.g. "Delete '{{tagName}}' tag?" → "¿Borrar la etiqueta «{{tagName}}»?"
+      '[tagName]' — wrap it in guillemets: «[tagName]». Same rule as quotation marks.
+      e.g. "Delete '[tagName]' tag?" → "¿Borrar la etiqueta «[tagName]»?"
     - es-ES: "submit" (form action verb) → "enviar" — NEVER "presentar".
       e.g. "Submit report" → "Enviar informe" (NOT "Presentar informe").
     - es-ES vocabulary — use Castilian Spanish terms in all contexts, never Latin American variants:
@@ -437,8 +437,8 @@ translation_task:
 
     - Japanese: use 丁寧語 (polite register).
     - Japanese: when the English source wraps a placeholder in ASCII single quotes — e.g.
-      '{{tagName}}' — wrap it in corner brackets: 「{{tagName}}」.
-      e.g. "Tag '{{tagName}}' deleted." → "タグ「{{tagName}}」が削除されました。"
+      '[tagName]' — wrap it in corner brackets: 「[tagName]」.
+      e.g. "Tag '[tagName]' deleted." → "タグ「[tagName]」が削除されました。"
     - Japanese ONLY: when any count variable (e.g. "{{user.count}}") refers to users, always
       add the counter 人 with a space — write "{{user.count}} 人のユーザー" (space before 人),
       never "{{user.count}}人のユーザー" (no space) or "{{user.count}} ユーザー" (no 人).
@@ -591,9 +591,9 @@ review_task:
         matches the approved TM entry exactly. Correct to TM if it differs.
     [ ] Accuracy: Does the translation faithfully convey the English meaning?
     [ ] Brand voice: Does the tone match Monotype's guidelines?
-    [ ] Placeholder integrity: verify all {{double-brace}} and {single-brace} tokens are
+    [ ] Placeholder integrity: verify all [double-brace] and [single-brace] tokens are
         present verbatim. EXCEPTION — link-anchor {Terms of Use} token is correctly
-        LOCALISED: FR → {Conditions d'utilisation}, DE → {Nutzungsbedingungen},
+        LOCALISED: FR → {Conditions d'utilisation}, DE → [Nutzungsbedingungen],
         pt-BR → {Termos de Uso}, JA → {利用規約}. es-ES keeps it unchanged. Do not revert.
     [ ] Untranslatable terms: Are product names kept in English?
     [ ] Natural fluency: Would a native speaker find this natural in a UI context?
@@ -642,7 +642,7 @@ review_task:
         e.g. "Adobe Fonts" must NOT appear as "Fuentes de Adobe" in es-ES.
 
     --- FRENCH ENFORCEMENT ---
-    [ ] French quoted placeholders: any '{{tagName}}' style token must use «{{tagName}}» — NEVER ASCII apostrophes.
+    [ ] French quoted placeholders: any '[tagName]' style token must use «[tagName]» — NEVER ASCII apostrophes.
     [ ] French "Untag": verify → "Désassocier" — NEVER "Retirer l'étiquette". Fix any occurrence.
     [ ] French button labels: verify standalone action labels use INFINITIVE (Sélectionner, Saisir)
         not vous imperative (Sélectionnez, Saisissez). Fix any -ez endings on standalone labels.
@@ -658,7 +658,7 @@ review_task:
         → "Sélectionner tous les utilisateurs affectés"; "View only unassigned roles" → "Afficher uniquement les rôles non affectés".
 
     --- GERMAN ENFORCEMENT ---
-    [ ] German quoted placeholders: any '{{tagName}}' style token must use „{{tagName}}" — NEVER ASCII apostrophes.
+    [ ] German quoted placeholders: any '[tagName]' style token must use „[tagName]" — NEVER ASCII apostrophes.
     [ ] German short label "&": in ≤6-word labels joining two parallel items, verify "&" is used — NOT "und".
         e.g. "Activate & Deactivate" → "Aktivieren & Deaktivieren". Full sentences keep "und".
     [ ] German "Font(s)": verify stays as "Font" in DE — NEVER "Schrift(en)". Hard exceptions:
@@ -672,7 +672,7 @@ review_task:
         e.g. "Failed to export data" → "Daten konnten nicht exportiert werden."
 
     --- PORTUGUESE ENFORCEMENT ---
-    [ ] pt-BR quoted placeholders: any '{{tagName}}' style token must use "{{tagName}}" (double quotes) — NEVER ASCII apostrophes.
+    [ ] pt-BR quoted placeholders: any '[tagName]' style token must use "[tagName]" (double quotes) — NEVER ASCII apostrophes.
     [ ] pt-BR button labels: verify standalone labels use INFINITIVE (Selecionar, Inserir)
         not imperative (Selecione, Insira). e.g. "Select languages" → "Selecionar idiomas".
     [ ] pt-BR "search": verify → "pesquisar" — NEVER "buscar". Fix any occurrence.
@@ -680,7 +680,7 @@ review_task:
         e.g. "Unable to delete user" → "Não foi possível excluir o usuário".
 
     --- SPANISH ENFORCEMENT ---
-    [ ] es-ES quoted placeholders: any '{{tagName}}' style token must use «{{tagName}}» — NEVER ASCII apostrophes.
+    [ ] es-ES quoted placeholders: any '[tagName]' style token must use «[tagName]» — NEVER ASCII apostrophes.
     [ ] es-ES "submit": verify → "enviar" — NEVER "presentar". Fix any occurrence.
     [ ] es-ES "Una vez desactivado/activado": NEVER use this pattern. Use "Si los desactivas..."
         or "Si desactivas a este usuario..." instead (per the confirmation dialog rule).
@@ -692,7 +692,7 @@ review_task:
         "Unable to deactivate user" → "No es posible desactivar el usuario".
 
     --- JAPANESE ENFORCEMENT ---
-    [ ] Japanese quoted placeholders: any '{{tagName}}' style token must use 「{{tagName}}」 — NEVER ASCII apostrophes.
+    [ ] Japanese quoted placeholders: any '[tagName]' style token must use 「[tagName]」 — NEVER ASCII apostrophes.
     [ ] Japanese button labels: ALL standalone labels drop trailing する — e.g. 有効化する → 有効化,
         アクティベートする → アクティベート, 表示する → 表示. Fix any trailing する on short action labels.
     [ ] Japanese 件 counter: verify <count> representing quantities has 件 appended — NEVER bare.
