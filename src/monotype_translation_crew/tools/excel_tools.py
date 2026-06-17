@@ -66,8 +66,10 @@ def _normalise_translation(text: str, lang: str) -> str:
     text = text.replace('\u2019', "'").replace('\u2018', "'")
 
     # Universal: curly/smart double quotes -> straight double quotes
-    # Guillemets (U+00AB, U+00BB) are intentionally left intact
-    text = text.replace('\u201c', '"').replace('\u201d', '"')
+    # Guillemets (U+00AB, U+00BB) are intentionally left intact.
+    # German EXCEPTION: \u201e" uses U+201E (open) and U+201C (close) as native quotes \u2014 preserve them.
+    if lang != "de":
+        text = text.replace('\u201c', '"').replace('\u201d', '"')
 
     # Universal: strip trailing whitespace
     text = text.rstrip()
