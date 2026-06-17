@@ -17,10 +17,10 @@ def _normalise_docx_translation(text: str, lang: str) -> str:
     had_dots = '...' in text
     text = text.replace('...', '…')
     text = re.sub(r'\{\{\s+(\S+?)\s+\}\}', r'{{\1}}', text)
-    text = text.replace(‘’’, “’”).replace(‘‘’, “’”)
+    text = text.replace('\u2019', "'").replace('\u2018', "'")
     # German uses „” (U+201E/U+201C) as native quotes — do not convert for de
-    if lang != “de”:
-        text = text.replace(‘“’, ‘”’).replace(‘”’, ‘”’)
+    if lang != "de":
+        text = text.replace('\u201c', '"').replace('\u201d', '"')
     text = text.rstrip()
     if lang == "fr":
         text = re.sub(r' ([?!:;])', r' \1', text)
