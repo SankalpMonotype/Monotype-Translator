@@ -1,6 +1,6 @@
 [project]
 name = "monotype-translation-crew"
-version = "0.1.0"
+version = "0.1.1"
 description = "Monotype UI string translation crew using CrewAI"
 authors = [{ name = "Sankalp Khandelwal", email = "you@example.com" }]
 requires-python = ">=3.10,<3.14"
