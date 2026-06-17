@@ -271,6 +271,15 @@ translation_task:
     - pt-BR "Unable to X" / "Cannot X": use "Não foi possível X" — NEVER "Incapaz de X".
       "Unable to delete user" → "Não foi possível excluir o usuário".
       "Unable to deactivate user" → "Não foi possível desativar o usuário".
+    - pt-BR TAGS VOCABULARY — "tag" is an approved English loanword in pt-BR. NEVER translate it.
+      Noun: "tag" / "tags" — NEVER "etiqueta" / "etiquetas".
+      Verb "to tag": "marcar com tag" — NEVER "etiquetar".
+      Adjective "tagged": "marcado(a)(s)" or "marcado(a)(s) com tag" — NEVER "etiquetado(a)(s)".
+      Verb "to untag": "remover a tag de" / "remover tag" — NEVER "desetiquetar" or "des-etiquetar".
+      Button "Untag": "Remover tag" — NEVER "Desetiquetar".
+      e.g. "Search tagged fonts" → "Pesquisar fontes marcadas" (NOT "fontes etiquetadas").
+      e.g. "You haven't created any tags yet." → "Você ainda não criou nenhuma tag." (NOT "etiqueta").
+      e.g. "Delete tags" → "Excluir tags" (NOT "etiquetas").
     - pt-BR: when the English source wraps a placeholder in ASCII single quotes — e.g.
       '[tagName]' — wrap it in standard double quotes: "[tagName]".
       e.g. "Tag '[tagName]' deleted." → "Tag "[tagName]" removida."
@@ -672,6 +681,10 @@ review_task:
         e.g. "Failed to export data" → "Daten konnten nicht exportiert werden."
 
     --- PORTUGUESE ENFORCEMENT ---
+    [ ] pt-BR "tag" vocabulary: scan every pt-BR string — if "etiqueta", "etiquetas", "etiquetar",
+        "etiquetado", "etiquetada", "etiquetados", "etiquetadas", "desetiquetar" appear ANYWHERE,
+        REJECT and correct: noun → "tag"/"tags", verb → "marcar com tag", adjective → "marcado(a) com tag",
+        untag verb → "remover a tag de". Zero tolerance — fix every occurrence.
     [ ] pt-BR quoted placeholders: any '[tagName]' style token must use "[tagName]" (double quotes) — NEVER ASCII apostrophes.
     [ ] pt-BR button labels: verify standalone labels use INFINITIVE (Selecionar, Inserir)
         not imperative (Selecione, Insira). e.g. "Select languages" → "Selecionar idiomas".

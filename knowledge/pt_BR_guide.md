@@ -17,6 +17,12 @@ Focus: terminology the model frequently translates incorrectly.
 | seat (software licensing unit) | `licença individual` | assento, lugar |
 | foundry (generic noun, not brand) | `fundidora` | fundição |
 | Label (UI label element) | `Marcador` | Etiqueta, Rótulo |
+| tag (noun — UI tags feature) | `tag` (English loanword, invariant) | etiqueta |
+| tags (plural noun) | `tags` | etiquetas |
+| to tag (verb — apply a tag) | `marcar com tag` | etiquetar |
+| tagged (adjective — has a tag) | `marcado(a)(s)` or `marcado(a)(s) com tag` | etiquetado(a)(s) |
+| to untag (verb — remove a tag) | `remover a tag de` / `remover tag` | desetiquetar, des-etiquetar |
+| Untag (standalone button label) | `Remover tag` | Desetiquetar |
 | workspace | `área de trabalho` | (already natural in pt-BR) |
 | Monotype Library (product name) | `Biblioteca da Monotype` | Biblioteca Monotype |
 | AI (general UI text) | `IA` | AI |
@@ -140,6 +146,30 @@ System-level inability messages use **Não foi possível X** — NEVER a literal
 |---------|---------|
 | View reports & entitlements | `Visualizar relatórios e permissões` (access context) |
 | View reports & entitlements | `Visualizar relatórios e licenças` (licensing context) |
+
+---
+
+## Tags Feature — Full Pattern Reference
+
+| English pattern | Correct pt-BR | NEVER |
+|---|---|---|
+| tag (noun) | `tag` | etiqueta |
+| tags (noun plural) | `tags` | etiquetas |
+| "Search tagged fonts" | `Pesquisar fontes marcadas` | fontes etiquetadas |
+| "No fonts tagged to this tag" | `Nenhuma fonte marcada com esta tag` | marcada para esta etiqueta |
+| "Could not load tagged fonts" | `Não foi possível carregar fontes marcadas` | fontes etiquetadas |
+| "You can use tags to organize…" | `Você pode usar tags para organizar…` | usar etiquetas |
+| "Use tags to organize…" | `Use tags para organizar…` | Use etiquetas |
+| "You haven't created any tags yet." | `Você ainda não criou nenhuma tag.` | nenhuma etiqueta |
+| "No unused tags available" | `Nenhuma tag não utilizada disponível` | Nenhuma etiqueta |
+| "1 unused tag cleared successfully" | `1 tag não utilizada removida com sucesso` | etiqueta |
+| "{{count}} unused tags cleared" | `{{count}} tags não utilizadas removidas com sucesso` | etiquetas |
+| "Failed to clear unused tags." | `Falha ao remover tags não utilizadas.` | etiquetas |
+| "Delete tags" | `Excluir tags` | Excluir etiquetas |
+| "You are about to delete '[tagName]' tag." | `Você está prestes a excluir a tag "[tagName]".` | a etiqueta |
+| untag (verb — to remove tags) | `remover a tag de` / `remover tag` | desetiquetar |
+| "Are you sure to untag [X]?" | `Tem certeza de que deseja remover a tag de [X]?` | desassociar / desetiquetar |
+| "You can always tag the fonts again later." | `Você poderá marcar as fontes novamente depois.` | etiquetar |
 
 ---
 
