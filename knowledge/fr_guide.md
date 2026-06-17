@@ -27,6 +27,7 @@ Register: formal "vous".
 | View / Read (permission label) | `Consulter` | Voir, Lire |
 | View reports & entitlements | `Consulter les rapports et les droits d'utilisation` | Voir les rapports et les droits |
 | assets (UI noun — files, fonts, resources) | `ressources` | actifs, éléments |
+| approve / reject (paired action label) | `approuver` / `refuser` | approuver / rejeter |
 | Create Assets (label) | `Créer des ressources` | Créer des actifs |
 | with own teams only | `avec vos propres équipes uniquement` | avec uniquement ses propres équipes |
 | with anyone in the company | `avec tous les membres de l'entreprise` | — |

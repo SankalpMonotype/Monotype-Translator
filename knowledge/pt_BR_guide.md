@@ -72,7 +72,7 @@ When the final item in a list is a longer action phrase, prefer **além de** ove
 
 | English | Correct pt-BR |
 |---------|---------------|
-| Search (find fonts verb) | `Busque fontes` (not Pesquise) |
+| Search (verb) | `pesquisar` | buscar |
 | Sync and Downloads (section heading) | `Sincronização e Downloads` (capital D, singular Sincronização) |
 | I prefer this response | `Eu prefiro essa resposta` (essa not esta) |
 | Auto | Keep as `Auto` — NEVER translate to Automático |

@@ -193,6 +193,12 @@ Rule: if the English begins with "Show fonts that…" or "Find fonts that…" in
 
 Short standalone action labels (no subject pronoun, ≤ 6 words): use **infinitive** without `Sie`.
 
+When a short UI label joins two parallel items, use **`&`** — NOT `und`.
+- ✅ `Aktivieren & Deaktivieren`
+- ❌ `Aktivieren und Deaktivieren`
+
+This applies only to short labels (≤ 6 words). In full sentences and section headings with spelled-out English "and", translate as `und` (e.g. "Synchronisierung und Downloads").
+
 | English | Correct | NEVER |
 |---------|---------|-------|
 | Allow company-wide sharing | `Unternehmensweite Freigabe zulassen` | `Erlauben Sie unternehmensweite Freigabe` |

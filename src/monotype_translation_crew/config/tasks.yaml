@@ -180,6 +180,10 @@ translation_task:
       French "[N] style(s) are informed to be marked for production" → "[N] style(s) sont marqués pour la production".
     - French: "tags" is an approved Monotype term — keep as "tags" in all contexts and strings.
       Never substitute "balises" regardless of surrounding copy.
+    - French: "assets" (UI noun — files, fonts, resources) → "ressources" — NEVER "actifs" or "éléments".
+      e.g. "Create Assets" → "Créer des ressources" (NOT "Créer des actifs").
+    - French: "approve" / "reject" as paired action labels → "approuver" / "refuser" — NEVER "rejeter".
+      e.g. "Approve or reject" → "approuver ou refuser" (NOT "approuver ou rejeter").
     - French: for any action describing read or view access in a permission or capability context,
       use "Consulter" — never "Voir" or "Lire". "Consulter" carries the professional register
       appropriate for permission descriptions; "Voir" and "Lire" are too casual for that register.
@@ -222,7 +226,10 @@ translation_task:
       "[X] will appear here for you to take action" → passive construction: "werden die [X] hier angezeigt, sodass Sie entsprechende Maßnahmen ergreifen können".
       "Fragen Sie mich alles..." for "Ask me anything" — NEVER "Frag mich alles" (du form).
       German button/action label style: short standalone labels (no subject pronoun, ≤6 words) use
-      plain INFINITIVE without "Sie". "Bestimmte Zeichen eingeben" not "Geben Sie spezifische Zeichen ein".
+      plain INFINITIVE without "Sie".
+      German short UI labels joining two parallel items: use "&" — NOT "und".
+      e.g. "Activate & Deactivate" → "Aktivieren & Deaktivieren". Scope: ≤6-word labels only.
+      Full sentences and named section headings (e.g. "Synchronisierung und Downloads") keep "und". "Bestimmte Zeichen eingeben" not "Geben Sie spezifische Zeichen ein".
       "Eigenen Text eingeben" not "Geben Sie Ihren eigenen Text ein".
       "Bestimmte Sprachen auswählen" not "Wählen Sie die spezifischen Sprachen".
       For sentence-level instructions addressing the user, continue using Sie form.
@@ -251,7 +258,9 @@ translation_task:
     - pt-BR "Unable to X" / "Cannot X": use "Não foi possível X" — NEVER "Incapaz de X".
       "Unable to delete user" → "Não foi possível excluir o usuário".
       "Unable to deactivate user" → "Não foi possível desativar o usuário".
-    - pt-BR: use "Busque fontes" (not Pesquise), "A função AI Search" (not A Busca por IA),
+    - pt-BR: "search" (verb) → "pesquisar" — NEVER "buscar".
+      e.g. "Search fonts" → "Pesquisar fontes" (NOT "Buscar fontes").
+    - pt-BR: use "A função AI Search" (not A Busca por IA),
       "Eu prefiro essa resposta" (essa not esta), "Sincronização e downloads" (singular, not Sincronizações).
       pt-BR article for "Monotype Fonts": always use "a Monotype Fonts" (feminine article) when
       it is the subject/object of a sentence. e.g. "Com a Monotype Fonts, é fácil…" (NOT "Com Monotype Fonts").
@@ -377,6 +386,8 @@ translation_task:
       es-ES "revoke invite" (status label, past action) → "Invitación revocada" (past participle noun phrase).
     - es-ES: use "todavía" for "yet" — NEVER "aún".
       e.g. "No hay fuentes aprobadas todavía", "No hay fuentes rechazadas todavía".
+    - es-ES: "submit" (form action verb) → "enviar" — NEVER "presentar".
+      e.g. "Submit report" → "Enviar informe" (NOT "Presentar informe").
     - es-ES vocabulary — use Castilian Spanish terms in all contexts, never Latin American variants:
       "settings/ajustes" not "configuración"; "subir" not "cargar" for upload;
       "pertenencia" not "membresía"; prefer native Castilian equivalents over Anglicisms
@@ -609,6 +620,8 @@ review_task:
     --- FRENCH ENFORCEMENT ---
     [ ] French button labels: verify standalone action labels use INFINITIVE (Sélectionner, Saisir)
         not vous imperative (Sélectionnez, Saisissez). Fix any -ez endings on standalone labels.
+    [ ] French "assets": verify → "ressources" — NEVER "actifs" or "éléments". Fix any occurrence.
+    [ ] French "approve/reject": verify → "approuver"/"refuser" — NEVER "rejeter". Fix any occurrence.
     [ ] French "tags": verify kept as "tags" — NEVER "étiquettes" or "balises".
         e.g. "Create Tag" → "Créer un tag" (not "étiquette").
     [ ] French "show/view" action labels: standalone "show" or "view" labels use "Afficher" — NEVER "Voir".
@@ -619,6 +632,8 @@ review_task:
         → "Sélectionner tous les utilisateurs affectés"; "View only unassigned roles" → "Afficher uniquement les rôles non affectés".
 
     --- GERMAN ENFORCEMENT ---
+    [ ] German short label "&": in ≤6-word labels joining two parallel items, verify "&" is used — NOT "und".
+        e.g. "Activate & Deactivate" → "Aktivieren & Deaktivieren". Full sentences keep "und".
     [ ] German "Font(s)": verify stays as "Font" in DE — NEVER "Schrift(en)". Hard exceptions:
         "Ähnliche Schriften anzeigen" and "Schriftarten" in specific marketing phrasing.
         Also verify FR/ES/PT/JA use their normal translation (polices/fuentes/fontes/フォント), not "font".
@@ -632,10 +647,12 @@ review_task:
     --- PORTUGUESE ENFORCEMENT ---
     [ ] pt-BR button labels: verify standalone labels use INFINITIVE (Selecionar, Inserir)
         not imperative (Selecione, Insira). e.g. "Select languages" → "Selecionar idiomas".
+    [ ] pt-BR "search": verify → "pesquisar" — NEVER "buscar". Fix any occurrence.
     [ ] pt-BR "Unable to X": must be "Não foi possível X" — NEVER "Incapaz de X".
         e.g. "Unable to delete user" → "Não foi possível excluir o usuário".
 
     --- SPANISH ENFORCEMENT ---
+    [ ] es-ES "submit": verify → "enviar" — NEVER "presentar". Fix any occurrence.
     [ ] es-ES "Una vez desactivado/activado": NEVER use this pattern. Use "Si los desactivas..."
         or "Si desactivas a este usuario..." instead (per the confirmation dialog rule).
     [ ] es-ES confirmation question form: ALWAYS "¿Seguro que quieres X?" — NEVER "¿Estás seguro de que

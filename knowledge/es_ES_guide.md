@@ -77,6 +77,7 @@ Castilian Spanish — NEVER Latin American variants.
 | Something went wrong. Please try again. | `Ha ocurrido un error. Inténtalo de nuevo.` | — |
 | Ask me anything… | `Pregúntame lo que quieras…` | Pregúntame cualquier cosa |
 | Anchor font (font pairing UI) | `Fuente destacada` | — |
+| submit (form action verb) | `enviar` | presentar |
 
 ---
 
