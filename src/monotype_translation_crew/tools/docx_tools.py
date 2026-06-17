@@ -1,11 +1,29 @@
 import io
 import json
+import logging
 import os
+import re
 import threading
 import zipfile
 from pathlib import Path
 
 from crewai.tools import tool
+
+logger = logging.getLogger(__name__)
+
+
+def _normalise_docx_translation(text: str, lang: str) -> str:
+    """Mirror of excel_tools._normalise_translation for the DOCX write path."""
+    had_dots = '...' in text
+    text = text.replace('...', '…')
+    text = re.sub(r'\{\{\s+(\S+?)\s+\}\}', r'{{\1}}', text)
+    text = text.replace('’', "'").replace('‘', "'")
+    text = text.replace('“', '"').replace('”', '"')
+    text = text.rstrip()
+    if lang == "fr":
+        text = re.sub(r' ([?!:;])', r' \1', text)
+    logger.debug("_normalise_docx_translation: lang=%s ellipsis_fixed=%s", lang, had_dots)
+    return text
 
 _DEFAULT_REVIEWED_DOCX_PATH = os.path.join("outputs", "reviewed_docx_translations.json")
 _job_docx_local = threading.local()
@@ -223,7 +241,7 @@ def write_translations_to_docx_impl(docx_path: str, json_path: str | None = None
                     entry = trans_by_id.get(seg_id, {})
                     translated = entry.get(lang, "")
                     if translated:
-                        _replace_para_text(para, translated)
+                        _replace_para_text(para, _normalise_docx_translation(translated, lang))
                         written += 1
                     seg_id += 1
             elif tag == "tbl":
@@ -237,7 +255,7 @@ def write_translations_to_docx_impl(docx_path: str, json_path: str | None = None
                             entry = trans_by_id.get(seg_id, {})
                             translated = entry.get(lang, "")
                             if translated:
-                                _replace_cell_text(cell, translated)
+                                _replace_cell_text(cell, _normalise_docx_translation(translated, lang))
                                 written += 1
                             seg_id += 1
 

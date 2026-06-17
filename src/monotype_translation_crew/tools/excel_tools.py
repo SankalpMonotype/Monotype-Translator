@@ -1,9 +1,12 @@
 import hashlib
 import json
+import logging
 import os
 import re
 import threading
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 from crewai.tools import tool
 from monotype_translation_crew.tools.glossary_validator import validate_glossary
 from monotype_translation_crew.tools.placeholder_validator import validate_placeholders
@@ -34,7 +37,7 @@ def _normalise_translation(text: str, lang: str) -> str:
     Apply deterministic post-processing to a translated string before writing to Excel.
 
     Rules applied (all languages):
-      - Replace Unicode ellipsis U+2026 with ASCII triple-dot (...).
+      - Replace ASCII triple-dot (...) with Unicode ellipsis U+2026 (…).
       - Normalise placeholder spacing: {{ name }} -> {{name}}.
       - Smart/curly apostrophes (‘, ’) -> ASCII apostrophe (').
       - Smart/curly double quotes (“, ”) -> ASCII double quote (").
@@ -51,8 +54,10 @@ def _normalise_translation(text: str, lang: str) -> str:
       - ASCII parentheses wrapping a number or placeholder -> fullwidth brackets.
         e.g. "(42件)" -> "（42件）", "(<count>件)" -> "（<count>件）"
     """
-    # Universal: ellipsis normalisation
-    text = text.replace('\u2026', '...')
+    # Universal: ellipsis normalisation \u2014 LLM outputs "..." (three dots); normalise to U+2026
+    had_dots = '...' in text
+    text = text.replace('...', '\u2026')
+    logger.debug("_normalise_translation: lang=%s ellipsis_fixed=%s", lang, had_dots)
 
     # Universal: normalise placeholder spacing -- strip inner spaces from {{ name }} -> {{name}}
     text = re.sub(r'\{\{\s+(\S+?)\s+\}\}', r'{{\1}}', text)
