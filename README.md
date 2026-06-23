@@ -204,7 +204,7 @@ knowledge/
 ├── fr_guide.md             # French patterns and vocabulary
 ├── pt_BR_guide.md          # Brazilian Portuguese patterns and vocabulary
 ├── ja_guide.md             # Japanese UI conventions and counter rules
-└── tm/                     # Translation Memory folder (reference — not yet wired into pipeline)
+└── tm.md                   # Translation Memory — 35 linguist-approved entries used by translator and reviewer
 ```
 
 ### Key rules encoded in the knowledge base
@@ -300,7 +300,7 @@ Edit the relevant language guide (e.g. `knowledge/es_ES_guide.md`). The reviewer
 Add it to the "Brand & Company Names" or "Product & Platform Names" list in `knowledge/brand_guidelines.md` and to the `## Untranslatable Brand & Product Names` table in `knowledge/glossary.md`.
 
 **To update the knowledge base from linguist-approved translations:**  
-Review the approved Excel files, extract new vocabulary patterns and terminology decisions, and write them directly into the relevant knowledge files. The `knowledge/tm/` folder is reserved for future Translation Memory integration.
+Review the approved Excel files, extract new vocabulary patterns and terminology decisions, and write them directly into the relevant knowledge files. For exact string matches, add rows to `knowledge/tm.md` — the translator checks this file first and uses approved entries verbatim; the reviewer verifies TM compliance as its first check.
 
 ---
 
@@ -351,7 +351,7 @@ monotype_translation_crew/
 | Item | Status |
 |------|--------|
 | Automated test suite | 116 unit tests covering language-section filtering, placeholder validation, glossary validation, and batch logic. Translation quality is validated by diffing AI output against linguist-approved Excel files — a validation script generates a per-language accuracy report with exact-match % and average similarity %. |
-| Translation Memory (TM) integration — look up approved translations before calling the LLM | Planned |
+| Translation Memory (TM) integration — exact approved strings used verbatim by translator and reviewer | Done — `knowledge/tm.md`, 35 entries across 5 languages |
 | SSO / internal Monotype auth | Not yet — currently open prototype |
 | Additional languages (es-419, zh-CN, ko-KR) | Planned |
 | Multi-user job isolation (scoped output files) | Done — each job writes to `reviewed_translations_{job_id}.json` |
