@@ -15,7 +15,7 @@ AI-powered translation pipeline built with CrewAI and FastAPI. Translates Monoty
 **Status:** Live prototype — actively used by Monotype linguist teams  
 **Live tool:** https://huggingface.co/spaces/Sankalp546/Monotype_Translator  
 **Maintained by:** Sankalp Khandelwal (sankalp.khandelwal@monotype.com)  
-**Last updated:** June 2026 — language-filtered prompts, unit test suite, knowledge base refresh from linguist V3 comparison
+**Last updated:** June 2026 — TM wired in, pt-BR tag vocabulary, typographic quote rules, ellipsis normalisation, linguist C benchmark (82.6% avg similarity)
 
 ---
 
@@ -90,7 +90,7 @@ flowchart TD
     subgraph API["FastAPI Backend (api.py)"]
         Router["Request Router"]
         Converter["File Converter\nPDF / DOCX → XLSX"]
-        Batcher["Batch Splitter\n~50 rows per batch"]
+        Batcher["Batch Splitter\n~75 rows per batch (5 langs)"]
         Merger["Batch Merger\n& Output Writer"]
     end
 
@@ -110,6 +110,7 @@ flowchart TD
         BG["brand_guidelines.md"]
         GL["glossary.md"]
         LG["es_ES / de / fr\npt_BR / ja guides"]
+        TM["tm.md\n(35 approved TM entries)"]
         Cache[("brand_context_cache\n(skip scrape on repeat runs)")]
     end
 
@@ -144,8 +145,8 @@ sequenceDiagram
     loop Per batch
         API->>BA: kickoff(batch, knowledge_dir)
 
-        BA->>KB: read brand_guidelines + glossary + language guides
-        KB-->>BA: rules, approved terms, per-language patterns
+        BA->>KB: read brand_guidelines + glossary + language guides + tm.md
+        KB-->>BA: rules, approved terms, TM entries, per-language patterns
 
         alt First run
             BA->>BA: scrape MyFonts.com for product terminology
@@ -156,11 +157,13 @@ sequenceDiagram
 
         BA-->>TR: brand context document
 
+        TR->>TR: TM lookup — use approved entry verbatim if match found
         TR->>TR: mandatory glossary check (every string)
         TR->>TR: translate all strings → JSON array
 
         TR-->>RV: translations JSON
 
+        RV->>RV: TM compliance check (first — reject any TM deviation)
         RV->>RV: run ~20 rule checks per language
         RV->>RV: correct errors in-place
         RV->>RV: add reviewer_note to flagged strings
@@ -185,8 +188,8 @@ Four CrewAI agents run sequentially. Each has a single responsibility.
 | Agent | Role |
 |-------|------|
 | **Brand Analyst** | Reads all knowledge files and scrapes MyFonts.com for current product terminology. Produces a brand context document used by all downstream agents. Result is cached — subsequent batches skip the web scrape. |
-| **Translator** | Runs a mandatory glossary check on every string before translating. Uses exact approved translations for any term in the glossary. Outputs a structured JSON array covering all selected languages. |
-| **Translation Reviewer** | Runs ~20 language-specific rule checks per string — accuracy, register, placeholder integrity, product name fidelity, dialog grammar, and vocabulary traps (e.g. German *vierteljährlich*, Japanese 件 counter, es-ES webkit vocabulary). Corrects errors in-place and flags uncertain strings. |
+| **Translator** | Checks `tm.md` first — if the English string has an approved TM entry, uses it verbatim. Then runs a mandatory glossary check on every string before translating. Outputs a structured JSON array covering all selected languages. |
+| **Translation Reviewer** | TM compliance is the first check — any deviation from an approved TM entry is corrected immediately. Then runs ~20 language-specific rule checks per string — accuracy, register, placeholder integrity, product name fidelity, dialog grammar, and vocabulary traps (e.g. German *vierteljährlich*, Japanese 件 counter, es-ES webkit vocabulary, pt-BR tag/tags). Corrects errors in-place and flags uncertain strings. |
 | **Production Manager** | Writes reviewed translations back into the output file. Produces a summary report with row counts per language and a list of any flagged strings. |
 
 ---
@@ -335,7 +338,7 @@ monotype_translation_crew/
 
 ## Architecture Notes
 
-- **Brand context caching** — on first run the Brand Analyst reads all knowledge files and scrapes MyFonts.com, then saves the result to `outputs/brand_context_cache.txt`. Subsequent runs load from cache, skipping the web scrape. Delete the cache file to force a refresh.
+- **Brand context caching** — on first run the Brand Analyst reads all knowledge files (including `tm.md`) and scrapes MyFonts.com, then saves the result to `outputs/brand_context_cache.md`. Subsequent runs load from cache, skipping the web scrape. Delete the cache file to force a refresh.
 - **Language-filtered prompts** — the `translation_task` description is structured into a GLOBAL RULES section followed by five per-language sections (`=== FRENCH RULES ===`, `=== GERMAN RULES ===`, etc.). When fewer than all five languages are selected, only the relevant sections are included in the prompt. Selecting a single language saves 59–73% of description tokens compared to the full five-language prompt.
 - **Batch processing** — strings are translated in batches that scale inversely with language count: 1 language → 300 rows/batch, 5 languages → 75 rows/batch. This keeps output token usage roughly constant regardless of how many languages are selected.
 - **Concurrent jobs** — each job writes its interim translations to a unique `reviewed_translations_{job_id}.json` file (using `threading.local()` to scope the path per thread). Multiple simultaneous uploads are safe.
