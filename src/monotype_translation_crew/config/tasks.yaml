@@ -11,6 +11,17 @@
 # Changes take effect on the next translation run — no code deployment needed.
 # ---------------------------------------------------------------------------
 
+# TODO: Residual cross-language contamination.
+# This task produces a single brand_context document covering all 5
+# languages regardless of target_languages. Both the Excel CrewAI path
+# (_run_job) and the Docx batched path (_run_docx_job_batched) inject
+# this document verbatim into per-language translator prompts. The
+# per-language fan-out refactor (step d/e) isolates rules from
+# tasks.yaml and _LANG_RULES, but the brand_context channel still
+# exposes the translator to other languages' terminology and brand
+# guidance. Fix options: (a) filter the cache file per language at
+# injection time, (b) run brand_analyst per-language so the cache is
+# already isolated. Defer to follow-up PR.
 brand_context_task:
   description: >
     Step 1: Call the read_brand_context_cache tool with knowledge_dir="{knowledge_dir}".

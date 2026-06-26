@@ -1462,6 +1462,9 @@ def _translate_segment_batch(
         or "openai/gpt-4.1-2025-04-14"
     )
 
+    # NOTE: lang_rules is now per-language thanks to fan-out (single-element
+    # target_languages list). brand_context remains a multi-language document
+    # — see TODO at brand_context_task in tasks.yaml.
     lang_rules = "\n".join(
         f"  - {_LANG_RULES.get(lc, lc)}" for lc in target_languages
     )
@@ -1534,43 +1537,58 @@ def _run_docx_job_batched(
         DocxTranslationCrew()._run_brand_context_only("knowledge")
         brand_context = brand_cache.read_text(encoding="utf-8") if brand_cache.exists() else ""
 
-    # Step 2: Translate in batches (with per-batch retry)
+    # Step 2: Translate in batches, per language (fan-out: one language per LiteLLM call)
     all_translations: list[dict] = []
     batches = [segments[i:i + _DOCX_BATCH_SIZE] for i in range(0, len(segments), _DOCX_BATCH_SIZE)]
     batch_errors: list[str] = []
     total_prompt_tokens = 0
     total_completion_tokens = 0
+    JOBS[job_id]["total_batches"] = len(target_languages) * len(batches)
+    global_batch_counter = 0
 
     for idx, batch in enumerate(batches, 1):
-        print(f"[DocxBatch] Translating batch {idx}/{len(batches)} ({len(batch)} segments)")
-        last_exc: Exception | None = None
-        for attempt in range(1, _BATCH_MAX_RETRIES + 1):
-            try:
-                batch_result, usage = _translate_segment_batch(batch, target_languages, brand_context)
-                all_translations.extend(batch_result)
-                if usage:
-                    total_prompt_tokens += usage.prompt_tokens or 0
-                    total_completion_tokens += usage.completion_tokens or 0
-                print(f"[DocxBatch] Batch {idx} OK (attempt {attempt}) — {len(batch_result)} entries")
-                last_exc = None
-                break
-            except Exception as exc:
-                last_exc = exc
-                if attempt < _BATCH_MAX_RETRIES:
-                    wait = 5 * attempt
-                    print(f"[DocxBatch] Batch {idx} attempt {attempt} failed: {exc}. Retrying in {wait}s…")
-                    time.sleep(wait)
-        if last_exc is not None:
-            err_msg = (f"Batch {idx}/{len(batches)} failed after {_BATCH_MAX_RETRIES} attempts: "
-                       f"{type(last_exc).__name__}: {last_exc}")
-            print(f"[DocxBatch] FAILED: {err_msg}")
-            batch_errors.append(err_msg)
-            JOBS[job_id]["error"] = "; ".join(batch_errors)
-            for seg in batch:
-                entry: dict = {"segment_id": seg["segment_id"], "english": seg.get("text", "")}
-                for lang in target_languages:
-                    entry[lang] = seg.get("text", "")
-                all_translations.append(entry)
+        seg_results: dict[int, dict] = {}
+        for lang in target_languages:
+            global_batch_counter += 1
+            JOBS[job_id]["current_batch"] = global_batch_counter
+            print(f"[DocxBatch] batch {idx}/{len(batches)} lang={lang} "
+                  f"(global {global_batch_counter}/{len(target_languages) * len(batches)})")
+            last_exc: Exception | None = None
+            for attempt in range(1, _BATCH_MAX_RETRIES + 1):
+                try:
+                    batch_result, usage = _translate_segment_batch(batch, [lang], brand_context)
+                    for entry in batch_result:
+                        sid = entry.get("segment_id")
+                        if sid is None:
+                            continue
+                        if sid not in seg_results:
+                            seg_results[sid] = {"segment_id": sid, "english": entry.get("english", "")}
+                        if lang in entry:
+                            seg_results[sid][lang] = entry[lang]
+                    if usage:
+                        total_prompt_tokens += usage.prompt_tokens or 0
+                        total_completion_tokens += usage.completion_tokens or 0
+                    print(f"[DocxBatch] batch {idx} lang={lang} OK (attempt {attempt})")
+                    last_exc = None
+                    break
+                except Exception as exc:
+                    last_exc = exc
+                    if attempt < _BATCH_MAX_RETRIES:
+                        wait = 5 * attempt
+                        print(f"[DocxBatch] batch {idx} lang={lang} attempt {attempt} failed: {exc}. Retrying in {wait}s…")
+                        time.sleep(wait)
+            if last_exc is not None:
+                err_msg = (f"Batch {idx}/{len(batches)} lang={lang} failed after {_BATCH_MAX_RETRIES} attempts: "
+                           f"{type(last_exc).__name__}: {last_exc}")
+                print(f"[DocxBatch] FAILED: {err_msg}")
+                batch_errors.append(err_msg)
+                JOBS[job_id]["error"] = "; ".join(batch_errors)
+                for seg in batch:
+                    sid = seg["segment_id"]
+                    if sid not in seg_results:
+                        seg_results[sid] = {"segment_id": sid, "english": seg.get("text", "")}
+                    seg_results[sid][lang] = seg.get("text", "")
+        all_translations.extend(seg_results[k] for k in sorted(seg_results))
 
     print(
         f"[DocxBatch] TOTAL tokens — prompt: {total_prompt_tokens}, "

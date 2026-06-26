@@ -150,6 +150,11 @@ class MonotypeTranslationCrew:
 # Docx Translation Crew — translates Word documents into selected languages
 # ---------------------------------------------------------------------------
 
+# TODO: Cross-language contamination not fixed for documents <=10 segments.
+# The small-doc path uses this Crew class which still runs a single
+# multi-language translation call. The per-language fan-out applies
+# only to the batched path (_run_docx_job_batched, used for >10 segments).
+# Apply the same fan-out pattern here in a follow-up PR.
 class DocxTranslationCrew:
     """Translates Word documents (.docx) into one or more target languages.
 
