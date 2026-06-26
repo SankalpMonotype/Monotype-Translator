@@ -1723,20 +1723,16 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
         # to check for completeness (prevents single-language jobs from looping forever).
         target_languages_str = ",".join(target_languages)
 
-        # Pre-filter the translation task description to include only the language
-        # sections actually requested.  Saves ~60 % of description tokens when a
-        # single language is selected (4 of 5 per-language sections removed).
         _tasks_yaml_path = Path(__file__).parent / "config" / "tasks.yaml"
         try:
             import yaml as _yaml
             _tasks_raw = _yaml.safe_load(_tasks_yaml_path.read_text(encoding="utf-8"))
-            _filtered_translation_desc: str | None = _filter_task_description(
-                _tasks_raw["translation_task"]["description"],
-                target_languages,
-            )
+            _base_translation_desc: str | None = _tasks_raw["translation_task"]["description"]
+            _base_review_desc: str | None = _tasks_raw["review_task"]["description"]
         except Exception as _fd_exc:
-            print(f"[DescFilter] Warning: could not filter task descriptions: {_fd_exc}")
-            _filtered_translation_desc = None
+            print(f"[DescFilter] Warning: could not load task descriptions: {_fd_exc}")
+            _base_translation_desc = None
+            _base_review_desc = None
 
         # Ensure the uploaded file has a proper "English" header row.
         # Some translators upload files where source strings start at row 1 with
@@ -1744,8 +1740,8 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
         # to hallucinate garbage. Auto-insert the header before running the crew.
         _ensure_excel_header(excel_path)
 
-        # Scale batch size: fewer languages → more rows per batch (same output-token budget).
-        batch_size = _excel_batch_size(len(target_languages))
+        # Fan-out: one language per crew run → each run uses single-language batch size.
+        single_lang_batch_size = _excel_batch_size(1)
 
         inputs = {
             "excel_path": excel_path,
@@ -1753,7 +1749,7 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             "target_languages": target_languages,
             "target_languages_str": target_languages_str,
             "tone": JOBS[job_id].get("tone", "informal"),
-            "row_limit": batch_size,
+            "row_limit": single_lang_batch_size,
             # ----------------------------------------------------------------
             # Passthrough dummies for {{placeholder}} examples in tasks.yaml.
             # CrewAI 0.203+ strips one brace layer from {{x}} → {x} and then
@@ -1777,51 +1773,70 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             "Nutzungsbedingungen": "{Nutzungsbedingungen}",
         }
 
-        # Compute number of batches so the UI can show "Batch N/M" progress.
         total_rows = _count_excel_rows(excel_path)
-        n_batches = max(1, math.ceil(total_rows / batch_size))
-        JOBS[job_id]["total_batches"] = n_batches
+        n_batches = max(1, math.ceil(total_rows / single_lang_batch_size))
+        JOBS[job_id]["total_batches"] = len(target_languages) * n_batches
 
-        review_path = _scoped_review_path
+        _static_review_path = Path("outputs/reviewed_translations.json")
         all_review_data: list = []
         _total_prompt_tokens = 0
         _total_completion_tokens = 0
+        global_batch_counter = 0
 
-        for batch_num in range(n_batches):
+        for lang in target_languages:
             if JOBS[job_id].get("cancel_requested"):
                 break
 
-            JOBS[job_id]["current_batch"] = batch_num + 1
-            print(f"[ExcelBatch] Starting batch {batch_num + 1}/{n_batches} "
-                  f"(batch_size={batch_size}) for job {job_id}")
-            _crew_obj = MonotypeTranslationCrew()
-            if _filtered_translation_desc is not None:
-                _crew_obj._translation_desc_override = _filtered_translation_desc
-            _batch_result = _crew_obj.crew().kickoff(inputs=inputs)
-            try:
-                _tu = getattr(_batch_result, "token_usage", None)
-                if _tu is not None:
-                    _total_prompt_tokens += int(getattr(_tu, "prompt_tokens", 0) or 0)
-                    _total_completion_tokens += int(getattr(_tu, "completion_tokens", 0) or 0)
-            except Exception:
-                pass
+            lang_translation_desc = (
+                _filter_task_description(_base_translation_desc, [lang])
+                if _base_translation_desc else None
+            )
+            lang_review_desc = (
+                _filter_task_description(_base_review_desc, [lang])
+                if _base_review_desc else None
+            )
+            lang_inputs = {
+                **inputs,
+                "target_languages": [lang],
+                "target_languages_str": lang,
+            }
+            lang_review_data: list = []
 
-            # Accumulate review data across batches so the UI shows the full count.
-            if review_path.exists():
+            for batch_num in range(n_batches):
+                if JOBS[job_id].get("cancel_requested"):
+                    break
+
+                global_batch_counter += 1
+                JOBS[job_id]["current_batch"] = global_batch_counter
+                print(f"[ExcelBatch] lang={lang} batch {batch_num + 1}/{n_batches} "
+                      f"(global {global_batch_counter}/{len(target_languages) * n_batches}) job={job_id}")
+                _crew_obj = MonotypeTranslationCrew()
+                if lang_translation_desc is not None:
+                    _crew_obj._translation_desc_override = lang_translation_desc
+                if lang_review_desc is not None:
+                    _crew_obj._review_desc_override = lang_review_desc
+                _batch_result = _crew_obj.crew().kickoff(inputs=lang_inputs)
                 try:
-                    batch_data = json.loads(review_path.read_text())
-                    if isinstance(batch_data, list):
-                        if len(batch_data) == 0:
-                            print(f"[ExcelBatch] Batch {batch_num + 1}: 0 rows translated — "
-                                  f"all strings complete, stopping early.")
-                            break
-                        all_review_data.extend(batch_data)
-                        JOBS[job_id]["review_data"] = all_review_data
+                    _tu = getattr(_batch_result, "token_usage", None)
+                    if _tu is not None:
+                        _total_prompt_tokens += int(getattr(_tu, "prompt_tokens", 0) or 0)
+                        _total_completion_tokens += int(getattr(_tu, "completion_tokens", 0) or 0)
                 except Exception:
                     pass
 
-        # Ensure review_data reflects the complete accumulated set.
-        if all_review_data:
+                if _static_review_path.exists():
+                    try:
+                        batch_data = json.loads(_static_review_path.read_text())
+                        if isinstance(batch_data, list):
+                            if len(batch_data) == 0:
+                                print(f"[ExcelBatch] Lang {lang} batch {batch_num + 1}: "
+                                      f"0 rows — all complete, stopping lang early.")
+                                break
+                            lang_review_data.extend(batch_data)
+                    except Exception:
+                        pass
+
+            all_review_data = _merge_per_language_results(all_review_data, lang_review_data)
             JOBS[job_id]["review_data"] = all_review_data
 
         if _total_prompt_tokens or _total_completion_tokens:
