@@ -1323,6 +1323,28 @@ def _filter_task_description(description: str, target_languages: list[str]) -> s
     return "".join(parts)
 
 
+def _merge_per_language_results(base: list[dict], additions: list[dict]) -> list[dict]:
+    """Merge a single-language additions list into a base multi-language list.
+
+    Each entry in *additions* contains one language key alongside row_index/english.
+    The language key is grafted onto the matching row_index entry in *base*, or a new
+    entry is created if the row is not yet in *base*.
+
+    Assumption: *additions* entries are single-language (one translation key per entry).
+    """
+    index: dict[int, dict] = {e["row_index"]: e for e in base if "row_index" in e}
+    for entry in additions:
+        row_idx = entry.get("row_index")
+        if row_idx is None:
+            continue
+        if row_idx not in index:
+            index[row_idx] = {"row_index": row_idx, "english": entry.get("english", "")}
+        for k, v in entry.items():
+            if k not in ("row_index", "english", "reviewer_note"):
+                index[row_idx][k] = v
+    return [index[k] for k in sorted(index)]
+
+
 def _count_excel_rows(path: str) -> int:
     """Count non-empty English-column rows (excluding header) in an Excel file."""
     try:
