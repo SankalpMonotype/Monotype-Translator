@@ -113,8 +113,13 @@ class MonotypeTranslationCrew:
 
     @task
     def review_task(self) -> Task:
+        config = self.tasks_config["review_task"]  # type: ignore[index]
+        override = getattr(self, "_review_desc_override", None)
+        if override:
+            config = dict(config)
+            config["description"] = override
         return Task(
-            config=self.tasks_config["review_task"],  # type: ignore[index]
+            config=config,
             output_file=os.path.join("outputs", "reviewed_translations.json"),
         )
 
