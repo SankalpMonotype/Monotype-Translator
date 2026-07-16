@@ -1252,8 +1252,9 @@ _EXCEL_BATCH_BASE = 75  # rows per batch when translating all 5 languages
 
 def _excel_batch_size(n_languages: int) -> int:
     """Scale batch size inversely with language count to stay under output-token limits.
-    5 langs → 75 rows/batch; 1 lang → 300 rows/batch (capped)."""
-    return min(300, _EXCEL_BATCH_BASE * 5 // max(1, n_languages))
+    5 langs → 75 rows/batch; 1 lang → 100 rows/batch (capped at 100 to prevent
+    translator output-token overflow and retry storms on large files)."""
+    return min(100, _EXCEL_BATCH_BASE * 5 // max(1, n_languages))
 
 
 # ---------------------------------------------------------------------------
