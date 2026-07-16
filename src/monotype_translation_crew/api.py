@@ -1501,6 +1501,7 @@ Include ONLY the requested language keys. Raw JSON only — no markdown fences, 
         model=model,
         max_tokens=8192,
         messages=[{"role": "user", "content": prompt}],
+        request_timeout=120,
     )
 
     usage = getattr(response, "usage", None)
@@ -1725,6 +1726,9 @@ def _populate_preview_from_output(
 def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") -> None:
     """Run the full CrewAI pipeline in a background thread, batching large files."""
     JOBS[job_id]["status"] = "running"
+    _job_start_time = time.time()
+    _JOB_TIMEOUT_SECS = 90 * 60   # 90-min hard cap for the whole job
+    _BATCH_TIMEOUT_SECS = 40 * 60  # 40 min covers all 4 agent max_execution_times + buffer
     try:
         from .crew import MonotypeTranslationCrew  # import here to keep startup fast
         from .tools.excel_tools import set_job_translation_path
@@ -1824,6 +1828,15 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                 if JOBS[job_id].get("cancel_requested"):
                     break
 
+                # Hard wall-clock guard — refuse to start a new batch if the
+                # job has already been running for too long.
+                elapsed = time.time() - _job_start_time
+                if elapsed > _JOB_TIMEOUT_SECS:
+                    raise RuntimeError(
+                        f"Job exceeded {_JOB_TIMEOUT_SECS // 60}-minute time limit "
+                        f"after batch {global_batch_counter}/{len(target_languages) * n_batches}."
+                    )
+
                 global_batch_counter += 1
                 JOBS[job_id]["current_batch"] = global_batch_counter
                 print(f"[ExcelBatch] lang={lang} batch {batch_num + 1}/{n_batches} "
@@ -1833,7 +1846,22 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                     _crew_obj._translation_desc_override = lang_translation_desc
                 if lang_review_desc is not None:
                     _crew_obj._review_desc_override = lang_review_desc
-                _batch_result = _crew_obj.crew().kickoff(inputs=lang_inputs)
+
+                # Per-batch hard timeout: if the crew kickoff hangs (e.g. a
+                # blocking LLM API call that never returns), surface a clear
+                # error rather than blocking the executor thread indefinitely.
+                _crew_instance = _crew_obj.crew()
+                _batch_pool = ThreadPoolExecutor(max_workers=1)
+                _batch_fut = _batch_pool.submit(_crew_instance.kickoff, lang_inputs)
+                try:
+                    _batch_result = _batch_fut.result(timeout=_BATCH_TIMEOUT_SECS)
+                except TimeoutError:
+                    raise RuntimeError(
+                        f"Batch {batch_num + 1}/{n_batches} lang={lang} timed out after "
+                        f"{_BATCH_TIMEOUT_SECS // 60} min — check LLM API connectivity."
+                    )
+                finally:
+                    _batch_pool.shutdown(wait=False)
                 try:
                     _tu = getattr(_batch_result, "token_usage", None)
                     if _tu is not None:
