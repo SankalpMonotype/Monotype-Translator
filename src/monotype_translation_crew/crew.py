@@ -138,6 +138,48 @@ class MonotypeTranslationCrew:
 
     @crew
     def crew(self) -> Crew:
+        if getattr(self, "_skip_brand_analyst", False):
+            # Slim crew: brand context is already embedded in the task
+            # description overrides — skip brand_analyst entirely so it
+            # doesn't add per-batch LLM overhead on warm-cache runs.
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            report_path = os.path.join("outputs", f"translation_report-{timestamp}.md")
+
+            trans_desc = (
+                getattr(self, "_translation_desc_override", None)
+                or self.tasks_config["translation_task"]["description"]  # type: ignore[index]
+            )
+            rev_desc = (
+                getattr(self, "_review_desc_override", None)
+                or self.tasks_config["review_task"]["description"]  # type: ignore[index]
+            )
+
+            trans_task = Task(
+                description=trans_desc,
+                expected_output=self.tasks_config["translation_task"]["expected_output"],  # type: ignore[index]
+                agent=self.translator(),
+            )
+            rev_task = Task(
+                description=rev_desc,
+                expected_output=self.tasks_config["review_task"]["expected_output"],  # type: ignore[index]
+                agent=self.translation_reviewer(),
+                context=[trans_task],
+                output_file=os.path.join("outputs", "reviewed_translations.json"),
+            )
+            prod_task = Task(
+                description=self.tasks_config["production_task"]["description"],  # type: ignore[index]
+                expected_output=self.tasks_config["production_task"]["expected_output"],  # type: ignore[index]
+                agent=self.production_manager(),
+                context=[rev_task],
+                output_file=report_path,
+            )
+            return Crew(
+                agents=[self.translator(), self.translation_reviewer(), self.production_manager()],
+                tasks=[trans_task, rev_task, prod_task],
+                process=Process.sequential,
+                verbose=True,
+            )
+
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
