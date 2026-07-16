@@ -11,6 +11,7 @@ import asyncio
 import json
 import math
 import re
+import shutil
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -1725,6 +1726,105 @@ def _populate_preview_from_output(
         print(f"[ExcelBatch] _populate_preview_from_output failed: {exc}")
 
 
+_LANG_COL_HEADERS = {
+    "fr": "French", "de": "German",
+    "pt_BR": "Portuguese", "ja": "Japanese", "es_ES": "Spanish",
+}
+
+
+def _merge_language_excels(
+    original_excel_path: str,
+    target_languages: list,
+    job_id: str,
+) -> None:
+    """Merge per-language translated Excels into a single output file.
+
+    Each parallel language thread writes to its own
+    outputs/{stem}_{job_id}_{lang}_translated.xlsx.  This function collects
+    those files and copies the translated language columns into a single master
+    outputs/{stem}_translated.xlsx, preserving original content and formatting.
+    """
+    try:
+        import openpyxl
+    except ImportError:
+        print("[Merge] openpyxl not available — skipping merge")
+        return
+
+    p = Path(original_excel_path)
+    outputs_dir = Path("outputs")
+    master_path = outputs_dir / f"{p.stem}_translated{p.suffix}"
+
+    wb_master = openpyxl.load_workbook(original_excel_path)
+    ws_master = wb_master.active
+
+    # Locate the header row in the master (first row containing "English").
+    master_header_row = 1
+    for row in ws_master.iter_rows(max_row=5):
+        for cell in row:
+            if cell.value and str(cell.value).strip().lower() == "english":
+                master_header_row = cell.row
+                break
+
+    # Index existing master column headers for fast lookup.
+    master_col_by_header: dict[str, int] = {}
+    for cell in ws_master[master_header_row]:
+        if cell.value:
+            master_col_by_header[str(cell.value).strip().lower()] = cell.column
+
+    for lang in target_languages:
+        lang_file = outputs_dir / f"{p.stem}_{job_id}_{lang}_translated{p.suffix}"
+        if not lang_file.exists():
+            print(f"[Merge] {lang}: per-language file not found — {lang_file}")
+            continue
+
+        wb_lang = openpyxl.load_workbook(lang_file)
+        ws_lang = wb_lang.active
+
+        # Locate the header row in the per-language file.
+        lang_header_row = 1
+        for row in ws_lang.iter_rows(max_row=5):
+            for cell in row:
+                if cell.value and str(cell.value).strip().lower() == "english":
+                    lang_header_row = cell.row
+                    break
+
+        # Find the translated-language column in this file.
+        col_header = _LANG_COL_HEADERS.get(lang, lang)
+        lang_col_idx = None
+        for cell in ws_lang[lang_header_row]:
+            if cell.value and str(cell.value).strip().lower() == col_header.lower():
+                lang_col_idx = cell.column
+                break
+
+        if lang_col_idx is None:
+            print(f"[Merge] {lang}: column '{col_header}' not found in {lang_file}")
+            wb_lang.close()
+            continue
+
+        # Find or create the target column in the master.
+        master_col_idx = master_col_by_header.get(col_header.lower())
+        if master_col_idx is None:
+            master_col_idx = ws_master.max_column + 1
+            ws_master.cell(row=master_header_row, column=master_col_idx).value = col_header
+            master_col_by_header[col_header.lower()] = master_col_idx
+
+        # Copy cells row by row (row numbers align because per-language file is
+        # a copy of the original with the same structure).
+        copied = 0
+        for row_idx in range(lang_header_row + 1, ws_lang.max_row + 1):
+            val = ws_lang.cell(row=row_idx, column=lang_col_idx).value
+            if val is not None:
+                master_row = row_idx - lang_header_row + master_header_row
+                ws_master.cell(row=master_row, column=master_col_idx).value = val
+                copied += 1
+
+        wb_lang.close()
+        print(f"[Merge] {lang}: copied {copied} cells → {master_path.name}")
+
+    wb_master.save(str(master_path))
+    print(f"[Merge] Saved merged output: {master_path}")
+
+
 def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") -> None:
     """Run the full CrewAI pipeline in a background thread, batching large files."""
     JOBS[job_id]["status"] = "running"
@@ -1828,6 +1928,8 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             "completed_batches": 0,
         }
 
+        _orig_p = Path(excel_path)
+
         def _run_lang(lang: str) -> None:
             """Run all batches for a single language. Called from a language thread."""
             # Per-language review path — prevents parallel language threads from
@@ -1835,6 +1937,16 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             lang_review_path = str(
                 Path(f"outputs/reviewed_translations_{job_id}_{lang}.json")
             )
+
+            # Per-language Excel copy — production_manager derives its output
+            # path from excel_path, so giving each language its own copy means
+            # each writes to outputs/{stem}_{job_id}_{lang}_translated.xlsx
+            # instead of the shared outputs/{stem}_translated.xlsx.
+            # This eliminates the read-modify-write race between parallel threads.
+            lang_excel_copy = str(
+                Path("outputs") / f"{_orig_p.stem}_{job_id}_{lang}{_orig_p.suffix}"
+            )
+            shutil.copy2(excel_path, lang_excel_copy)
 
             lang_translation_desc = (
                 _filter_task_description(_base_translation_desc, [lang])
@@ -1846,6 +1958,7 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             )
             lang_inputs = {
                 **inputs,
+                "excel_path": lang_excel_copy,
                 "target_languages": [lang],
                 "target_languages_str": lang,
             }
@@ -1955,6 +2068,20 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                 fut.result()
             except Exception as _lang_exc:
                 raise RuntimeError(f"Language {lang} failed: {_lang_exc}") from _lang_exc
+
+        # Merge per-language translated Excels into a single output file.
+        # Each language wrote to outputs/{stem}_{job_id}_{lang}_translated.xlsx
+        # to avoid race conditions; combine them now into outputs/{stem}_translated.xlsx.
+        _merge_language_excels(excel_path, target_languages, job_id)
+
+        # Clean up per-language input copies and their translated outputs.
+        for _cl in target_languages:
+            for _suffix in ["", "_translated"]:
+                _f = Path("outputs") / f"{_orig_p.stem}_{job_id}_{_cl}{_suffix}{_orig_p.suffix}"
+                try:
+                    _f.unlink(missing_ok=True)
+                except Exception:
+                    pass
 
         all_review_data = _shared["all_review_data"]
         _total_prompt_tokens = _shared["prompt_tokens"]
