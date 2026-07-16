@@ -115,9 +115,13 @@ class MonotypeTranslationCrew:
         if override:
             config = dict(config)
             config["description"] = override
+        review_path = getattr(
+            self, "_lang_review_path",
+            os.path.join("outputs", "reviewed_translations.json"),
+        )
         return Task(
             config=config,
-            output_file=os.path.join("outputs", "reviewed_translations.json"),
+            output_file=review_path,
         )
 
     @task
@@ -156,12 +160,16 @@ class MonotypeTranslationCrew:
                 expected_output=self.tasks_config["translation_task"]["expected_output"],  # type: ignore[index]
                 agent=self.translator(),
             )
+            review_path = getattr(
+                self, "_lang_review_path",
+                os.path.join("outputs", "reviewed_translations.json"),
+            )
             rev_task = Task(
                 description=rev_desc,
                 expected_output=self.tasks_config["review_task"]["expected_output"],  # type: ignore[index]
                 agent=self.translation_reviewer(),
                 context=[trans_task],
-                output_file=os.path.join("outputs", "reviewed_translations.json"),
+                output_file=review_path,
             )
             prod_task = Task(
                 description=self.tasks_config["production_task"]["description"],  # type: ignore[index]
