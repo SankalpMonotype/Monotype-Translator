@@ -4,7 +4,6 @@ from typing import List
 from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, before_kickoff, crew, task
-from crewai_tools import ScrapeWebsiteTool
 from datetime import datetime
 
 from .tools import (
@@ -38,12 +37,10 @@ class MonotypeTranslationCrew:
             config=self.agents_config["brand_analyst"],  # type: ignore[index]
             verbose=True,
             max_iter=8,
-            max_execution_time=720,
+            max_execution_time=120,
             tools=[
                 read_brand_context_cache,
                 read_brand_guidelines,
-                ScrapeWebsiteTool(website_url="https://www.myfonts.com/"),
-                ScrapeWebsiteTool(website_url="https://www.myfonts.com/collections/"),
                 save_brand_context_cache,
             ],
             allow_delegation=False,
@@ -221,12 +218,10 @@ class DocxTranslationCrew:
             config=self._agents_cfg["brand_analyst"],
             verbose=True,
             max_iter=8,
-            max_execution_time=720,
+            max_execution_time=120,
             tools=[
                 read_brand_context_cache,
                 read_brand_guidelines,
-                ScrapeWebsiteTool(website_url="https://www.myfonts.com/"),
-                ScrapeWebsiteTool(website_url="https://www.myfonts.com/collections/"),
                 save_brand_context_cache,
             ],
             allow_delegation=False,
