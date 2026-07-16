@@ -13,7 +13,7 @@ import math
 import re
 import time
 import uuid
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
@@ -1252,9 +1252,10 @@ _EXCEL_BATCH_BASE = 75  # rows per batch when translating all 5 languages
 
 def _excel_batch_size(n_languages: int) -> int:
     """Scale batch size inversely with language count to stay under output-token limits.
-    5 langs → 75 rows/batch; 1 lang → 100 rows/batch (capped at 100 to prevent
-    translator output-token overflow and retry storms on large files)."""
-    return min(100, _EXCEL_BATCH_BASE * 5 // max(1, n_languages))
+    Fan-out runs one language per batch, so n_languages is always 1 here.
+    Cap raised to 200 (from 100) now that max_tokens=16384 — 200 rows × ~30 tokens
+    = ~6000 output tokens = 37% of the new ceiling, well clear of truncation risk."""
+    return min(200, _EXCEL_BATCH_BASE * 5 // max(1, n_languages))
 
 
 # ---------------------------------------------------------------------------
@@ -1500,7 +1501,7 @@ Include ONLY the requested language keys. Raw JSON only — no markdown fences, 
 
     response = litellm.completion(
         model=model,
-        max_tokens=8192,
+        max_tokens=16384,
         messages=[{"role": "user", "content": prompt}],
         request_timeout=120,
     )
@@ -1728,13 +1729,11 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
     """Run the full CrewAI pipeline in a background thread, batching large files."""
     JOBS[job_id]["status"] = "running"
     _job_start_time = time.time()
-    _JOB_TIMEOUT_SECS = 90 * 60   # 90-min hard cap for the whole job
-    _BATCH_TIMEOUT_SECS = 40 * 60  # 40 min covers all 4 agent max_execution_times + buffer
+    _JOB_TIMEOUT_SECS = 120 * 60  # 120-min cap; languages now run in parallel so wall-clock ≈ slowest language
+    _BATCH_TIMEOUT_SECS = 40 * 60  # 40 min per-batch hard cap
     try:
         from .crew import MonotypeTranslationCrew  # import here to keep startup fast
         from .tools.excel_tools import set_job_translation_path
-        _scoped_review_path = Path(f"outputs/reviewed_translations_{job_id}.json")
-        set_job_translation_path(str(_scoped_review_path))
 
         _lang_normalise = {"pt": "pt_BR", "es": "es_ES"}
         target_languages = [
@@ -1819,15 +1818,23 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             except Exception:
                 pass
 
-        _static_review_path = Path("outputs/reviewed_translations.json")
-        all_review_data: list = []
-        _total_prompt_tokens = 0
-        _total_completion_tokens = 0
-        global_batch_counter = 0
+        # Thread-safe shared state across language threads.
+        import threading as _threading
+        _lock = _threading.Lock()
+        _shared: dict = {
+            "all_review_data": [],
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "completed_batches": 0,
+        }
 
-        for lang in target_languages:
-            if JOBS[job_id].get("cancel_requested"):
-                break
+        def _run_lang(lang: str) -> None:
+            """Run all batches for a single language. Called from a language thread."""
+            # Per-language review path — prevents parallel language threads from
+            # overwriting each other's reviewed_translations.json.
+            lang_review_path = str(
+                Path(f"outputs/reviewed_translations_{job_id}_{lang}.json")
+            )
 
             lang_translation_desc = (
                 _filter_task_description(_base_translation_desc, [lang])
@@ -1848,25 +1855,23 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                 if JOBS[job_id].get("cancel_requested"):
                     break
 
-                # Hard wall-clock guard — refuse to start a new batch if the
-                # job has already been running for too long.
                 elapsed = time.time() - _job_start_time
                 if elapsed > _JOB_TIMEOUT_SECS:
                     raise RuntimeError(
                         f"Job exceeded {_JOB_TIMEOUT_SECS // 60}-minute time limit "
-                        f"after batch {global_batch_counter}/{len(target_languages) * n_batches}."
+                        f"(lang={lang} batch {batch_num + 1}/{n_batches})."
                     )
 
-                global_batch_counter += 1
-                JOBS[job_id]["current_batch"] = global_batch_counter
+                with _lock:
+                    _shared["completed_batches"] += 1
+                    JOBS[job_id]["current_batch"] = _shared["completed_batches"]
+
                 print(f"[ExcelBatch] lang={lang} batch {batch_num + 1}/{n_batches} "
-                      f"(global {global_batch_counter}/{len(target_languages) * n_batches}) job={job_id}")
+                      f"(global {_shared['completed_batches']}/{len(target_languages) * n_batches}) job={job_id}")
+
                 _crew_obj = MonotypeTranslationCrew()
+                _crew_obj._lang_review_path = lang_review_path
                 if _brand_context_text and _base_translation_desc is not None:
-                    # Brand context is pre-loaded — inject it into the task
-                    # descriptions and skip brand_analyst on this batch entirely.
-                    # Per-language filtering is already applied by lang_translation_desc,
-                    # so isolation is maintained.
                     _brand_header = (
                         "BRAND CONTEXT (pre-loaded — use this as your primary "
                         "brand and glossary reference):\n"
@@ -1886,12 +1891,19 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                     if lang_review_desc is not None:
                         _crew_obj._review_desc_override = lang_review_desc
 
-                # Per-batch hard timeout: if the crew kickoff hangs (e.g. a
-                # blocking LLM API call that never returns), surface a clear
-                # error rather than blocking the executor thread indefinitely.
                 _crew_instance = _crew_obj.crew()
                 _batch_pool = ThreadPoolExecutor(max_workers=1)
-                _batch_fut = _batch_pool.submit(_crew_instance.kickoff, lang_inputs)
+
+                def _kickoff_with_path(_crew, _inputs, _review_path):
+                    # Set thread-local reviewed-translations path inside the
+                    # executor thread so write_reviewed_translations_to_excel
+                    # (used by production_manager) reads from the right file.
+                    set_job_translation_path(_review_path)
+                    return _crew.kickoff(_inputs)
+
+                _batch_fut = _batch_pool.submit(
+                    _kickoff_with_path, _crew_instance, lang_inputs, lang_review_path
+                )
                 try:
                     _batch_result = _batch_fut.result(timeout=_BATCH_TIMEOUT_SECS)
                 except TimeoutError:
@@ -1901,17 +1913,20 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                     )
                 finally:
                     _batch_pool.shutdown(wait=False)
+
                 try:
                     _tu = getattr(_batch_result, "token_usage", None)
                     if _tu is not None:
-                        _total_prompt_tokens += int(getattr(_tu, "prompt_tokens", 0) or 0)
-                        _total_completion_tokens += int(getattr(_tu, "completion_tokens", 0) or 0)
+                        with _lock:
+                            _shared["prompt_tokens"] += int(getattr(_tu, "prompt_tokens", 0) or 0)
+                            _shared["completion_tokens"] += int(getattr(_tu, "completion_tokens", 0) or 0)
                 except Exception:
                     pass
 
-                if _static_review_path.exists():
+                _lang_review_path_obj = Path(lang_review_path)
+                if _lang_review_path_obj.exists():
                     try:
-                        batch_data = json.loads(_static_review_path.read_text())
+                        batch_data = json.loads(_lang_review_path_obj.read_text())
                         if isinstance(batch_data, list):
                             if len(batch_data) == 0:
                                 print(f"[ExcelBatch] Lang {lang} batch {batch_num + 1}: "
@@ -1921,8 +1936,29 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                     except Exception:
                         pass
 
-            all_review_data = _merge_per_language_results(all_review_data, lang_review_data)
-            JOBS[job_id]["review_data"] = all_review_data
+            with _lock:
+                _shared["all_review_data"] = _merge_per_language_results(
+                    _shared["all_review_data"], lang_review_data
+                )
+                JOBS[job_id]["review_data"] = _shared["all_review_data"]
+
+        # Run all languages in parallel — wall-clock time ≈ slowest single language
+        # instead of sum of all languages.  Isolation is maintained because each
+        # language writes to its own reviewed_translations_{job_id}_{lang}.json.
+        with ThreadPoolExecutor(max_workers=len(target_languages)) as _lang_pool:
+            _lang_futs = {lang: _lang_pool.submit(_run_lang, lang) for lang in target_languages
+                          if not JOBS[job_id].get("cancel_requested")}
+        # All language threads have completed (ThreadPoolExecutor.__exit__ waits).
+        # Re-raise the first exception if any language failed.
+        for lang, fut in _lang_futs.items():
+            try:
+                fut.result()
+            except Exception as _lang_exc:
+                raise RuntimeError(f"Language {lang} failed: {_lang_exc}") from _lang_exc
+
+        all_review_data = _shared["all_review_data"]
+        _total_prompt_tokens = _shared["prompt_tokens"]
+        _total_completion_tokens = _shared["completion_tokens"]
 
         if _total_prompt_tokens or _total_completion_tokens:
             JOBS[job_id]["token_usage"] = {
