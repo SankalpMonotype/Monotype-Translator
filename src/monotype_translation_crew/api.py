@@ -1800,6 +1800,25 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
         n_batches = max(1, math.ceil(total_rows / single_lang_batch_size))
         JOBS[job_id]["total_batches"] = len(target_languages) * n_batches
 
+        # Pre-warm brand context once for the whole job so brand_analyst runs
+        # at most once (cold start) rather than once per language per batch.
+        # Saves ~30–120 s × (n_languages × n_batches − 1) of overhead.
+        _brand_cache_path = Path("outputs/brand_context_cache.md")
+        _brand_context_text = ""
+        if not _brand_cache_path.exists():
+            print(f"[ExcelBatch] job={job_id} brand context cache is cold — pre-warming once…")
+            try:
+                from .crew import DocxTranslationCrew as _DCrew
+                _DCrew()._run_brand_context_only("knowledge")
+            except Exception as _bc_exc:
+                print(f"[ExcelBatch] brand context warmup failed (non-fatal): {_bc_exc}")
+        if _brand_cache_path.exists():
+            try:
+                _brand_context_text = _brand_cache_path.read_text(encoding="utf-8")
+                print(f"[ExcelBatch] job={job_id} brand context loaded ({len(_brand_context_text)} chars)")
+            except Exception:
+                pass
+
         _static_review_path = Path("outputs/reviewed_translations.json")
         all_review_data: list = []
         _total_prompt_tokens = 0
@@ -1843,10 +1862,29 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                 print(f"[ExcelBatch] lang={lang} batch {batch_num + 1}/{n_batches} "
                       f"(global {global_batch_counter}/{len(target_languages) * n_batches}) job={job_id}")
                 _crew_obj = MonotypeTranslationCrew()
-                if lang_translation_desc is not None:
-                    _crew_obj._translation_desc_override = lang_translation_desc
-                if lang_review_desc is not None:
-                    _crew_obj._review_desc_override = lang_review_desc
+                if _brand_context_text and _base_translation_desc is not None:
+                    # Brand context is pre-loaded — inject it into the task
+                    # descriptions and skip brand_analyst on this batch entirely.
+                    # Per-language filtering is already applied by lang_translation_desc,
+                    # so isolation is maintained.
+                    _brand_header = (
+                        "BRAND CONTEXT (pre-loaded — use this as your primary "
+                        "brand and glossary reference):\n"
+                        + _brand_context_text[:5000]
+                        + "\n\n---\n\n"
+                    )
+                    _crew_obj._skip_brand_analyst = True
+                    _crew_obj._translation_desc_override = (
+                        _brand_header + (lang_translation_desc or _base_translation_desc)
+                    )
+                    _crew_obj._review_desc_override = (
+                        _brand_header + (lang_review_desc or _base_review_desc or "")
+                    )
+                else:
+                    if lang_translation_desc is not None:
+                        _crew_obj._translation_desc_override = lang_translation_desc
+                    if lang_review_desc is not None:
+                        _crew_obj._review_desc_override = lang_review_desc
 
                 # Per-batch hard timeout: if the crew kickoff hangs (e.g. a
                 # blocking LLM API call that never returns), surface a clear
