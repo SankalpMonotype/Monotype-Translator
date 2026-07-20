@@ -1816,23 +1816,45 @@ def _merge_language_excels(
             master_col_idx = _candidate
             ws_master.cell(row=master_header_row, column=master_col_idx).value = col_header
             master_col_by_header[col_header.lower()] = master_col_idx
-            # Copy cell style (fill/font/alignment/border) from the last
-            # existing language column so newly-added columns (e.g. Japanese
-            # when the template has no pre-defined Japanese column) match the
-            # formatting of the other language columns.
+            # Copy column width + cell styles from the adjacent language column
+            # so the new column matches the template formatting (green fill,
+            # wrap_text, font, etc.).  deepcopy avoids shallow-copy issues with
+            # openpyxl's nested style objects (PatternFill → Color, etc.).
             _ref_col = max((c for c in master_col_by_header.values()
                             if c != master_col_idx), default=None)
             if _ref_col:
                 try:
-                    from copy import copy as _copy
+                    from openpyxl.utils import get_column_letter as _gcl
+                    # 1. Column width
+                    _ref_letter = _gcl(_ref_col)
+                    _new_letter = _gcl(master_col_idx)
+                    _ref_cd = ws_master.column_dimensions.get(_ref_letter)
+                    if _ref_cd and _ref_cd.width:
+                        ws_master.column_dimensions[_new_letter].width = _ref_cd.width
+                    # 2. Cell styles — PatternFill must be reconstructed from its
+                    #    attributes because deepcopy/copy both fail on openpyxl's
+                    #    circular style hierarchy.  Font/Alignment/Border use
+                    #    shallow copy which is safe for those simpler objects.
+                    from copy import copy as _scopy
+                    from openpyxl.styles import PatternFill as _PF
                     for _ri in range(1, ws_master.max_row + 1):
                         _src = ws_master.cell(row=_ri, column=_ref_col)
                         _dst = ws_master.cell(row=_ri, column=master_col_idx)
                         if _src.has_style:
-                            _dst.font      = _copy(_src.font)
-                            _dst.fill      = _copy(_src.fill)
-                            _dst.border    = _copy(_src.border)
-                            _dst.alignment = _copy(_src.alignment)
+                            # Reconstruct fill to avoid openpyxl recursion issues
+                            _sf = _src.fill
+                            if _sf and getattr(_sf, 'fill_type', None) not in (None, 'none'):
+                                try:
+                                    _dst.fill = _PF(
+                                        fill_type=_sf.fill_type,
+                                        fgColor=_sf.fgColor.rgb,
+                                        bgColor=_sf.bgColor.rgb,
+                                    )
+                                except Exception:
+                                    pass
+                            _dst.font      = _scopy(_src.font)
+                            _dst.border    = _scopy(_src.border)
+                            _dst.alignment = _scopy(_src.alignment)
                 except Exception:
                     pass
 
