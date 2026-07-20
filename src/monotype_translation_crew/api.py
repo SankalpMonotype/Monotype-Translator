@@ -1807,6 +1807,25 @@ def _merge_language_excels(
             master_col_idx = ws_master.max_column + 1
             ws_master.cell(row=master_header_row, column=master_col_idx).value = col_header
             master_col_by_header[col_header.lower()] = master_col_idx
+            # Copy cell style (fill/font/alignment/border) from the last
+            # existing language column so newly-added columns (e.g. Japanese
+            # when the template has no pre-defined Japanese column) match the
+            # formatting of the other language columns.
+            _ref_col = max((c for c in master_col_by_header.values()
+                            if c != master_col_idx), default=None)
+            if _ref_col:
+                try:
+                    from copy import copy as _copy
+                    for _ri in range(1, ws_master.max_row + 1):
+                        _src = ws_master.cell(row=_ri, column=_ref_col)
+                        _dst = ws_master.cell(row=_ri, column=master_col_idx)
+                        if _src.has_style:
+                            _dst.font      = _copy(_src.font)
+                            _dst.fill      = _copy(_src.fill)
+                            _dst.border    = _copy(_src.border)
+                            _dst.alignment = _copy(_src.alignment)
+                except Exception:
+                    pass
 
         # Copy cells row by row (row numbers align because per-language file is
         # a copy of the original with the same structure).
@@ -2049,7 +2068,9 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                             write_reviewed_translations_to_excel as _write_to_excel,
                         )
                         set_job_translation_path(lang_review_path)
-                        _write_result_raw = _write_to_excel(lang_excel_copy)
+                        _write_result_raw = _write_to_excel.run(
+                            {"excel_path": lang_excel_copy}
+                        )
                         try:
                             _write_result = json.loads(_write_result_raw)
                             if _write_result.get("success"):
