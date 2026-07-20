@@ -1804,7 +1804,16 @@ def _merge_language_excels(
         # Find or create the target column in the master.
         master_col_idx = master_col_by_header.get(col_header.lower())
         if master_col_idx is None:
-            master_col_idx = ws_master.max_column + 1
+            # Prefer the first empty-header column after the English column so
+            # that templates with pre-styled but headerless placeholder columns
+            # (e.g. B-E) are filled in order rather than adding new columns
+            # after the last styled column.
+            _en_col = master_col_by_header.get("english", 1)
+            _candidate = _en_col + 1
+            _used_cols = set(master_col_by_header.values())
+            while _candidate in _used_cols:
+                _candidate += 1
+            master_col_idx = _candidate
             ws_master.cell(row=master_header_row, column=master_col_idx).value = col_header
             master_col_by_header[col_header.lower()] = master_col_idx
             # Copy cell style (fill/font/alignment/border) from the last
