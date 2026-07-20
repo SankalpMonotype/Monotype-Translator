@@ -1853,6 +1853,54 @@ def _merge_language_excels(
     print(f"[Merge] Saved merged output: {master_path}")
 
 
+def _sanitise_review_json(path: Path) -> None:
+    """Ensure the review JSON file contains a bare JSON array.
+
+    The reviewer LLM sometimes prepends a preamble sentence before the JSON
+    array despite being told not to (e.g. "I have reviewed…\n\n[{…}]").
+    json.loads() fails on that preamble, causing the write tool and the
+    preview-data accumulator to both silently skip the batch.
+
+    Strategy (applied in order, stops as soon as one succeeds):
+      1. Already valid JSON → no-op.
+      2. Strip leading/trailing markdown code-fences then retry.
+      3. Extract the first [...] block from the text and retry.
+
+    Overwrites the file only when a transformation was needed.
+    """
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except Exception:
+        return
+
+    # 1. Already valid JSON?
+    try:
+        json.loads(raw)
+        return
+    except json.JSONDecodeError:
+        pass
+
+    # 2. Strip markdown fences.
+    import re as _re
+    cleaned = _re.sub(r"^```(?:json)?\s*", "", raw.strip(), flags=_re.IGNORECASE)
+    cleaned = _re.sub(r"\s*```$", "", cleaned)
+    try:
+        json.loads(cleaned)
+        path.write_text(cleaned, encoding="utf-8")
+        return
+    except json.JSONDecodeError:
+        pass
+
+    # 3. Extract first JSON array block from arbitrary surrounding text.
+    m = _re.search(r"\[.*\]", cleaned, _re.DOTALL)
+    if m:
+        try:
+            json.loads(m.group())
+            path.write_text(m.group(), encoding="utf-8")
+        except json.JSONDecodeError:
+            pass
+
+
 def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") -> None:
     """Run the full CrewAI pipeline in a background thread, batching large files."""
     JOBS[job_id]["status"] = "running"
@@ -2075,6 +2123,10 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                 # with the path explicitly set) eliminates that threading gap.
                 _lang_review_path_obj = Path(lang_review_path)
                 if _lang_review_path_obj.exists():
+                    # Normalise review file to a bare JSON array before the
+                    # write tool parses it — the reviewer LLM sometimes adds
+                    # preamble text that breaks json.loads().
+                    _sanitise_review_json(_lang_review_path_obj)
                     try:
                         from .tools.excel_tools import (
                             write_reviewed_translations_to_excel as _write_to_excel,
