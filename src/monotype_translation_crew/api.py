@@ -2115,6 +2115,19 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                 except Exception:
                     pass
 
+                # Manually persist the crew's raw output to lang_review_path.
+                # CrewAI's output_file parameter is unreliable on HuggingFace
+                # (working-directory mismatches mean the file is written to
+                # the wrong path or not at all).  Writing it ourselves here
+                # guarantees the review file exists before the write tool runs.
+                try:
+                    _crew_raw = getattr(_batch_result, "raw", None) or str(_batch_result)
+                    if _crew_raw and _crew_raw.strip():
+                        Path(lang_review_path).write_text(_crew_raw, encoding="utf-8")
+                        print(f"[ExcelBatch] {lang} b{batch_num+1}: wrote crew output to {lang_review_path} ({len(_crew_raw)} chars)")
+                except Exception as _wr_exc:
+                    print(f"[ExcelBatch] {lang} b{batch_num+1}: could not persist crew output: {_wr_exc}")
+
                 # Write reviewed translations to Excel directly from this thread.
                 # The slim crew no longer includes a production_manager agent — the
                 # PM's write_reviewed_translations_to_excel tool reads its JSON path
