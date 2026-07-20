@@ -2012,6 +2012,10 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
 
                 _crew_obj = MonotypeTranslationCrew()
                 _crew_obj._lang_review_path = lang_review_path
+                # Always use slim crew (translator + reviewer only, no PM) to
+                # avoid the threading.local() bug in the PM's Excel-write tool.
+                # Excel writing is handled directly below after kickoff.
+                _crew_obj._skip_brand_analyst = True
                 if _brand_context_text and _base_translation_desc is not None:
                     _brand_header = (
                         "BRAND CONTEXT (pre-loaded — use this as your primary "
@@ -2019,7 +2023,6 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                         + _brand_context_text[:5000]
                         + "\n\n---\n\n"
                     )
-                    _crew_obj._skip_brand_analyst = True
                     _crew_obj._translation_desc_override = (
                         _brand_header + (lang_translation_desc or _base_translation_desc)
                     )
