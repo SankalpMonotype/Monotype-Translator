@@ -157,16 +157,15 @@ class MonotypeTranslationCrew:
                 expected_output=self.tasks_config["translation_task"]["expected_output"],  # type: ignore[index]
                 agent=self.translator(),
             )
-            review_path = getattr(
-                self, "_lang_review_path",
-                os.path.join("outputs", "reviewed_translations.json"),
-            )
             rev_task = Task(
                 description=rev_desc,
                 expected_output=self.tasks_config["review_task"]["expected_output"],  # type: ignore[index]
                 agent=self.translation_reviewer(),
                 context=[trans_task],
-                output_file=review_path,
+                # output_file intentionally omitted: api._run_lang writes the
+                # content from CrewOutput.raw directly, so we avoid CWD-mismatch
+                # issues that caused output_file to land in the wrong directory
+                # on HuggingFace (and in some CrewAI versions left raw empty).
             )
             # Production (Excel write) is handled directly by api._run_lang after
             # each batch to avoid threading issues with the tool's thread-local

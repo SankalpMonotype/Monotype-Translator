@@ -2125,16 +2125,28 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                 except Exception:
                     pass
 
-                # Manually persist the crew's raw output to lang_review_path.
-                # CrewAI's output_file parameter is unreliable on HuggingFace
-                # (working-directory mismatches mean the file is written to
-                # the wrong path or not at all).  Writing it ourselves here
-                # guarantees the review file exists before the write tool runs.
+                # Persist the crew's reviewer output to lang_review_path.
+                # We write it ourselves (not via output_file) to avoid CWD-mismatch
+                # issues on HuggingFace that would land the file in the wrong dir.
+                # Try three sources in order until one yields non-empty content.
                 try:
-                    _crew_raw = getattr(_batch_result, "raw", None) or str(_batch_result)
+                    _crew_raw = getattr(_batch_result, "raw", None) or ""
+                    if not _crew_raw.strip():
+                        # Fallback 1: last task's output object
+                        try:
+                            _task_outputs = getattr(_batch_result, "tasks_output", None)
+                            if _task_outputs:
+                                _crew_raw = getattr(_task_outputs[-1], "raw", "") or ""
+                        except Exception:
+                            pass
+                    if not _crew_raw.strip():
+                        # Fallback 2: str() of the entire crew result
+                        _crew_raw = str(_batch_result) or ""
                     if _crew_raw and _crew_raw.strip():
                         Path(lang_review_path).write_text(_crew_raw, encoding="utf-8")
                         print(f"[ExcelBatch] {lang} b{batch_num+1}: wrote crew output to {lang_review_path} ({len(_crew_raw)} chars)")
+                    else:
+                        print(f"[ExcelBatch] {lang} b{batch_num+1}: WARNING — crew returned empty output, review file not written")
                 except Exception as _wr_exc:
                     print(f"[ExcelBatch] {lang} b{batch_num+1}: could not persist crew output: {_wr_exc}")
 
