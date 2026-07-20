@@ -1969,6 +1969,12 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             "double-brace": "{{double-brace}}",
             "single-brace": "{single-brace}",
             "Nutzungsbedingungen": "{Nutzungsbedingungen}",
+            # review_task preamble uses these as localisation examples in single braces.
+            # Passthroughs preserve the token text the reviewer agent sees.
+            "Terms of Use": "{Terms of Use}",
+            "Conditions d'utilisation": "{Conditions d'utilisation}",
+            "Termos de Uso": "{Termos de Uso}",
+            "利用規約": "{利用規約}",
         }
 
         total_rows = _count_excel_rows(excel_path)
@@ -2065,10 +2071,14 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                 # Excel writing is handled directly below after kickoff.
                 _crew_obj._skip_brand_analyst = True
                 if _brand_context_text and _base_translation_desc is not None:
+                    # Escape { } in brand context so CrewAI's format_map doesn't
+                    # treat content like {variable} or {Terms of Use} as template
+                    # variables. After format_map runs, {{ → { and }} → }, so the
+                    # LLM sees the original text with correct single braces.
                     _brand_header = (
                         "BRAND CONTEXT (pre-loaded — use this as your primary "
                         "brand and glossary reference):\n"
-                        + _brand_context_text[:5000]
+                        + _brand_context_text[:5000].replace("{", "{{").replace("}", "}}")
                         + "\n\n---\n\n"
                     )
                     _crew_obj._translation_desc_override = (
