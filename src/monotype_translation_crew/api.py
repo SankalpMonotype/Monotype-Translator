@@ -2172,9 +2172,10 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                             write_reviewed_translations_to_excel as _write_to_excel,
                         )
                         set_job_translation_path(lang_review_path)
-                        _write_result_raw = _write_to_excel.run(
-                            {"excel_path": lang_excel_copy}
-                        )
+                        # Pass excel_path as a plain string — CrewAI 0.203+
+                        # Tool.run() forwards the argument directly to the
+                        # underlying function without unpacking a dict.
+                        _write_result_raw = _write_to_excel.run(lang_excel_copy)
                         print(f"[DEBUG] {lang} b{batch_num+1}: write result: {_write_result_raw[:300]}")
                         try:
                             _write_result = json.loads(_write_result_raw)
