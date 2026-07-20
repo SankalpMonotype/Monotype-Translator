@@ -2122,11 +2122,16 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                 # the kickoff thread. Calling the write here (in the language thread,
                 # with the path explicitly set) eliminates that threading gap.
                 _lang_review_path_obj = Path(lang_review_path)
+                print(f"[DEBUG] {lang} b{batch_num+1}: review file exists={_lang_review_path_obj.exists()} path={lang_review_path}")
                 if _lang_review_path_obj.exists():
+                    _raw_preview = _lang_review_path_obj.read_text(encoding="utf-8", errors="replace")[:200]
+                    print(f"[DEBUG] {lang} b{batch_num+1}: review file first 200 chars: {_raw_preview!r}")
                     # Normalise review file to a bare JSON array before the
                     # write tool parses it — the reviewer LLM sometimes adds
                     # preamble text that breaks json.loads().
                     _sanitise_review_json(_lang_review_path_obj)
+                    _sanitised_preview = _lang_review_path_obj.read_text(encoding="utf-8", errors="replace")[:200]
+                    print(f"[DEBUG] {lang} b{batch_num+1}: after sanitise: {_sanitised_preview!r}")
                     try:
                         from .tools.excel_tools import (
                             write_reviewed_translations_to_excel as _write_to_excel,
@@ -2135,6 +2140,7 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                         _write_result_raw = _write_to_excel.run(
                             {"excel_path": lang_excel_copy}
                         )
+                        print(f"[DEBUG] {lang} b{batch_num+1}: write result: {_write_result_raw[:300]}")
                         try:
                             _write_result = json.loads(_write_result_raw)
                             if _write_result.get("success"):
@@ -2161,8 +2167,11 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                                       f"0 rows — all complete, stopping lang early.")
                                 break
                             lang_review_data.extend(batch_data)
-                    except Exception:
-                        pass
+                            print(f"[DEBUG] {lang} b{batch_num+1}: accumulated {len(lang_review_data)} rows")
+                    except Exception as _je:
+                        print(f"[DEBUG] {lang} b{batch_num+1}: JSON parse after sanitise failed: {_je}")
+                else:
+                    print(f"[DEBUG] {lang} b{batch_num+1}: review file MISSING — crew may not have written output_file")
 
             with _lock:
                 _shared["all_review_data"] = _merge_per_language_results(
