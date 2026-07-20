@@ -4,7 +4,6 @@ from typing import List
 from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, before_kickoff, crew, task
-from crewai_tools import ScrapeWebsiteTool
 from datetime import datetime
 
 from .tools import (
@@ -38,12 +37,10 @@ class MonotypeTranslationCrew:
             config=self.agents_config["brand_analyst"],  # type: ignore[index]
             verbose=True,
             max_iter=8,
-            max_execution_time=720,
+            max_execution_time=120,
             tools=[
                 read_brand_context_cache,
                 read_brand_guidelines,
-                ScrapeWebsiteTool(website_url="https://www.myfonts.com/"),
-                ScrapeWebsiteTool(website_url="https://www.myfonts.com/collections/"),
                 save_brand_context_cache,
             ],
             allow_delegation=False,
@@ -113,9 +110,18 @@ class MonotypeTranslationCrew:
 
     @task
     def review_task(self) -> Task:
+        config = self.tasks_config["review_task"]  # type: ignore[index]
+        override = getattr(self, "_review_desc_override", None)
+        if override:
+            config = dict(config)
+            config["description"] = override
+        review_path = getattr(
+            self, "_lang_review_path",
+            os.path.join("outputs", "reviewed_translations.json"),
+        )
         return Task(
-            config=self.tasks_config["review_task"],  # type: ignore[index]
-            output_file=os.path.join("outputs", "reviewed_translations.json"),
+            config=config,
+            output_file=review_path,
         )
 
     @task
@@ -133,6 +139,44 @@ class MonotypeTranslationCrew:
 
     @crew
     def crew(self) -> Crew:
+        if getattr(self, "_skip_brand_analyst", False):
+            # Slim crew: brand context is already embedded in the task
+            # description overrides — skip brand_analyst entirely so it
+            # doesn't add per-batch LLM overhead on warm-cache runs.
+            trans_desc = (
+                getattr(self, "_translation_desc_override", None)
+                or self.tasks_config["translation_task"]["description"]  # type: ignore[index]
+            )
+            rev_desc = (
+                getattr(self, "_review_desc_override", None)
+                or self.tasks_config["review_task"]["description"]  # type: ignore[index]
+            )
+
+            trans_task = Task(
+                description=trans_desc,
+                expected_output=self.tasks_config["translation_task"]["expected_output"],  # type: ignore[index]
+                agent=self.translator(),
+            )
+            rev_task = Task(
+                description=rev_desc,
+                expected_output=self.tasks_config["review_task"]["expected_output"],  # type: ignore[index]
+                agent=self.translation_reviewer(),
+                context=[trans_task],
+                # output_file intentionally omitted: api._run_lang writes the
+                # content from CrewOutput.raw directly, so we avoid CWD-mismatch
+                # issues that caused output_file to land in the wrong directory
+                # on HuggingFace (and in some CrewAI versions left raw empty).
+            )
+            # Production (Excel write) is handled directly by api._run_lang after
+            # each batch to avoid threading issues with the tool's thread-local
+            # path lookup (_get_reviewed_path). The PM agent is omitted here.
+            return Crew(
+                agents=[self.translator(), self.translation_reviewer()],
+                tasks=[trans_task, rev_task],
+                process=Process.sequential,
+                verbose=True,
+            )
+
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
@@ -145,6 +189,11 @@ class MonotypeTranslationCrew:
 # Docx Translation Crew — translates Word documents into selected languages
 # ---------------------------------------------------------------------------
 
+# TODO: Cross-language contamination not fixed for documents <=10 segments.
+# The small-doc path uses this Crew class which still runs a single
+# multi-language translation call. The per-language fan-out applies
+# only to the batched path (_run_docx_job_batched, used for >10 segments).
+# Apply the same fan-out pattern here in a follow-up PR.
 class DocxTranslationCrew:
     """Translates Word documents (.docx) into one or more target languages.
 
@@ -169,12 +218,10 @@ class DocxTranslationCrew:
             config=self._agents_cfg["brand_analyst"],
             verbose=True,
             max_iter=8,
-            max_execution_time=720,
+            max_execution_time=120,
             tools=[
                 read_brand_context_cache,
                 read_brand_guidelines,
-                ScrapeWebsiteTool(website_url="https://www.myfonts.com/"),
-                ScrapeWebsiteTool(website_url="https://www.myfonts.com/collections/"),
                 save_brand_context_cache,
             ],
             allow_delegation=False,

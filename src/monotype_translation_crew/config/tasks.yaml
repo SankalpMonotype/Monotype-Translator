@@ -11,6 +11,17 @@
 # Changes take effect on the next translation run — no code deployment needed.
 # ---------------------------------------------------------------------------
 
+# TODO: Residual cross-language contamination.
+# This task produces a single brand_context document covering all 5
+# languages regardless of target_languages. Both the Excel CrewAI path
+# (_run_job) and the Docx batched path (_run_docx_job_batched) inject
+# this document verbatim into per-language translator prompts. The
+# per-language fan-out refactor (step d/e) isolates rules from
+# tasks.yaml and _LANG_RULES, but the brand_context channel still
+# exposes the translator to other languages' terminology and brand
+# guidance. Fix options: (a) filter the cache file per language at
+# injection time, (b) run brand_analyst per-language so the cache is
+# already isolated. Defer to follow-up PR.
 brand_context_task:
   description: >
     Step 1: Call the read_brand_context_cache tool with knowledge_dir="{knowledge_dir}".
@@ -650,6 +661,14 @@ review_task:
     [ ] All languages: third-party product names (Adobe Fonts, Google Fonts) must remain in English.
         e.g. "Adobe Fonts" must NOT appear as "Fuentes de Adobe" in es-ES.
 
+    For any string that fails a check: correct it in-place in the JSON.
+    For any string where you are uncertain after correction: add a "reviewer_note"
+    field to that object explaining the concern (name the specific language).
+
+    Return the complete corrected JSON array. Use exactly the same schema as the input
+    (row_index, english, plus one key per translated language) plus optional reviewer_note.
+    Output the raw JSON array only — no markdown, no preamble, no extra text.
+
     --- FRENCH ENFORCEMENT ---
     [ ] French quoted placeholders: any '[tagName]' style token must use «[tagName]» — NEVER ASCII apostrophes.
     [ ] French "Untag": verify → "Désassocier" — NEVER "Retirer l'étiquette". Fix any occurrence.
@@ -710,14 +729,6 @@ review_task:
         アクティベートする → アクティベート, 表示する → 表示. Fix any trailing する on short action labels.
     [ ] Japanese 件 counter: verify <count> representing quantities has 件 appended — NEVER bare.
         e.g. "<count> instances replaced" → "<count>件を選択したフォントに置き換えました". Fix bare <count>.
-
-    For any string that fails a check: correct it in-place in the JSON.
-    For any string where you are uncertain after correction: add a "reviewer_note"
-    field to that object explaining the concern (name the specific language).
-
-    Return the complete corrected JSON array. Use exactly the same schema as the input
-    (row_index, english, plus one key per translated language) plus optional reviewer_note.
-    Output the raw JSON array only — no markdown, no preamble, no extra text.
   expected_output: >
     A valid JSON array with the same structure as the translator's output, corrections
     applied in-place, and optional reviewer_note fields where flagged. Raw JSON only.

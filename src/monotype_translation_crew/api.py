@@ -11,9 +11,10 @@ import asyncio
 import json
 import math
 import re
+import shutil
 import time
 import uuid
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
@@ -1252,8 +1253,10 @@ _EXCEL_BATCH_BASE = 75  # rows per batch when translating all 5 languages
 
 def _excel_batch_size(n_languages: int) -> int:
     """Scale batch size inversely with language count to stay under output-token limits.
-    5 langs → 75 rows/batch; 1 lang → 300 rows/batch (capped)."""
-    return min(300, _EXCEL_BATCH_BASE * 5 // max(1, n_languages))
+    Fan-out runs one language per batch, so n_languages is always 1 here.
+    Cap raised to 200 (from 100) now that max_tokens=16384 — 200 rows × ~30 tokens
+    = ~6000 output tokens = 37% of the new ceiling, well clear of truncation risk."""
+    return min(200, _EXCEL_BATCH_BASE * 5 // max(1, n_languages))
 
 
 # ---------------------------------------------------------------------------
@@ -1321,6 +1324,28 @@ def _filter_task_description(description: str, target_languages: list[str]) -> s
 
     parts.append(json_footer)
     return "".join(parts)
+
+
+def _merge_per_language_results(base: list[dict], additions: list[dict]) -> list[dict]:
+    """Merge a single-language additions list into a base multi-language list.
+
+    Each entry in *additions* contains one language key alongside row_index/english.
+    The language key is grafted onto the matching row_index entry in *base*, or a new
+    entry is created if the row is not yet in *base*.
+
+    Assumption: *additions* entries are single-language (one translation key per entry).
+    """
+    index: dict[int, dict] = {e["row_index"]: e for e in base if "row_index" in e}
+    for entry in additions:
+        row_idx = entry.get("row_index")
+        if row_idx is None:
+            continue
+        if row_idx not in index:
+            index[row_idx] = {"row_index": row_idx, "english": entry.get("english", "")}
+        for k, v in entry.items():
+            if k not in ("row_index", "english", "reviewer_note"):
+                index[row_idx][k] = v
+    return [index[k] for k in sorted(index)]
 
 
 def _count_excel_rows(path: str) -> int:
@@ -1440,6 +1465,9 @@ def _translate_segment_batch(
         or "openai/gpt-4.1-2025-04-14"
     )
 
+    # NOTE: lang_rules is now per-language thanks to fan-out (single-element
+    # target_languages list). brand_context remains a multi-language document
+    # — see TODO at brand_context_task in tasks.yaml.
     lang_rules = "\n".join(
         f"  - {_LANG_RULES.get(lc, lc)}" for lc in target_languages
     )
@@ -1474,8 +1502,9 @@ Include ONLY the requested language keys. Raw JSON only — no markdown fences, 
 
     response = litellm.completion(
         model=model,
-        max_tokens=8192,
+        max_tokens=16384,
         messages=[{"role": "user", "content": prompt}],
+        request_timeout=120,
     )
 
     usage = getattr(response, "usage", None)
@@ -1512,43 +1541,58 @@ def _run_docx_job_batched(
         DocxTranslationCrew()._run_brand_context_only("knowledge")
         brand_context = brand_cache.read_text(encoding="utf-8") if brand_cache.exists() else ""
 
-    # Step 2: Translate in batches (with per-batch retry)
+    # Step 2: Translate in batches, per language (fan-out: one language per LiteLLM call)
     all_translations: list[dict] = []
     batches = [segments[i:i + _DOCX_BATCH_SIZE] for i in range(0, len(segments), _DOCX_BATCH_SIZE)]
     batch_errors: list[str] = []
     total_prompt_tokens = 0
     total_completion_tokens = 0
+    JOBS[job_id]["total_batches"] = len(target_languages) * len(batches)
+    global_batch_counter = 0
 
     for idx, batch in enumerate(batches, 1):
-        print(f"[DocxBatch] Translating batch {idx}/{len(batches)} ({len(batch)} segments)")
-        last_exc: Exception | None = None
-        for attempt in range(1, _BATCH_MAX_RETRIES + 1):
-            try:
-                batch_result, usage = _translate_segment_batch(batch, target_languages, brand_context)
-                all_translations.extend(batch_result)
-                if usage:
-                    total_prompt_tokens += usage.prompt_tokens or 0
-                    total_completion_tokens += usage.completion_tokens or 0
-                print(f"[DocxBatch] Batch {idx} OK (attempt {attempt}) — {len(batch_result)} entries")
-                last_exc = None
-                break
-            except Exception as exc:
-                last_exc = exc
-                if attempt < _BATCH_MAX_RETRIES:
-                    wait = 5 * attempt
-                    print(f"[DocxBatch] Batch {idx} attempt {attempt} failed: {exc}. Retrying in {wait}s…")
-                    time.sleep(wait)
-        if last_exc is not None:
-            err_msg = (f"Batch {idx}/{len(batches)} failed after {_BATCH_MAX_RETRIES} attempts: "
-                       f"{type(last_exc).__name__}: {last_exc}")
-            print(f"[DocxBatch] FAILED: {err_msg}")
-            batch_errors.append(err_msg)
-            JOBS[job_id]["error"] = "; ".join(batch_errors)
-            for seg in batch:
-                entry: dict = {"segment_id": seg["segment_id"], "english": seg.get("text", "")}
-                for lang in target_languages:
-                    entry[lang] = seg.get("text", "")
-                all_translations.append(entry)
+        seg_results: dict[int, dict] = {}
+        for lang in target_languages:
+            global_batch_counter += 1
+            JOBS[job_id]["current_batch"] = global_batch_counter
+            print(f"[DocxBatch] batch {idx}/{len(batches)} lang={lang} "
+                  f"(global {global_batch_counter}/{len(target_languages) * len(batches)})")
+            last_exc: Exception | None = None
+            for attempt in range(1, _BATCH_MAX_RETRIES + 1):
+                try:
+                    batch_result, usage = _translate_segment_batch(batch, [lang], brand_context)
+                    for entry in batch_result:
+                        sid = entry.get("segment_id")
+                        if sid is None:
+                            continue
+                        if sid not in seg_results:
+                            seg_results[sid] = {"segment_id": sid, "english": entry.get("english", "")}
+                        if lang in entry:
+                            seg_results[sid][lang] = entry[lang]
+                    if usage:
+                        total_prompt_tokens += usage.prompt_tokens or 0
+                        total_completion_tokens += usage.completion_tokens or 0
+                    print(f"[DocxBatch] batch {idx} lang={lang} OK (attempt {attempt})")
+                    last_exc = None
+                    break
+                except Exception as exc:
+                    last_exc = exc
+                    if attempt < _BATCH_MAX_RETRIES:
+                        wait = 5 * attempt
+                        print(f"[DocxBatch] batch {idx} lang={lang} attempt {attempt} failed: {exc}. Retrying in {wait}s…")
+                        time.sleep(wait)
+            if last_exc is not None:
+                err_msg = (f"Batch {idx}/{len(batches)} lang={lang} failed after {_BATCH_MAX_RETRIES} attempts: "
+                           f"{type(last_exc).__name__}: {last_exc}")
+                print(f"[DocxBatch] FAILED: {err_msg}")
+                batch_errors.append(err_msg)
+                JOBS[job_id]["error"] = "; ".join(batch_errors)
+                for seg in batch:
+                    sid = seg["segment_id"]
+                    if sid not in seg_results:
+                        seg_results[sid] = {"segment_id": sid, "english": seg.get("text", "")}
+                    seg_results[sid][lang] = seg.get("text", "")
+        all_translations.extend(seg_results[k] for k in sorted(seg_results))
 
     print(
         f"[DocxBatch] TOTAL tokens — prompt: {total_prompt_tokens}, "
@@ -1682,14 +1726,212 @@ def _populate_preview_from_output(
         print(f"[ExcelBatch] _populate_preview_from_output failed: {exc}")
 
 
+_LANG_COL_HEADERS = {
+    "fr": "French", "de": "German",
+    "pt_BR": "Portuguese", "ja": "Japanese", "es_ES": "Spanish",
+}
+
+
+def _merge_language_excels(
+    original_excel_path: str,
+    target_languages: list,
+    job_id: str,
+) -> None:
+    """Merge per-language translated Excels into a single output file.
+
+    Each parallel language thread writes to its own
+    outputs/{stem}_{job_id}_{lang}_translated.xlsx.  This function collects
+    those files and copies the translated language columns into a single master
+    outputs/{stem}_translated.xlsx, preserving original content and formatting.
+    """
+    try:
+        import openpyxl
+    except ImportError:
+        print("[Merge] openpyxl not available — skipping merge")
+        return
+
+    p = Path(original_excel_path)
+    outputs_dir = Path("outputs")
+    master_path = outputs_dir / f"{p.stem}_translated{p.suffix}"
+
+    wb_master = openpyxl.load_workbook(original_excel_path)
+    ws_master = wb_master.active
+
+    # Locate the header row in the master (first row containing "English").
+    master_header_row = 1
+    for row in ws_master.iter_rows(max_row=5):
+        for cell in row:
+            if cell.value and str(cell.value).strip().lower() == "english":
+                master_header_row = cell.row
+                break
+
+    # Index existing master column headers for fast lookup.
+    master_col_by_header: dict[str, int] = {}
+    for cell in ws_master[master_header_row]:
+        if cell.value:
+            master_col_by_header[str(cell.value).strip().lower()] = cell.column
+
+    for lang in target_languages:
+        lang_file = outputs_dir / f"{p.stem}_{job_id}_{lang}_translated{p.suffix}"
+        if not lang_file.exists():
+            print(f"[Merge] {lang}: per-language file not found — {lang_file}")
+            continue
+
+        wb_lang = openpyxl.load_workbook(lang_file)
+        ws_lang = wb_lang.active
+
+        # Locate the header row in the per-language file.
+        lang_header_row = 1
+        for row in ws_lang.iter_rows(max_row=5):
+            for cell in row:
+                if cell.value and str(cell.value).strip().lower() == "english":
+                    lang_header_row = cell.row
+                    break
+
+        # Find the translated-language column in this file.
+        col_header = _LANG_COL_HEADERS.get(lang, lang)
+        lang_col_idx = None
+        for cell in ws_lang[lang_header_row]:
+            if cell.value and str(cell.value).strip().lower() == col_header.lower():
+                lang_col_idx = cell.column
+                break
+
+        if lang_col_idx is None:
+            print(f"[Merge] {lang}: column '{col_header}' not found in {lang_file}")
+            wb_lang.close()
+            continue
+
+        # Find or create the target column in the master.
+        master_col_idx = master_col_by_header.get(col_header.lower())
+        if master_col_idx is None:
+            # Prefer the first empty-header column after the English column so
+            # that templates with pre-styled but headerless placeholder columns
+            # (e.g. B-E) are filled in order rather than adding new columns
+            # after the last styled column.
+            _en_col = master_col_by_header.get("english", 1)
+            _candidate = _en_col + 1
+            _used_cols = set(master_col_by_header.values())
+            while _candidate in _used_cols:
+                _candidate += 1
+            master_col_idx = _candidate
+            ws_master.cell(row=master_header_row, column=master_col_idx).value = col_header
+            master_col_by_header[col_header.lower()] = master_col_idx
+            # Copy column width + cell styles from the adjacent language column
+            # so the new column matches the template formatting (green fill,
+            # wrap_text, font, etc.).  deepcopy avoids shallow-copy issues with
+            # openpyxl's nested style objects (PatternFill → Color, etc.).
+            _ref_col = max((c for c in master_col_by_header.values()
+                            if c != master_col_idx), default=None)
+            if _ref_col:
+                try:
+                    from openpyxl.utils import get_column_letter as _gcl
+                    # 1. Column width
+                    _ref_letter = _gcl(_ref_col)
+                    _new_letter = _gcl(master_col_idx)
+                    _ref_cd = ws_master.column_dimensions.get(_ref_letter)
+                    if _ref_cd and _ref_cd.width:
+                        ws_master.column_dimensions[_new_letter].width = _ref_cd.width
+                    # 2. Cell styles — PatternFill must be reconstructed from its
+                    #    attributes because deepcopy/copy both fail on openpyxl's
+                    #    circular style hierarchy.  Font/Alignment/Border use
+                    #    shallow copy which is safe for those simpler objects.
+                    from copy import copy as _scopy
+                    from openpyxl.styles import PatternFill as _PF
+                    for _ri in range(1, ws_master.max_row + 1):
+                        _src = ws_master.cell(row=_ri, column=_ref_col)
+                        _dst = ws_master.cell(row=_ri, column=master_col_idx)
+                        if _src.has_style:
+                            # Reconstruct fill to avoid openpyxl recursion issues
+                            _sf = _src.fill
+                            if _sf and getattr(_sf, 'fill_type', None) not in (None, 'none'):
+                                try:
+                                    _dst.fill = _PF(
+                                        fill_type=_sf.fill_type,
+                                        fgColor=_sf.fgColor.rgb,
+                                        bgColor=_sf.bgColor.rgb,
+                                    )
+                                except Exception:
+                                    pass
+                            _dst.font      = _scopy(_src.font)
+                            _dst.border    = _scopy(_src.border)
+                            _dst.alignment = _scopy(_src.alignment)
+                except Exception:
+                    pass
+
+        # Copy cells row by row (row numbers align because per-language file is
+        # a copy of the original with the same structure).
+        copied = 0
+        for row_idx in range(lang_header_row + 1, ws_lang.max_row + 1):
+            val = ws_lang.cell(row=row_idx, column=lang_col_idx).value
+            if val is not None:
+                master_row = row_idx - lang_header_row + master_header_row
+                ws_master.cell(row=master_row, column=master_col_idx).value = val
+                copied += 1
+
+        wb_lang.close()
+        print(f"[Merge] {lang}: copied {copied} cells → {master_path.name}")
+
+    wb_master.save(str(master_path))
+    print(f"[Merge] Saved merged output: {master_path}")
+
+
+def _sanitise_review_json(path: Path) -> None:
+    """Ensure the review JSON file contains a bare JSON array.
+
+    The reviewer LLM sometimes prepends a preamble sentence before the JSON
+    array despite being told not to (e.g. "I have reviewed…\n\n[{…}]").
+    json.loads() fails on that preamble, causing the write tool and the
+    preview-data accumulator to both silently skip the batch.
+
+    Strategy (applied in order, stops as soon as one succeeds):
+      1. Already valid JSON → no-op.
+      2. Strip leading/trailing markdown code-fences then retry.
+      3. Extract the first [...] block from the text and retry.
+
+    Overwrites the file only when a transformation was needed.
+    """
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except Exception:
+        return
+
+    # 1. Already valid JSON?
+    try:
+        json.loads(raw)
+        return
+    except json.JSONDecodeError:
+        pass
+
+    # 2. Strip markdown fences.
+    import re as _re
+    cleaned = _re.sub(r"^```(?:json)?\s*", "", raw.strip(), flags=_re.IGNORECASE)
+    cleaned = _re.sub(r"\s*```$", "", cleaned)
+    try:
+        json.loads(cleaned)
+        path.write_text(cleaned, encoding="utf-8")
+        return
+    except json.JSONDecodeError:
+        pass
+
+    # 3. Extract first JSON array block from arbitrary surrounding text.
+    m = _re.search(r"\[.*\]", cleaned, _re.DOTALL)
+    if m:
+        try:
+            json.loads(m.group())
+            path.write_text(m.group(), encoding="utf-8")
+        except json.JSONDecodeError:
+            pass
+
+
 def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") -> None:
     """Run the full CrewAI pipeline in a background thread, batching large files."""
     JOBS[job_id]["status"] = "running"
+    _job_start_time = time.time()
+    _JOB_TIMEOUT_SECS = 120 * 60  # 120-min cap; languages now run in parallel so wall-clock ≈ slowest language
+    _BATCH_TIMEOUT_SECS = 40 * 60  # 40 min per-batch hard cap
     try:
         from .crew import MonotypeTranslationCrew  # import here to keep startup fast
         from .tools.excel_tools import set_job_translation_path
-        _scoped_review_path = Path(f"outputs/reviewed_translations_{job_id}.json")
-        set_job_translation_path(str(_scoped_review_path))
 
         _lang_normalise = {"pt": "pt_BR", "es": "es_ES"}
         target_languages = [
@@ -1701,20 +1943,16 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
         # to check for completeness (prevents single-language jobs from looping forever).
         target_languages_str = ",".join(target_languages)
 
-        # Pre-filter the translation task description to include only the language
-        # sections actually requested.  Saves ~60 % of description tokens when a
-        # single language is selected (4 of 5 per-language sections removed).
         _tasks_yaml_path = Path(__file__).parent / "config" / "tasks.yaml"
         try:
             import yaml as _yaml
             _tasks_raw = _yaml.safe_load(_tasks_yaml_path.read_text(encoding="utf-8"))
-            _filtered_translation_desc: str | None = _filter_task_description(
-                _tasks_raw["translation_task"]["description"],
-                target_languages,
-            )
+            _base_translation_desc: str | None = _tasks_raw["translation_task"]["description"]
+            _base_review_desc: str | None = _tasks_raw["review_task"]["description"]
         except Exception as _fd_exc:
-            print(f"[DescFilter] Warning: could not filter task descriptions: {_fd_exc}")
-            _filtered_translation_desc = None
+            print(f"[DescFilter] Warning: could not load task descriptions: {_fd_exc}")
+            _base_translation_desc = None
+            _base_review_desc = None
 
         # Ensure the uploaded file has a proper "English" header row.
         # Some translators upload files where source strings start at row 1 with
@@ -1722,8 +1960,8 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
         # to hallucinate garbage. Auto-insert the header before running the crew.
         _ensure_excel_header(excel_path)
 
-        # Scale batch size: fewer languages → more rows per batch (same output-token budget).
-        batch_size = _excel_batch_size(len(target_languages))
+        # Fan-out: one language per crew run → each run uses single-language batch size.
+        single_lang_batch_size = _excel_batch_size(1)
 
         inputs = {
             "excel_path": excel_path,
@@ -1731,7 +1969,7 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             "target_languages": target_languages,
             "target_languages_str": target_languages_str,
             "tone": JOBS[job_id].get("tone", "informal"),
-            "row_limit": batch_size,
+            "row_limit": single_lang_batch_size,
             # ----------------------------------------------------------------
             # Passthrough dummies for {{placeholder}} examples in tasks.yaml.
             # CrewAI 0.203+ strips one brace layer from {{x}} → {x} and then
@@ -1753,54 +1991,283 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
             "double-brace": "{{double-brace}}",
             "single-brace": "{single-brace}",
             "Nutzungsbedingungen": "{Nutzungsbedingungen}",
+            # review_task preamble uses these as localisation examples in single braces.
+            # Passthroughs preserve the token text the reviewer agent sees.
+            "Terms of Use": "{Terms of Use}",
+            "Conditions d'utilisation": "{Conditions d'utilisation}",
+            "Termos de Uso": "{Termos de Uso}",
+            "利用規約": "{利用規約}",
         }
 
-        # Compute number of batches so the UI can show "Batch N/M" progress.
         total_rows = _count_excel_rows(excel_path)
-        n_batches = max(1, math.ceil(total_rows / batch_size))
-        JOBS[job_id]["total_batches"] = n_batches
+        n_batches = max(1, math.ceil(total_rows / single_lang_batch_size))
+        JOBS[job_id]["total_batches"] = len(target_languages) * n_batches
 
-        review_path = _scoped_review_path
-        all_review_data: list = []
-        _total_prompt_tokens = 0
-        _total_completion_tokens = 0
-
-        for batch_num in range(n_batches):
-            if JOBS[job_id].get("cancel_requested"):
-                break
-
-            JOBS[job_id]["current_batch"] = batch_num + 1
-            print(f"[ExcelBatch] Starting batch {batch_num + 1}/{n_batches} "
-                  f"(batch_size={batch_size}) for job {job_id}")
-            _crew_obj = MonotypeTranslationCrew()
-            if _filtered_translation_desc is not None:
-                _crew_obj._translation_desc_override = _filtered_translation_desc
-            _batch_result = _crew_obj.crew().kickoff(inputs=inputs)
+        # Pre-warm brand context once for the whole job so brand_analyst runs
+        # at most once (cold start) rather than once per language per batch.
+        # Saves ~30–120 s × (n_languages × n_batches − 1) of overhead.
+        _brand_cache_path = Path("outputs/brand_context_cache.md")
+        _brand_context_text = ""
+        if not _brand_cache_path.exists():
+            print(f"[ExcelBatch] job={job_id} brand context cache is cold — pre-warming once…")
             try:
-                _tu = getattr(_batch_result, "token_usage", None)
-                if _tu is not None:
-                    _total_prompt_tokens += int(getattr(_tu, "prompt_tokens", 0) or 0)
-                    _total_completion_tokens += int(getattr(_tu, "completion_tokens", 0) or 0)
+                from .crew import DocxTranslationCrew as _DCrew
+                _DCrew()._run_brand_context_only("knowledge")
+            except Exception as _bc_exc:
+                print(f"[ExcelBatch] brand context warmup failed (non-fatal): {_bc_exc}")
+        if _brand_cache_path.exists():
+            try:
+                _brand_context_text = _brand_cache_path.read_text(encoding="utf-8")
+                print(f"[ExcelBatch] job={job_id} brand context loaded ({len(_brand_context_text)} chars)")
             except Exception:
                 pass
 
-            # Accumulate review data across batches so the UI shows the full count.
-            if review_path.exists():
+        # Thread-safe shared state across language threads.
+        import threading as _threading
+        _lock = _threading.Lock()
+        _shared: dict = {
+            "all_review_data": [],
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "completed_batches": 0,
+        }
+
+        _orig_p = Path(excel_path)
+
+        def _run_lang(lang: str) -> None:
+            """Run all batches for a single language. Called from a language thread."""
+            # Per-language review path — prevents parallel language threads from
+            # overwriting each other's reviewed_translations.json.
+            lang_review_path = str(
+                Path(f"outputs/reviewed_translations_{job_id}_{lang}.json")
+            )
+
+            # Per-language Excel copy — production_manager derives its output
+            # path from excel_path, so giving each language its own copy means
+            # each writes to outputs/{stem}_{job_id}_{lang}_translated.xlsx
+            # instead of the shared outputs/{stem}_translated.xlsx.
+            # This eliminates the read-modify-write race between parallel threads.
+            lang_excel_copy = str(
+                Path("outputs") / f"{_orig_p.stem}_{job_id}_{lang}{_orig_p.suffix}"
+            )
+            shutil.copy2(excel_path, lang_excel_copy)
+
+            lang_translation_desc = (
+                _filter_task_description(_base_translation_desc, [lang])
+                if _base_translation_desc else None
+            )
+            lang_review_desc = (
+                _filter_task_description(_base_review_desc, [lang])
+                if _base_review_desc else None
+            )
+            lang_inputs = {
+                **inputs,
+                "excel_path": lang_excel_copy,
+                "target_languages": [lang],
+                "target_languages_str": lang,
+            }
+            lang_review_data: list = []
+
+            for batch_num in range(n_batches):
+                if JOBS[job_id].get("cancel_requested"):
+                    break
+
+                elapsed = time.time() - _job_start_time
+                if elapsed > _JOB_TIMEOUT_SECS:
+                    raise RuntimeError(
+                        f"Job exceeded {_JOB_TIMEOUT_SECS // 60}-minute time limit "
+                        f"(lang={lang} batch {batch_num + 1}/{n_batches})."
+                    )
+
+                with _lock:
+                    _shared["completed_batches"] += 1
+                    JOBS[job_id]["current_batch"] = _shared["completed_batches"]
+
+                print(f"[ExcelBatch] lang={lang} batch {batch_num + 1}/{n_batches} "
+                      f"(global {_shared['completed_batches']}/{len(target_languages) * n_batches}) job={job_id}")
+
+                _crew_obj = MonotypeTranslationCrew()
+                _crew_obj._lang_review_path = lang_review_path
+                # Always use slim crew (translator + reviewer only, no PM) to
+                # avoid the threading.local() bug in the PM's Excel-write tool.
+                # Excel writing is handled directly below after kickoff.
+                _crew_obj._skip_brand_analyst = True
+                if _brand_context_text and _base_translation_desc is not None:
+                    # Escape { } in brand context so CrewAI's format_map doesn't
+                    # treat content like {variable} or {Terms of Use} as template
+                    # variables. After format_map runs, {{ → { and }} → }, so the
+                    # LLM sees the original text with correct single braces.
+                    _brand_header = (
+                        "BRAND CONTEXT (pre-loaded — use this as your primary "
+                        "brand and glossary reference):\n"
+                        + _brand_context_text[:5000].replace("{", "{{").replace("}", "}}")
+                        + "\n\n---\n\n"
+                    )
+                    _crew_obj._translation_desc_override = (
+                        _brand_header + (lang_translation_desc or _base_translation_desc)
+                    )
+                    _crew_obj._review_desc_override = (
+                        _brand_header + (lang_review_desc or _base_review_desc or "")
+                    )
+                else:
+                    if lang_translation_desc is not None:
+                        _crew_obj._translation_desc_override = lang_translation_desc
+                    if lang_review_desc is not None:
+                        _crew_obj._review_desc_override = lang_review_desc
+
+                _crew_instance = _crew_obj.crew()
+                _batch_pool = ThreadPoolExecutor(max_workers=1)
+
+                def _kickoff_with_path(_crew, _inputs, _review_path):
+                    # Set thread-local reviewed-translations path inside the
+                    # executor thread so write_reviewed_translations_to_excel
+                    # (used by production_manager) reads from the right file.
+                    set_job_translation_path(_review_path)
+                    return _crew.kickoff(_inputs)
+
+                _batch_fut = _batch_pool.submit(
+                    _kickoff_with_path, _crew_instance, lang_inputs, lang_review_path
+                )
                 try:
-                    batch_data = json.loads(review_path.read_text())
-                    if isinstance(batch_data, list):
-                        if len(batch_data) == 0:
-                            print(f"[ExcelBatch] Batch {batch_num + 1}: 0 rows translated — "
-                                  f"all strings complete, stopping early.")
-                            break
-                        all_review_data.extend(batch_data)
-                        JOBS[job_id]["review_data"] = all_review_data
+                    _batch_result = _batch_fut.result(timeout=_BATCH_TIMEOUT_SECS)
+                except TimeoutError:
+                    raise RuntimeError(
+                        f"Batch {batch_num + 1}/{n_batches} lang={lang} timed out after "
+                        f"{_BATCH_TIMEOUT_SECS // 60} min — check LLM API connectivity."
+                    )
+                finally:
+                    _batch_pool.shutdown(wait=False)
+
+                try:
+                    _tu = getattr(_batch_result, "token_usage", None)
+                    if _tu is not None:
+                        with _lock:
+                            _shared["prompt_tokens"] += int(getattr(_tu, "prompt_tokens", 0) or 0)
+                            _shared["completion_tokens"] += int(getattr(_tu, "completion_tokens", 0) or 0)
                 except Exception:
                     pass
 
-        # Ensure review_data reflects the complete accumulated set.
-        if all_review_data:
-            JOBS[job_id]["review_data"] = all_review_data
+                # Persist the crew's reviewer output to lang_review_path.
+                # We write it ourselves (not via output_file) to avoid CWD-mismatch
+                # issues on HuggingFace that would land the file in the wrong dir.
+                # Try three sources in order until one yields non-empty content.
+                try:
+                    _crew_raw = getattr(_batch_result, "raw", None) or ""
+                    if not _crew_raw.strip():
+                        # Fallback 1: last task's output object
+                        try:
+                            _task_outputs = getattr(_batch_result, "tasks_output", None)
+                            if _task_outputs:
+                                _crew_raw = getattr(_task_outputs[-1], "raw", "") or ""
+                        except Exception:
+                            pass
+                    if not _crew_raw.strip():
+                        # Fallback 2: str() of the entire crew result
+                        _crew_raw = str(_batch_result) or ""
+                    if _crew_raw and _crew_raw.strip():
+                        Path(lang_review_path).write_text(_crew_raw, encoding="utf-8")
+                        print(f"[ExcelBatch] {lang} b{batch_num+1}: wrote crew output to {lang_review_path} ({len(_crew_raw)} chars)")
+                    else:
+                        print(f"[ExcelBatch] {lang} b{batch_num+1}: WARNING — crew returned empty output, review file not written")
+                except Exception as _wr_exc:
+                    print(f"[ExcelBatch] {lang} b{batch_num+1}: could not persist crew output: {_wr_exc}")
+
+                # Write reviewed translations to Excel directly from this thread.
+                # The slim crew no longer includes a production_manager agent — the
+                # PM's write_reviewed_translations_to_excel tool reads its JSON path
+                # from threading.local(), which CrewAI tool threads don't inherit from
+                # the kickoff thread. Calling the write here (in the language thread,
+                # with the path explicitly set) eliminates that threading gap.
+                _lang_review_path_obj = Path(lang_review_path)
+                print(f"[DEBUG] {lang} b{batch_num+1}: review file exists={_lang_review_path_obj.exists()} path={lang_review_path}")
+                if _lang_review_path_obj.exists():
+                    _raw_preview = _lang_review_path_obj.read_text(encoding="utf-8", errors="replace")[:200]
+                    print(f"[DEBUG] {lang} b{batch_num+1}: review file first 200 chars: {_raw_preview!r}")
+                    # Normalise review file to a bare JSON array before the
+                    # write tool parses it — the reviewer LLM sometimes adds
+                    # preamble text that breaks json.loads().
+                    _sanitise_review_json(_lang_review_path_obj)
+                    _sanitised_preview = _lang_review_path_obj.read_text(encoding="utf-8", errors="replace")[:200]
+                    print(f"[DEBUG] {lang} b{batch_num+1}: after sanitise: {_sanitised_preview!r}")
+                    try:
+                        from .tools.excel_tools import (
+                            write_reviewed_translations_to_excel as _write_to_excel,
+                        )
+                        set_job_translation_path(lang_review_path)
+                        # Pass excel_path as a plain string — CrewAI 0.203+
+                        # Tool.run() forwards the argument directly to the
+                        # underlying function without unpacking a dict.
+                        _write_result_raw = _write_to_excel.run(lang_excel_copy)
+                        print(f"[DEBUG] {lang} b{batch_num+1}: write result: {_write_result_raw[:300]}")
+                        try:
+                            _write_result = json.loads(_write_result_raw)
+                            if _write_result.get("success"):
+                                print(
+                                    f"[ExcelBatch] {lang} batch {batch_num + 1}: "
+                                    f"wrote {_write_result.get('rows_written', '?')} rows "
+                                    f"→ {_write_result.get('output_path', lang_excel_copy)}"
+                                )
+                            else:
+                                print(
+                                    f"[ExcelBatch] {lang} batch {batch_num + 1}: "
+                                    f"Excel write error: {_write_result.get('error')}"
+                                )
+                        except Exception:
+                            pass
+                    except Exception as _we:
+                        print(f"[ExcelBatch] {lang} batch {batch_num + 1}: direct write failed: {_we}")
+
+                    try:
+                        batch_data = json.loads(_lang_review_path_obj.read_text())
+                        if isinstance(batch_data, list):
+                            if len(batch_data) == 0:
+                                print(f"[ExcelBatch] Lang {lang} batch {batch_num + 1}: "
+                                      f"0 rows — all complete, stopping lang early.")
+                                break
+                            lang_review_data.extend(batch_data)
+                            print(f"[DEBUG] {lang} b{batch_num+1}: accumulated {len(lang_review_data)} rows")
+                    except Exception as _je:
+                        print(f"[DEBUG] {lang} b{batch_num+1}: JSON parse after sanitise failed: {_je}")
+                else:
+                    print(f"[DEBUG] {lang} b{batch_num+1}: review file MISSING — crew may not have written output_file")
+
+            with _lock:
+                _shared["all_review_data"] = _merge_per_language_results(
+                    _shared["all_review_data"], lang_review_data
+                )
+                JOBS[job_id]["review_data"] = _shared["all_review_data"]
+
+        # Run all languages in parallel — wall-clock time ≈ slowest single language
+        # instead of sum of all languages.  Isolation is maintained because each
+        # language writes to its own reviewed_translations_{job_id}_{lang}.json.
+        with ThreadPoolExecutor(max_workers=len(target_languages)) as _lang_pool:
+            _lang_futs = {lang: _lang_pool.submit(_run_lang, lang) for lang in target_languages
+                          if not JOBS[job_id].get("cancel_requested")}
+        # All language threads have completed (ThreadPoolExecutor.__exit__ waits).
+        # Re-raise the first exception if any language failed.
+        for lang, fut in _lang_futs.items():
+            try:
+                fut.result()
+            except Exception as _lang_exc:
+                raise RuntimeError(f"Language {lang} failed: {_lang_exc}") from _lang_exc
+
+        # Merge per-language translated Excels into a single output file.
+        # Each language wrote to outputs/{stem}_{job_id}_{lang}_translated.xlsx
+        # to avoid race conditions; combine them now into outputs/{stem}_translated.xlsx.
+        _merge_language_excels(excel_path, target_languages, job_id)
+
+        # Clean up per-language input copies and their translated outputs.
+        for _cl in target_languages:
+            for _suffix in ["", "_translated"]:
+                _f = Path("outputs") / f"{_orig_p.stem}_{job_id}_{_cl}{_suffix}{_orig_p.suffix}"
+                try:
+                    _f.unlink(missing_ok=True)
+                except Exception:
+                    pass
+
+        all_review_data = _shared["all_review_data"]
+        _total_prompt_tokens = _shared["prompt_tokens"]
+        _total_completion_tokens = _shared["completion_tokens"]
 
         if _total_prompt_tokens or _total_completion_tokens:
             JOBS[job_id]["token_usage"] = {

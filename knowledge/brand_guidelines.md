@@ -157,8 +157,21 @@ The following names MUST remain in English in all languages. Do not translate, t
 - Monotype Studio
 - Monotype Studio+
 - Monotype Foundry Program (MFP)
-- Extensis Connect
+- Extensis Connect (legacy name — now rebranded as Monotype Connect)
 - MyFonts app
+- Monotype Connect (current brand for the Extensis enterprise font-management product line)
+- Monotype Connect Pro
+- Monotype Connect for Agencies
+- Connect Fonts (desktop font-management product, formerly Suitcase Fusion)
+- Connect Fonts Powered By Suitcase (full product name on extensis.com)
+- Universal Type Server (UTS) (server-based font management, also marketed as Connect Fonts)
+- Suitcase Fusion (legacy desktop product — superseded by Connect Fonts)
+- Font Sense™ (Extensis proprietary auto-activation technology — always "Font Sense™")
+
+> **Extensis / Monotype Connect context (for translators):** Extensis is a Monotype subsidiary
+> that makes enterprise font-management software. Their products are now marketed under the
+> "Monotype Connect" umbrella on extensis.com. All product names above must remain in English
+> across all five target languages — never translate or transliterate them.
 
 ### Feature & Campaign Names
 - Smart Search
