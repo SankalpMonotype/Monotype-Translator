@@ -143,9 +143,6 @@ class MonotypeTranslationCrew:
             # Slim crew: brand context is already embedded in the task
             # description overrides — skip brand_analyst entirely so it
             # doesn't add per-batch LLM overhead on warm-cache runs.
-            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-            report_path = os.path.join("outputs", f"translation_report-{timestamp}.md")
-
             trans_desc = (
                 getattr(self, "_translation_desc_override", None)
                 or self.tasks_config["translation_task"]["description"]  # type: ignore[index]
@@ -171,16 +168,12 @@ class MonotypeTranslationCrew:
                 context=[trans_task],
                 output_file=review_path,
             )
-            prod_task = Task(
-                description=self.tasks_config["production_task"]["description"],  # type: ignore[index]
-                expected_output=self.tasks_config["production_task"]["expected_output"],  # type: ignore[index]
-                agent=self.production_manager(),
-                context=[rev_task],
-                output_file=report_path,
-            )
+            # Production (Excel write) is handled directly by api._run_lang after
+            # each batch to avoid threading issues with the tool's thread-local
+            # path lookup (_get_reviewed_path). The PM agent is omitted here.
             return Crew(
-                agents=[self.translator(), self.translation_reviewer(), self.production_manager()],
-                tasks=[trans_task, rev_task, prod_task],
+                agents=[self.translator(), self.translation_reviewer()],
+                tasks=[trans_task, rev_task],
                 process=Process.sequential,
                 verbose=True,
             )

@@ -2036,8 +2036,38 @@ def _run_job(job_id: str, excel_path: str, languages: str = "fr,de,pt,ja,es") ->
                 except Exception:
                     pass
 
+                # Write reviewed translations to Excel directly from this thread.
+                # The slim crew no longer includes a production_manager agent — the
+                # PM's write_reviewed_translations_to_excel tool reads its JSON path
+                # from threading.local(), which CrewAI tool threads don't inherit from
+                # the kickoff thread. Calling the write here (in the language thread,
+                # with the path explicitly set) eliminates that threading gap.
                 _lang_review_path_obj = Path(lang_review_path)
                 if _lang_review_path_obj.exists():
+                    try:
+                        from .tools.excel_tools import (
+                            write_reviewed_translations_to_excel as _write_to_excel,
+                        )
+                        set_job_translation_path(lang_review_path)
+                        _write_result_raw = _write_to_excel(lang_excel_copy)
+                        try:
+                            _write_result = json.loads(_write_result_raw)
+                            if _write_result.get("success"):
+                                print(
+                                    f"[ExcelBatch] {lang} batch {batch_num + 1}: "
+                                    f"wrote {_write_result.get('rows_written', '?')} rows "
+                                    f"→ {_write_result.get('output_path', lang_excel_copy)}"
+                                )
+                            else:
+                                print(
+                                    f"[ExcelBatch] {lang} batch {batch_num + 1}: "
+                                    f"Excel write error: {_write_result.get('error')}"
+                                )
+                        except Exception:
+                            pass
+                    except Exception as _we:
+                        print(f"[ExcelBatch] {lang} batch {batch_num + 1}: direct write failed: {_we}")
+
                     try:
                         batch_data = json.loads(_lang_review_path_obj.read_text())
                         if isinstance(batch_data, list):
